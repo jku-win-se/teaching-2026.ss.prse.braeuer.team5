@@ -13,9 +13,73 @@ GitHub Actions hilft uns den Entwicklungsprozess zu automatisieren. Konkret kön
 
 ## 2. Kernkonzepte *(~2 min)*
 
-### Wichtigste Begriffe und Konzepte
+GitHub Actions ist eine Plattform für Continuous Integration und Continuous Delivery (CI/CD).
 
-### Architektur / Funktionsweise auf hohem Niveau
+CI/CD bedeutet unter anderem:
+- Code wird automatisch gebaut (Build)
+- Automatisierte Tests überprüfen die Funktionalität
+- Software kann automatisch veröffentlicht oder bereitgestellt werden (Deployment)
+
+Grundstruktur von GitHub Actions
+
+Event → Workflow → Job → Step → Action
+
+1. Event
+Alles beginnt mit einem Ereignis (Event) im Repository, zum Beispiel:
+- Push eines Commits
+- Pull Request
+- Manuell gestarteter Workflow
+
+Dieses Event startet einen Workflow.
+
+2. Workflow
+Ein Workflow ist ein automatisierter Prozess, der beschreibt, welche Aufgaben
+ausgeführt werden sollen (z.B. Build, Tests oder Deployment).
+
+Workflows werden im Repository im Ordner gespeichert:
+.github/workflows
+
+Sie werden in einer YAML-Datei definiert. YAML ist ein leicht lesbares
+Konfigurationsformat.
+
+3. Jobs
+Ein Workflow besteht aus einem oder mehreren Jobs.
+Ein Job enthält zusammengehörige Aufgaben wie:
+- Build
+- Tests
+- Deployment
+
+Jobs laufen dabei auf sogenannten Runnern (virtuellen Maschinen).
+
+GitHub stellt dafür Runner bereit:
+- Linux
+- Windows
+- macOS
+
+4. Steps
+Ein Job besteht aus mehreren Steps (Arbeitsschritten).
+Diese beschreiben konkret, was ausgeführt wird, zum Beispiel:
+- Repository herunterladen
+- Abhängigkeiten installieren
+- Code kompilieren
+- Tests ausführen
+
+5. Actions
+Actions sind wiederverwendbare Automatisierungsbausteine,
+die in Steps verwendet werden können.
+
+Beispiele:
+- Repository-Code herunterladen
+- Programmiersprache einrichten
+- Dateien oder Ergebnisse hochladen
+
+Zusammenfassung
+
+1. Ein Entwickler pusht Code in das Repository
+2. Ein Event startet automatisch einen Workflow
+3. GitHub startet einen Runner (virtuelle Maschine)
+4. Jobs und Steps werden ausgeführt
+5. Build, Tests oder Deployments laufen automatisch
 
 ## 4. Live-Demo *(~4 min)*
 
