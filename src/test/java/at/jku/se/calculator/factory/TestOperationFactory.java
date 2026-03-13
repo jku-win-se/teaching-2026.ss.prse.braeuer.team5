@@ -8,7 +8,7 @@ import at.jku.se.calculator.CalcAction;
 import at.jku.se.calculator.operators.AddOperation;
 import at.jku.se.calculator.operators.MultiplyOperation;
 import at.jku.se.calculator.operators.NullOperation;
-
+import at.jku.se.calculator.operators.DivideOperation;
 /**
  * This test class performs tests for the {@link OperationFactory} class.
  */
@@ -24,6 +24,15 @@ public class TestOperationFactory {
 	public void testAdditionOperation() {
 		ICalculationOperation operation = OperationFactory.getOperation(CalcAction.ADD);
 		assertTrue(operation instanceof AddOperation);
+	}
+
+	/**
+	 * Tests that DIV returns a {@link DivideOperation}.
+	 */
+	@Test
+	public void testDivisionOperation() {
+		ICalculationOperation operation = OperationFactory.getOperation(CalcAction.DIV);
+		assertTrue(operation instanceof DivideOperation);
 	}
 
 	/**
@@ -47,11 +56,7 @@ public class TestOperationFactory {
 	/**
 	 * Tests that DIV returns a {@link NullOperation} (not yet implemented).
 	 */
-	@Test
-	public void testDivisionOperation() {
-		ICalculationOperation operation = OperationFactory.getOperation(CalcAction.DIV);
-		assertTrue(operation instanceof NullOperation);
-	}
+
 
 	/**
 	 * Tests that POW returns a {@link NullOperation} (not yet implemented).
