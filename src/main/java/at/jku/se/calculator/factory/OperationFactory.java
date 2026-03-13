@@ -38,7 +38,7 @@ public class OperationFactory {
 		case DIV:
 			return new DivideOperation();
 		case MULT:
-			return new NullOperation();
+			return new MultiplyOperation();
 		case SUB:
 			return new NullOperation();
 		default:
