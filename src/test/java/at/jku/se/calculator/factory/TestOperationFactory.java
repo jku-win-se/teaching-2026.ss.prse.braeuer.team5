@@ -5,9 +5,9 @@ import org.junit.Test;
 
 import at.jku.se.calculator.CalcAction;
 import at.jku.se.calculator.operators.AddOperation;
+import at.jku.se.calculator.operators.MultiplyOperation;
 import at.jku.se.calculator.operators.NullOperation;
-import at.jku.se.calculator.operators.SubtractOperation;
-
+import at.jku.se.calculator.operators.DivideOperation;
 /**
  * This test class performs tests for the {@link OperationFactory} class.
  */
@@ -26,6 +26,15 @@ public class TestOperationFactory {
 	}
 
 	/**
+	 * Tests that DIV returns a {@link DivideOperation}.
+	 */
+	@Test
+	public void testDivisionOperation() {
+		ICalculationOperation operation = OperationFactory.getOperation(CalcAction.DIV);
+		assertTrue(operation instanceof DivideOperation);
+	}
+
+	/**
 	 * Tests that SUB returns a {@link NullOperation} (not yet implemented).
 	 */
 	@Test
@@ -35,22 +44,18 @@ public class TestOperationFactory {
 	}
 
 	/**
-	 * Tests that MULT returns a {@link NullOperation} (not yet implemented).
+	 * Tests that MULT returns a {@link MultiplyOperation}.
 	 */
 	@Test
 	public void testMultiplicationOperation() {
 		ICalculationOperation operation = OperationFactory.getOperation(CalcAction.MULT);
-		assertTrue(operation instanceof NullOperation);
+		assertTrue(operation instanceof MultiplyOperation);
 	}
 
 	/**
 	 * Tests that DIV returns a {@link NullOperation} (not yet implemented).
 	 */
-	@Test
-	public void testDivisionOperation() {
-		ICalculationOperation operation = OperationFactory.getOperation(CalcAction.DIV);
-		assertTrue(operation instanceof NullOperation);
-	}
+
 
 	/**
 	 * Tests that POW returns a {@link NullOperation} (not yet implemented).

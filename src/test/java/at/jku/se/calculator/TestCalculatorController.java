@@ -105,6 +105,26 @@ public class TestCalculatorController {
 	}
 
 	/**
+	 * Full MULT flow: enter 4, press x, enter 3, press = and get "12".
+	 */
+	@Test
+	public void testApplyActionMultiplyEquals() {
+		controller.applyAction("4", CalcAction.MULT);
+		String result = controller.applyAction("4x3", null);
+		assertEquals("12", result);
+	}
+
+	/**
+	 * Multiplication by zero returns "0".
+	 */
+	@Test
+	public void testApplyActionMultiplyByZero() {
+		controller.applyAction("0", CalcAction.MULT);
+		String result = controller.applyAction("0x9", null);
+		assertEquals("0", result);
+	}
+
+	/**
 	 * Pressing another operator after a complete operand evaluates and appends the
 	 * new operator symbol: 3 + [press +] 4 [press -] → evaluates 3+4=7, then "7-".
 	 */
