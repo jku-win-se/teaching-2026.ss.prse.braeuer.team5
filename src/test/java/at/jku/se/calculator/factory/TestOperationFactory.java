@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import at.jku.se.calculator.CalcAction;
 import at.jku.se.calculator.operators.AddOperation;
+import at.jku.se.calculator.operators.MultiplyOperation;
 import at.jku.se.calculator.operators.NullOperation;
 
 /**
@@ -35,12 +36,12 @@ public class TestOperationFactory {
 	}
 
 	/**
-	 * Tests that MULT returns a {@link NullOperation} (not yet implemented).
+	 * Tests that MULT returns a {@link MultiplyOperation}.
 	 */
 	@Test
 	public void testMultiplicationOperation() {
 		ICalculationOperation operation = OperationFactory.getOperation(CalcAction.MULT);
-		assertTrue(operation instanceof NullOperation);
+		assertTrue(operation instanceof MultiplyOperation);
 	}
 
 	/**
