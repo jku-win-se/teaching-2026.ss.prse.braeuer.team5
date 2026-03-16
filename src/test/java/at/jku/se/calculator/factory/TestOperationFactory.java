@@ -1,7 +1,6 @@
 package at.jku.se.calculator.factory;
 
 import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 
 import at.jku.se.calculator.CalcAction;
@@ -41,7 +40,7 @@ public class TestOperationFactory {
 	@Test
 	public void testSubtractionOperation() {
 		ICalculationOperation operation = OperationFactory.getOperation(CalcAction.SUB);
-		assertTrue(operation instanceof NullOperation);
+		assertTrue(operation instanceof SubtractOperation);
 	}
 
 	/**
