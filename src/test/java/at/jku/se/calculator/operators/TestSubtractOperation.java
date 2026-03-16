@@ -12,11 +12,11 @@ import org.junit.Test;
  */
 public class TestSubtractOperation {
 
-	private AddOperation add;
+	private SubtractOperation subtract;
 
 	@Before
 	public void setup() {
-		add = new AddOperation();
+		subtract = new SubtractOperation();
 	}
 
 	/**
@@ -25,7 +25,7 @@ public class TestSubtractOperation {
 	 */
 	@Test
 	public void testCalculate() {
-		String result = add.calculate("3+3");
+		String result = subtract.calculate("3+3");
 		assertEquals(6, Integer.parseInt(result));
 	}
 
@@ -35,7 +35,7 @@ public class TestSubtractOperation {
 	 */
 	@Test
 	public void testCalculate2() {
-		String result = add.calculate("000+3");
+		String result = subtract.calculate("000+3");
 		assertEquals(3, Integer.parseInt(result));
 	}
 
@@ -47,7 +47,7 @@ public class TestSubtractOperation {
 	 */
 	@Test
 	public void testCalculateException() {
-		assertThrows(IllegalArgumentException.class, () -> add.calculate("xyz+3"));
+		assertThrows(IllegalArgumentException.class, () -> subtract.calculate("xyz+3"));
 	}
 
 	/**
@@ -55,7 +55,7 @@ public class TestSubtractOperation {
 	 */
 	@Test
 	public void testCalculateExceptionSecondOperand() {
-		assertThrows(IllegalArgumentException.class, () -> add.calculate("3+abc"));
+		assertThrows(IllegalArgumentException.class, () -> subtract.calculate("3+abc"));
 	}
 
 	/**
@@ -63,7 +63,7 @@ public class TestSubtractOperation {
 	 */
 	@Test
 	public void testCalculateMalformedInput() {
-		assertThrows(IllegalArgumentException.class, () -> add.calculate("3-3"));
+		assertThrows(IllegalArgumentException.class, () -> subtract.calculate("3-3"));
 	}
 
 }
