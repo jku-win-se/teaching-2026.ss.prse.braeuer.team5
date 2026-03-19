@@ -1,2 +1,6 @@
-# Ignore target folder containing build artifacts
-/target/
+node_modules/
+dist/
+.env
+.env.local
+npm-debug.log*
+.npm-cache/

@@ -1,37 +1,44 @@
-# Systemdokumentation
+# Systemarchitektur
 
-## Überblick
+## Ueberblick
 
-Kurze Beschreibung von Zweck und Umfang des Systems.
+Die Anwendung wird als Web-Frontend mit React, TypeScript und Vite umgesetzt. Fuer Persistenz, Authentifizierung und spaetere Echtzeitfunktionen ist Supabase als Backend-Service vorgesehen.
 
-## Architektur
+## Architekturbausteine
 
-- UI: `SimpleCalculator`
-- Domänenlogik: Operationen in `operators/`
-- Erzeugung: `OperationFactory`
+- `src/components`: wiederverwendbare UI-Bausteine wie Navigation
+- `src/pages`: seitenbezogene Oberflaechen fuer Dashboard, Devices und Simulator
+- `src/config`: technische Konfiguration wie die Supabase-Anbindung
 
-## Wichtige Designentscheidungen
+## Geplante Gesamtarchitektur
 
-Dokumentiert technische Entscheidungen und deren Begründung.
+- Frontend: React-Anwendung im Browser
+- Backend-Service: Supabase fuer Auth, Datenhaltung und spaetere Regeln/Aktivitaetslogs
+- Deployment: statischer Frontend-Build aus `dist/`
+
+## Zentrale Designentscheidungen
+
+- React mit TypeScript fuer schnelle Iteration und klare Komponentenstruktur
+- Vite fuer einfaches Projektskelett und schnellen Build
+- Supabase statt eigenem Server fuer schnellen Start bei Auth und Datenmodell
+- Erst ein einfacher End-to-End-Flow, spaeter Ausbau auf Regeln, Rollen und Auswertungen
 
 ## Erweiterungspunkte
 
-- Neue Operatoren implementieren
-- Factory erweitern
-- Zusätzliche Tests ergänzen
+- Login und Rollenmodell
+- CRUD fuer Raeume und Geraete
+- Aktivitaetslog
+- Regeln und Zeitplaene
+- Simulator fuer Tagesablaeufe
+- Energie-Dashboard
 
-## Build und Qualität
+## Build und Qualitaet
 
-- Build-Tool: Maven
-- Tests: JUnit
-- Statische Analyse: PMD
+- Paketverwaltung: npm
+- Build: `npm run build`
+- Statische Analyse: `npm run lint`
+- CI: GitHub Actions fuehrt Lint und Build auf Push und Pull Request aus
 
-## Testfallbeschreibung und Testabdeckung
+## Vorlaeufiges Komponentenbild
 
-- Beschreibung der wichtigsten Testfälle
-- Aktuelle Testabdeckung: 80 % (ohne UI-Klassen)
-
-
-
-
-
+Das zugehoerige Diagramm liegt in [component-diagram.puml](./component-diagram.puml).

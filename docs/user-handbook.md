@@ -2,28 +2,32 @@
 
 ## Zielgruppe
 
-Beschreibt, für wen die Anwendung gedacht ist.
+Die Anwendung richtet sich an Benutzerinnen und Benutzer, die virtuelle Smart-Home-Geraete in einer gemeinsamen Oberflaeche verwalten und steuern wollen.
 
 ## Installation und Start
 
-1. Java 21 und Maven installieren.
-2. Projekt im Terminal öffnen.
-3. Mit `mvn clean package` bauen.
-4. Anwendung starten.
+1. Node.js 22 und npm 11 installieren.
+2. Repository im Terminal oeffnen.
+3. `npm ci` ausfuehren.
+4. `.env.example` nach `.env` kopieren und bei Bedarf Supabase-Werte eintragen.
+5. `npm run dev` starten.
 
-## Funktionen
+## Aktuelle Oberflaeche
 
-- Grundlegende Rechnerfunktionen
-- Eingabe über UI
-- Ergebnisanzeige
+- `Dashboard`: Ueberblick ueber Verbindungsstatus und Beispielgeraete
+- `Devices`: Platzhalter fuer Raum- und Geraeteverwaltung
+- `Simulator`: Platzhalter fuer spaetere Tagesablauf-Simulation
 
-## Szenarien
+## Demo-Szenario fuer morgen
 
-## Bekannte Einschränkungen
+1. Anwendung starten
+2. Dashboard oeffnen
+3. Navigationswechsel zu Devices
+4. Rueckkehr zum Dashboard
+5. Erklaeren, wo Supabase und die End-to-End-Funktion als Naechstes angebunden werden
 
-Beschreibt aktuelle Limits und nicht implementierte Funktionen.
+## Bekannte Einschraenkungen
 
-## FAQ
-
-Häufige Fragen und kurze Lösungen.
-
+- Login ist noch nicht implementiert.
+- Es werden aktuell Platzhalterdaten angezeigt.
+- Die Supabase-Anbindung ist vorbereitet, aber noch nicht produktiv genutzt.

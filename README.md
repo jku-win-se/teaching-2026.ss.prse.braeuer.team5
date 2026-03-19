@@ -1,31 +1,36 @@
-# Einleitung
+# Smart Home Team 5
 
-Überblick über das Projekt.
+Webanwendung fuer das PRSE-Projekt im SS26. Die Anwendung dient zur Verwaltung simulierter Smart-Home-Geraete, Raeume und spaeter auch Regeln, Zeitplaenen und Auswertungen.
 
-# Umgesetzte Anforderungen
+## Aktueller Stand
 
-* Welche der Anforderungen haben Sie umgesetzt, wer aus dem Team war verantwortlich und welches Stundenausmaß ist damit verknüpft?
-* Falls Anforderungen nicht umgesetzt wurden muss das pro Anforderung begründet werden.
+- Offizielles Team-Repo auf React, TypeScript und Vite umgestellt
+- Erste Navigationsstruktur fuer Dashboard, Devices und Simulator vorhanden
+- Supabase-Anbindung vorbereitet ueber Umgebungsvariablen
+- GitHub Actions prueft Lint und Production Build
 
-# Überblick über die Applikation aus Benutzersicht
+## Voraussetzungen
 
-[Link zu Benutzerdokumentation](./docs/user-handbook.md)
+- Node.js 22
+- npm 11
 
-* Installations- und Startanleitung
-* Überblick über die Funktionen der Applikation (z.B. Hauptbildschirm, Unterseiten, Navigation)
-* Beschreibung der Funktionalität anhand von Szenarien (z.B. "Wie kann ein Benutzer eine neue Regel erstellen?")
-* Bekannte Einschränkungen (z.B. "Die Anwendung unterstützt derzeit nur die Steuerung von bis zu 5 Geräten")
+## Lokaler Start
 
-# Überblick über die Applikation aus Entwicklersicht
+1. Abhaengigkeiten installieren: `npm ci`
+2. Umgebungsvariablen anlegen: `.env` aus `.env.example` erstellen
+3. Entwicklungsserver starten: `npm run dev`
+4. Produktionsbuild pruefen: `npm run build`
 
-[Link zu Systemarchitektur-Dokumentation](./docs/system-architecture.md)
+## Wichtige Skripte
 
-* Überblick über die Architektur (z.B. Schichten, Module, wichtige Klassen)
-* Beschreibung der wichtigsten Designentscheidungen (z.B. "Warum haben wir uns für eine monolithische Architektur entschieden?")
-* Hinweise zu Erweiterungspunkten
-* Build und Qualitätssicherung (z.B. verwendete Tools, Testabdeckung, Codequalität)
-* Testfallbeschreibung und Testabdeckung (z.B. "Die wichtigsten Testfälle decken die Kernfunktionalität ab, die aktuelle Testabdeckung liegt bei 80 % ohne UI-Klassen")
+- `npm run dev`
+- `npm run lint`
+- `npm run build`
 
-# JavaDoc für wichtige Klassen, Interfaces und Methoden
+## Dokumentation
 
-[Links zu JavaDoc-Seiten](./docs/javadoc/index.html)
+- [Benutzerdokumentation](./docs/user-handbook.md)
+- [Systemarchitektur](./docs/system-architecture.md)
+- [Git-Workflow](./docs/git-workflow.md)
+- [Release-1-Plan](./docs/release-1-plan.md)
+- [Backlog-Entwurf](./docs/backlog.md)
