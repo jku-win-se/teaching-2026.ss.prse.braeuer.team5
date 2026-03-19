@@ -2,35 +2,49 @@
 
 ## Ueberblick
 
-Die Anwendung wird als Web-Frontend mit React, TypeScript und Vite umgesetzt. Fuer Persistenz, Authentifizierung und spaetere Echtzeitfunktionen ist Supabase als Backend-Service vorgesehen.
+Die Anwendung ist eine Web-App mit React, TypeScript und Vite. Das Frontend laeuft im Browser. Daten, Anmeldung und spaetere Echtzeitfunktionen sollen ueber Supabase laufen.
 
-## Architekturbausteine
+## Einfache Sicht auf das System
 
-- `src/components`: wiederverwendbare UI-Bausteine wie Navigation
-- `src/pages`: seitenbezogene Oberflaechen fuer Dashboard, Devices und Simulator
-- `src/config`: technische Konfiguration wie die Supabase-Anbindung
+```mermaid
+flowchart LR
+    U[Benutzer] --> B[Browser]
+    B --> F[React Frontend]
+    F --> P[Seiten und Komponenten]
+    F --> C[Supabase Client]
+    C --> S[(Supabase)]
+    S --> D[(Datenbank)]
+    S --> A[Authentifizierung]
+```
 
-## Geplante Gesamtarchitektur
+## Hauptteile
 
-- Frontend: React-Anwendung im Browser
-- Backend-Service: Supabase fuer Auth, Datenhaltung und spaetere Regeln/Aktivitaetslogs
-- Deployment: statischer Frontend-Build aus `dist/`
+- Benutzer arbeitet im Browser.
+- Das React-Frontend zeigt Seiten, Formulare und Status an.
+- Der Supabase-Client verbindet das Frontend mit dem Backend-Service.
+- Supabase speichert Daten und uebernimmt spaeter die Anmeldung.
 
 ## Zentrale Designentscheidungen
 
-- React mit TypeScript fuer schnelle Iteration und klare Komponentenstruktur
-- Vite fuer einfaches Projektskelett und schnellen Build
-- Supabase statt eigenem Server fuer schnellen Start bei Auth und Datenmodell
-- Erst ein einfacher End-to-End-Flow, spaeter Ausbau auf Regeln, Rollen und Auswertungen
+- React mit TypeScript fuer klare Komponenten und gut wartbaren Code
+- Vite fuer schnellen Start und einfachen Build
+- Supabase, damit Auth und Datenhaltung nicht selbst gebaut werden muessen
+- Erst ein einfacher End-to-End-Flow, danach schrittweiser Ausbau
 
-## Erweiterungspunkte
+## Aktuelle Projektstruktur
+
+- `src/pages`: Seiten wie Dashboard, Devices und Simulator
+- `src/components`: wiederverwendbare Bausteine wie die Navigation
+- `src/config`: technische Konfiguration wie der Supabase-Client
+- `public`: statische Dateien
+
+## Ausbau im Projekt
 
 - Login und Rollenmodell
-- CRUD fuer Raeume und Geraete
-- Aktivitaetslog
-- Regeln und Zeitplaene
-- Simulator fuer Tagesablaeufe
-- Energie-Dashboard
+- Verwaltung von Raeumen und Geraeten
+- manuelle Steuerung und Statusanzeige
+- Aktivitaetslog, Regeln und Zeitplaene
+- Energie-Dashboard und Simulator
 
 ## Build und Qualitaet
 
@@ -38,7 +52,3 @@ Die Anwendung wird als Web-Frontend mit React, TypeScript und Vite umgesetzt. Fu
 - Build: `npm run build`
 - Statische Analyse: `npm run lint`
 - CI: GitHub Actions fuehrt Lint und Build auf Push und Pull Request aus
-
-## Vorlaeufiges Komponentenbild
-
-Das zugehoerige Diagramm liegt in [component-diagram.puml](./component-diagram.puml).
