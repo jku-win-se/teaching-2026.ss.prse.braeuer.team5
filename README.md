@@ -32,5 +32,4 @@ Webanwendung fuer das PRSE-Projekt im SS26. Die Anwendung dient zur Verwaltung s
 - [Benutzerdokumentation](./docs/user-handbook.md)
 - [Systemarchitektur](./docs/system-architecture.md)
 - [Git-Workflow](./docs/git-workflow.md)
-- [Release-1-Plan](./docs/release-1-plan.md)
-- [Backlog-Entwurf](./docs/backlog.md)
+- [Projekt-Roadmap](./docs/project-roadmap.md)
