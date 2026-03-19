@@ -1,4 +1,4 @@
-# Git-Workflow
+# Git-Workflow 
 
 ## Branches
 
@@ -18,7 +18,7 @@
 ## Benennung
 
 - Branches nur in Kleinbuchstaben
-- Wörter mit `-` trennen
+- WÃ¶rter mit `-` trennen
 - Beispiel: `feature/12/react-repo-migration`
 
 ## Commit-Nachrichten
