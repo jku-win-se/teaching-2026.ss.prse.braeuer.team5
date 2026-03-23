@@ -1,0 +1,37 @@
+name: CI - Quality Check
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      # 1. PMD Scan with report
+      - name: Run PMD
+        run: |
+          pmd check -d ./src -R pmd-ruleset.xml -f text > reports/pmd-report.txt || true
+          pmd check -d ./src -R pmd-ruleset.xml -f html > reports/pmd-report.html || true
+
+      # 2. vitest with report
+      - name: Run Tests
+        run: npm run test:ci
+
+      # 3. Reports hochladen (Artifacts)
+      - name: Upload All Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-quality-stack
+          path: reports/
