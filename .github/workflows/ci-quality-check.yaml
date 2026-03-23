@@ -31,6 +31,8 @@ jobs:
         run: |
           mkdir -p reports
 
+          touch reports/pmd-report.txt reports/pmd-report.html reports/pmd-report.xml
+
           pmd check -d ./src -R pmd-ruleset.xml -f text > reports/pmd-report.txt || true
           pmd check -d ./src -R pmd-ruleset.xml -f html > reports/pmd-report.html || true
           pmd check -d ./src -R pmd-ruleset.xml -f xml  > reports/pmd-report.xml  || true
