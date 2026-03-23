@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  frontend:
+  build:
     runs-on: ubuntu-latest
 
     env:
@@ -25,8 +25,26 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      # PMD needs Java
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
       - name: Install dependencies
         run: npm ci
+
+      #Run tests
+      - name: Run Vitest
+        run: npm run test
+
+      - name: Run PMD Check
+        uses: pmd/pmd-github-action@v2
+        with:
+          rulesets: 'pmd-ruleset.xml'
+          source: 'src'
+          analyzeModifiedFilesOnly: false
 
       - name: Run linter
         run: npm run lint
@@ -35,6 +53,8 @@ jobs:
         run: npm run build
 
       - name: Deploy to GitHub Pages
+        # Only deploy if main branch is changed
+        if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
