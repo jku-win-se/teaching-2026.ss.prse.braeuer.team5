@@ -15,7 +15,7 @@ export default function App(): JSX.Element {
           <Route path="/" element={<Dashboard />} />
           <Route path="/devices" element={<Devices />} />
           <Route path="/simulator" element={<Simulator />} />
-        </Routes>
+        </Routes> 
       </main> 
     </div>
   );
