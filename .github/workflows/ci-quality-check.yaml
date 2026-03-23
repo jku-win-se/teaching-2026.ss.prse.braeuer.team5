@@ -1,5 +1,4 @@
 name: CI - Quality Check
-
 on:
   push:
     branches-ignore: [main]
@@ -9,11 +8,10 @@ on:
 jobs:
   check-quality:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -23,40 +21,23 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      # PMD CLI installieren
       - name: Install PMD
         run: |
           wget https://github.com/pmd/pmd/releases/download/pmd_releases/7.0.0/pmd-dist-7.0.0-bin.zip
           unzip -q pmd-dist-7.0.0-bin.zip
           echo "$PWD/pmd-bin-7.0.0/bin" >> $GITHUB_PATH
 
-      # Reports erzeugen
       - name: Run PMD
         run: |
           mkdir -p reports
-          
-          pmd check \
-            -d ./src \
-            -R pmd-ruleset.xml \
-            -f text \
-            > reports/pmd-report.txt || true
 
-          pmd check \
-            -d ./src \
-            -R pmd-ruleset.xml \
-            -f html \
-            > reports/pmd-report.html || true
-
-          pmd check \
-            -d ./src \
-            -R pmd-ruleset.xml \
-            -f xml \
-            > reports/pmd-report.xml || true
+          pmd check -d ./src -R pmd-ruleset.xml -f text > reports/pmd-report.txt || true
+          pmd check -d ./src -R pmd-ruleset.xml -f html > reports/pmd-report.html || true
+          pmd check -d ./src -R pmd-ruleset.xml -f xml  > reports/pmd-report.xml  || true
 
       - name: Run Tests
         run: npm run test:ci
 
-      # Alles hochladen (auch bei Fehlern)
       - name: Upload Reports
         if: always()
         uses: actions/upload-artifact@v4
