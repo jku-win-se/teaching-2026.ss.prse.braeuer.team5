@@ -25,12 +25,28 @@ jobs:
         with:
           version: '7.0.0' # Aktuelle PMD Version
 
-      # FIX 3: Ordner erstellen, bevor wir reinschreiben
+      - name: Create Reports Directory
+        run: mkdir -p reports
+
+      # Wir nutzen die Action direkt, das ist sicherer als das manuelle "pmd check"
       - name: Run PMD
+        uses: pmd/pmd-github-action@v2
+        id: pmd
+        with:
+          version: '7.0.0'
+          sourcePath: 'src'
+          rulesets: 'pmd-ruleset.xml' # Prüfe, ob der Name exakt so stimmt!
+          analyzeModifiedFilesOnly: false
+          createDefaultConfiguration: false
+
+      - name: Move PMD Report to Reports Folder
+        if: always()
         run: |
-          mkdir -p reports
-          pmd check -d ./src -R pmd-ruleset.xml -f text > reports/pmd-report.txt || true
-          pmd check -d ./src -R pmd-ruleset.xml -f html > reports/pmd-report.html || true
+          # Die Action erzeugt standardmäßig eine Datei namens pmd-report.sarif oder ähnlich
+          # Wir erzwingen hier manuell die Erstellung für deine Artefakte:
+          pmd check -d ./src -R pmd-ruleset.xml -f html > reports/pmd-report.html || echo "PMD HTML Erstellung fehlgeschlagen"
+          pmd check -d ./src -R pmd-ruleset.xml -f text > reports/pmd-report.txt || echo "PMD Text Erstellung fehlgeschlagen"
+
 
       # 2. vitest with report
       - name: Run Tests
