@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<ruleset name="Quickstart" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
+    <description>Basic ruleset for JS/TS</description>
+    <rule ref="category/ecmascript/errorprone.xml/AvoidTrailingComma" />
+</ruleset>
