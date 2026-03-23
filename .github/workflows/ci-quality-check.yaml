@@ -10,17 +10,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install
+        run: npm install 
 
-      # 1. PMD Scan with report
+      # FIX 2: PMD auf dem Server installieren
+      - name: Setup PMD
+        uses: pmd/pmd-github-action@v2
+        with:
+          version: '7.0.0' # Aktuelle PMD Version
+
+      # FIX 3: Ordner erstellen, bevor wir reinschreiben
       - name: Run PMD
         run: |
+          mkdir -p reports
           pmd check -d ./src -R pmd-ruleset.xml -f text > reports/pmd-report.txt || true
           pmd check -d ./src -R pmd-ruleset.xml -f html > reports/pmd-report.html || true
 
