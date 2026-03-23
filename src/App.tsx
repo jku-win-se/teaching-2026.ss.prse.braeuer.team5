@@ -4,8 +4,9 @@ import { Sidebar } from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Devices from "./pages/Devices";
 import Simulator from "./pages/Simulator";
+import type { JSX } from "react/jsx-dev-runtime";
 
-export default function App() {
+export default function App(): JSX.Element {
   return (
     <div className="app-shell">
       <Sidebar />
