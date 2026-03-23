@@ -4,3 +4,5 @@ dist/
 .env.local
 npm-debug.log*
 .npm-cache/
+test-report.xml
+coverage/
