@@ -1,4 +1,5 @@
 name: CI - Quality Check
+
 on:
   push:
     branches-ignore: [main]
@@ -8,54 +9,57 @@ on:
 jobs:
   check-quality:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install 
+        run: npm ci
 
-      # FIX 2: PMD auf dem Server installieren
-      - name: Setup PMD
-        uses: pmd/pmd-github-action@v2
-        with:
-          version: '7.0.0' # Aktuelle PMD Version
-
-      - name: Create Reports Directory
-        run: mkdir -p reports
-
-      # Wir nutzen die Action direkt, das ist sicherer als das manuelle "pmd check"
-      - name: Run PMD
-        uses: pmd/pmd-github-action@v2
-        id: pmd
-        with:
-          version: '7.0.0'
-          sourcePath: 'src'
-          rulesets: 'pmd-ruleset.xml' # Prüfe, ob der Name exakt so stimmt!
-          analyzeModifiedFilesOnly: false
-          createDefaultConfiguration: false
-
-      - name: Move PMD Report to Reports Folder
-        if: always()
+      # PMD CLI installieren
+      - name: Install PMD
         run: |
-          # Die Action erzeugt standardmäßig eine Datei namens pmd-report.sarif oder ähnlich
-          # Wir erzwingen hier manuell die Erstellung für deine Artefakte:
-          pmd check -d ./src -R pmd-ruleset.xml -f html > reports/pmd-report.html || echo "PMD HTML Erstellung fehlgeschlagen"
-          pmd check -d ./src -R pmd-ruleset.xml -f text > reports/pmd-report.txt || echo "PMD Text Erstellung fehlgeschlagen"
+          wget https://github.com/pmd/pmd/releases/download/pmd_releases/7.0.0/pmd-dist-7.0.0-bin.zip
+          unzip -q pmd-dist-7.0.0-bin.zip
+          echo "$PWD/pmd-bin-7.0.0/bin" >> $GITHUB_PATH
 
+      # Reports erzeugen
+      - name: Run PMD
+        run: |
+          mkdir -p reports
+          
+          pmd check \
+            -d ./src \
+            -R pmd-ruleset.xml \
+            -f text \
+            > reports/pmd-report.txt || true
 
-      # 2. vitest with report
+          pmd check \
+            -d ./src \
+            -R pmd-ruleset.xml \
+            -f html \
+            > reports/pmd-report.html || true
+
+          pmd check \
+            -d ./src \
+            -R pmd-ruleset.xml \
+            -f xml \
+            > reports/pmd-report.xml || true
+
       - name: Run Tests
         run: npm run test:ci
 
-      # 3. Reports hochladen (Artifacts)
-      - name: Upload All Reports
+      # Alles hochladen (auch bei Fehlern)
+      - name: Upload Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: full-quality-stack
+          name: quality-reports
           path: reports/
