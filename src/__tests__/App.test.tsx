@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { MockedFunction } from 'vitest'
+import type { Session } from '@supabase/supabase-js'
 import { render } from '@testing-library/react'
 import { BrowserRouter, MemoryRouter } from 'react-router-dom'
 import '@testing-library/jest-dom'
@@ -23,24 +24,32 @@ describe('App', () => {
     vi.clearAllMocks()
   })
 
+const getSessionMock = supabase!.auth.getSession as MockedFunction<
+  () => Promise<{ data: { session: Session | null }; error: null }>
+>
+
   //simulate logged in user
   const mockLoggedInSession = () => {
-    if (supabase?.auth?.getSession) {
-      (supabase.auth.getSession as MockedFunction<typeof supabase.auth.getSession>).mockResolvedValue({
-        data: { session: { user: { id: 'test-user', app_metadata: {}, user_metadata: {}, aud: '', created_at: '' }, access_token: 'test-token', refresh_token: 'test-refresh', expires_in: 3600, token_type: 'bearer' } } ,
-        error: null,
-      })
-    }
+    getSessionMock.mockResolvedValue({
+      data: { 
+        session: { 
+          user: { id: 'test-user', app_metadata: {}, user_metadata: {}, aud: '', created_at: '' }, 
+          access_token: 'test-token', 
+          refresh_token: 'test-refresh', 
+          expires_in: 3600, 
+          token_type: 'bearer' 
+        } 
+      },
+      error: null,
+    })
   }
 
   //simulate logged out user
   const mockLoggedOutSession = () => {
-    if (supabase?.auth?.getSession) {
-      (supabase.auth.getSession as MockedFunction<typeof supabase.auth.getSession>).mockResolvedValue({
-        data: { session: null },
-        error: null,
-      })
-    }
+    getSessionMock.mockResolvedValue({
+      data: { session: null },
+      error: null,
+    })
   }
 
   it('renders the app shell with sidebar and main content', async () => {
@@ -123,6 +132,6 @@ describe('App', () => {
     )
     
       expect(await findByRole('heading', { name: 'Register' })).toBeInTheDocument()
-      expect(await queryByRole('navigation')).not.toBeInTheDocument()
+      expect(queryByRole('navigation')).not.toBeInTheDocument()
   })
 })
