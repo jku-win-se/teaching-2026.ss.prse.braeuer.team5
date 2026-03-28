@@ -9,6 +9,7 @@ import { supabase } from '../config/supabaseClient'
 
 // Mock the supabase client
 vi.mock('../config/supabaseClient', () => ({
+  isSupabaseConfigured: true,
   supabase: {
     auth: {
       getSession: vi.fn(),
