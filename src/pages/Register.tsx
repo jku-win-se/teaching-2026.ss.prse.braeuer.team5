@@ -56,7 +56,6 @@ const SignUp = () => {
         </button>
       </form>
 
-      {/* Fehlermeldung bei bereits existierender E-Mail oder anderen Problemen */}
       {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
     </div>
   );
