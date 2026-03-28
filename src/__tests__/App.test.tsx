@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import type { Session } from '@supabase/supabase-js'
-import { render } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { BrowserRouter, MemoryRouter } from 'react-router-dom'
 import '@testing-library/jest-dom'
 import App from '../App'
@@ -54,84 +54,98 @@ const getSessionMock = supabase!.auth.getSession as MockedFunction<
 
   it('renders the app shell with sidebar and main content', async () => {
     mockLoggedInSession()
-    const { findByRole } = render(
+    render(
       <BrowserRouter>
         <App />
       </BrowserRouter>
     )
 
-    expect(await findByRole('main')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('main')).toBeInTheDocument()
+    })
   })
 
   it('renders the Dashboard page on root path', async () => {
     mockLoggedInSession()
-    const { findByRole } = render(
+    render(
       <MemoryRouter initialEntries={['/']}>
         <App />
       </MemoryRouter>
     )
     
-    expect(await findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
+    await waitFor(() =>{
+      expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
+    })
   })
 
   it('renders the Devices page on /devices path', async () => {
     mockLoggedInSession()
-    const { findByRole } = render(
+    render(
       <MemoryRouter initialEntries={['/devices']}>
         <App />
       </MemoryRouter>
     )
     
-    expect(await findByRole('heading', { name: 'Devices' })).toBeInTheDocument()
+    await waitFor(() =>{
+      expect(screen.getByRole('heading', { name: 'Devices' })).toBeInTheDocument()
+    })
   })
 
   it('renders the Simulator page on /simulator path', async () => {
     mockLoggedInSession()
-    const { findByRole } = render(
+    render(
       <MemoryRouter initialEntries={['/simulator']}>
         <App />
       </MemoryRouter>
     )
     
-    expect(await findByRole('heading', { name: 'Simulator' })).toBeInTheDocument()
+    await waitFor(() =>{
+      expect(screen.getByRole('heading', { name: 'Simulator' })).toBeInTheDocument()
+    })
   })
 
   it('renders Sidebar component', async () => {
     mockLoggedInSession()
-    const { findByRole } = render(
+    render(
       <MemoryRouter>
         <App />
       </MemoryRouter>
     )
     
-    const sidebar = await findByRole('navigation')
-    expect(sidebar).toBeInTheDocument()
+    await waitFor(() =>{
+      const sidebar = screen.getByRole('navigation')
+      expect(sidebar).toBeInTheDocument()
+    })
   })
 
   it('has correct CSS classes for layout', async () => {
     mockLoggedInSession()
-    const { container, findByRole } = render(
+    const { container } = render(
       <MemoryRouter>
         <App />
       </MemoryRouter>
     )
     
-    await findByRole('main')
-    const appShell = container.querySelector('.app-shell')
-    expect(appShell).toBeInTheDocument()
-    expect(appShell).toHaveClass('app-shell')
+    await waitFor(() =>{
+      const appShell = container.querySelector('.app-shell')
+      expect(appShell).toBeInTheDocument()
+      expect(appShell).toHaveClass('app-shell')
+    })
   })
 
   //register page test
   it('renders the Register page when not authenticated', async () => {
     mockLoggedOutSession()
-    const { findByRole, queryByRole } = render(
+    render(
       <MemoryRouter initialEntries={['/register']}>
         <App />
       </MemoryRouter>
     )
     
-      expect(await findByRole('heading', { name: 'Register' })).toBeInTheDocument()
-      expect(queryByRole('navigation')).not.toBeInTheDocument()
+    await waitFor(() =>{
+      expect(screen.getByRole('heading', { name: 'Register' })).toBeInTheDocument()
+    })
+
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
   })
 })
