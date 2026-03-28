@@ -6,36 +6,50 @@ const SignUp = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    // Supabase Auth Sign-up
     if (!supabase) {
-      setError('Supabase client is not initialized');
+      setError("Supabase client is not initialized");
       setLoading(false);
       return;
     }
 
+    // Supabase Auth Sign-up
     const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
     });
 
     if (authError) {
+      // Akzeptanzkriterium: Fehler klar anzeigen
       setError(authError.message);
+      setLoading(false);
+    } else if (data.user && data.session === null) {
+      // Fall: Registrierung erfolgreich, aber Bestätigung ausstehend
+      setSuccess(true);
+      setLoading(false);
     } else {
-      console.log('Registrierung erfolgreich:', data);
-      alert('Check dein Postfach für den Bestätigungslink!');
+      setLoading(false);
     }
-    setLoading(false);
   };
+
+  if (success) {
+    return (
+      <div className="auth-form">
+        <h1>Register</h1>
+        <p>Erfolg! Bitte überprüfe dein Postfach für den Bestätigungslink.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-form">
-      <h2>Registrierung</h2>
+      <h1>Register</h1>
       <form onSubmit={handleSignUp}>
         <input
           type="email"
@@ -56,8 +70,11 @@ const SignUp = () => {
         </button>
       </form>
 
-      {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
-    </div>
+      {error && (
+        <p role="alert" style={{ color: 'red', marginTop: '10px' }}>
+          {error}
+        </p>
+      )}    </div>
   );
 };
 
