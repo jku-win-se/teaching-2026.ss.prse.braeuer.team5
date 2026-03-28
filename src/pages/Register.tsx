@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { isSupabaseConfigured, supabase } from "../config/supabaseClient";
+import { supabase } from "../config/supabaseClient";
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -13,6 +13,12 @@ const SignUp = () => {
     setError(null);
 
     // Supabase Auth Sign-up
+    if (!supabase) {
+      setError('Supabase client is not initialized');
+      setLoading(false);
+      return;
+    }
+
     const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
