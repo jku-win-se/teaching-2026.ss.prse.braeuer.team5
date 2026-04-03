@@ -36,17 +36,25 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #102033;
+  background-color: #102033; /* Dunkelblau */
   color: #ffffff;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, box-shadow 0.2s ease; /* Übergang für den Ring hinzugefügt */
 }
 
+/* --- Deinen Hover-Effekt beibehalten --- */
 button:hover {
   border-color: #335d8d;
 }
 
-button:focus,
+/* --- HIER WIRD ES GELB --- */
+button:focus {
+  outline: none; /* Wir schalten den unzuverlässigen Standard-Ring aus */
+}
+
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  /* Wir erstellen einen eigenen, leuchtend gelben Ring mit box-shadow */
+  /* Das sieht sauberer aus und hat perfekte Rundungen */
+  box-shadow: 0 0 0 4px #facc15; /* Ein kräftiges, barrierefreies Gelb (Yellow 400) */
+  outline: none; /* Doppelte Absicherung für alle Browser */
 }

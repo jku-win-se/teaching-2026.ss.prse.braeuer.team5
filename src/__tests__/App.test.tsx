@@ -26,14 +26,14 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
   })
 
-  it('renders the Devices page on /devices path', () => {
+  it('renders the Rooms page on /rooms path', () => {
     render(
-      <MemoryRouter initialEntries={['/devices']}>
+      <MemoryRouter initialEntries={['/rooms']}>
         <App />
       </MemoryRouter>
     )
     
-    expect(screen.getByRole('heading', { name: 'Devices' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Rooms' })).toBeInTheDocument()
   })
 
   it('renders the Simulator page on /simulator path', () => {
