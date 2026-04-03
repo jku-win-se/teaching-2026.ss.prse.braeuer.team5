@@ -19,7 +19,7 @@ describe("Rooms Datenbank-Logik", () => {
     if (error) throw new Error("Auth fehlgeschlagen: " + error.message);
   });
 
-  it("Soll einen Raum erstellen und die ID zurückgeben", async () => {
+  it("Soll einen Raum erstellen und die ID zurückgeben", async () => { 
     const testName = "Test-Raum-" + Date.now();
     
     // 1. Erstellen

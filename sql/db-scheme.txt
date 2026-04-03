@@ -1,0 +1,161 @@
+-- Enable extensions
+--create extension if not exists "pgcrypto";
+
+-- =========================
+-- ROOMS
+-- =========================
+create table public.rooms (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  created_at timestamptz default now()
+);
+
+-- =========================
+-- ROOM MEMBERS (ACCESS CONTROL)
+-- =========================
+create table public.room_members (
+  user_id uuid references auth.users(id) on delete cascade,
+  room_id uuid references public.rooms(id) on delete cascade,
+  role text not null, -- e.g., 'owner', 'guest'
+  primary key (user_id, room_id)
+);
+
+-- =========================
+-- DEVICES
+-- =========================
+create table public.devices (
+  id uuid primary key default gen_random_uuid(),
+  room_id uuid references public.rooms(id) on delete cascade,
+  name text not null,
+  type text,
+  state jsonb
+);
+
+-- =========================
+-- RULES
+-- =========================
+create table public.rules (
+  id uuid primary key default gen_random_uuid(),
+  device_id uuid references public.devices(id) on delete cascade,
+  name text,
+  condition jsonb,
+  action jsonb,
+  is_active boolean default true
+);
+
+-- =========================
+-- SCHEDULES
+-- =========================
+create table public.schedules (
+  id uuid primary key default gen_random_uuid(),
+  device_id uuid references public.devices(id) on delete cascade,
+  name text,
+  time timestamptz, -- Changed to timestamptz for accurate smart home scheduling
+  action jsonb,
+  is_active boolean default true,
+  created_at timestamptz default now()
+);
+
+-- =========================
+-- RLS ENABLE
+-- =========================
+alter table public.rooms enable row level security;
+alter table public.room_members enable row level security;
+alter table public.devices enable row level security;
+alter table public.rules enable row level security;
+alter table public.schedules enable row level security;
+
+-- =========================
+-- POLICIES (SELECT)
+-- =========================
+
+-- ==========================================
+-- 1. ROOMS: Voller Zugriff für Mitglieder
+-- ==========================================
+create policy "Full access to owned rooms"
+on public.rooms
+for all
+using (
+  exists (
+    select 1 from public.room_members rm
+    where rm.room_id = rooms.id
+    and rm.user_id = auth.uid()
+  )
+);
+
+-- ==========================================
+-- 2. ROOM MEMBERS: Mitglieder sehen (nur Select!)
+-- ==========================================
+-- Hinweis: Hier lassen wir meistens nur SELECT, damit 
+-- Gäste sich nicht selbst zum Admin machen können.
+create policy "Users can see their memberships"
+on public.room_members
+for select
+using (user_id = auth.uid());
+
+-- ==========================================
+-- 3. DEVICES: Voller Zugriff in eigenen Räumen
+-- ==========================================
+create policy "Full access to devices in owned rooms"
+on public.devices
+for all
+using (
+  exists (
+    select 1 from public.room_members rm
+    where rm.room_id = devices.room_id
+    and rm.user_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.room_members rm
+    where rm.room_id = devices.room_id
+    and rm.user_id = auth.uid()
+  )
+);
+
+-- ==========================================
+-- 4. RULES: Voller Zugriff via Device -> Room
+-- ==========================================
+create policy "Full access to rules in owned rooms"
+on public.rules
+for all
+using (
+  exists (
+    select 1 from public.devices d
+    join public.room_members rm on rm.room_id = d.room_id
+    where d.id = rules.device_id
+    and rm.user_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.devices d
+    join public.room_members rm on rm.room_id = d.room_id
+    where d.id = rules.device_id
+    and rm.user_id = auth.uid()
+  )
+);
+
+-- ==========================================
+-- 5. SCHEDULES: Voller Zugriff via Device -> Room
+-- ==========================================
+create policy "Full access to schedules in owned rooms"
+on public.schedules
+for all
+using (
+  exists (
+    select 1 from public.devices d
+    join public.room_members rm on rm.room_id = d.room_id
+    where d.id = schedules.device_id
+    and rm.user_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.devices d
+    join public.room_members rm on rm.room_id = d.room_id
+    where d.id = schedules.device_id
+    and rm.user_id = auth.uid()
+  )
+);
