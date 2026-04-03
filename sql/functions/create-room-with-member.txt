@@ -1,3 +1,4 @@
+--SQL-Files are in Supabase
 create or replace function create_room_with_member(room_name text)
 returns uuid
 language plpgsql
