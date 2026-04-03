@@ -52,11 +52,11 @@ export default function Rooms() {
 
   const confirmDelete = async() => {
     if (!roomToDelete) return;
-    
-    await deleteRoomFromTable(roomToDelete.id);
-
-    setRooms(rooms.filter(r => r.id !== roomToDelete.id));
-    setRoomToDelete(null);
+    const success = await deleteRoomFromTable(roomToDelete.id);
+    if (success) {
+      setRooms(rooms.filter(r => r.id !== roomToDelete.id));
+      setRoomToDelete(null);
+    }
   };
 
   return (

@@ -1,9 +1,9 @@
 import { supabase } from "../config/supabaseClient";
 
-export async function deleteRoomFromTable(roomId: string) : Promise<void> {
+export async function deleteRoomFromTable(roomId: string) : Promise<boolean> {
   if(!supabase) {
     console.error("Supabase client not initialized");
-    return;
+    return false;
   }
 
   const { error } = await supabase
@@ -13,8 +13,12 @@ export async function deleteRoomFromTable(roomId: string) : Promise<void> {
 
   if (error) {
     alert("Fehler beim Löschen: " + error.message);
+    return false;
   }
+
+  return true;
 } 
+
 
 export async function updateRoomInTable(roomId: string, newName: string) : Promise<boolean> {
   if (!supabase) {
