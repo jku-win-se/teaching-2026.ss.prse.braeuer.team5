@@ -8,6 +8,9 @@ on:
 jobs:
   check-quality:
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUB_KEY: ${{ secrets.VITE_SUPABASE_PUB_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
