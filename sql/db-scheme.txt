@@ -1,3 +1,4 @@
+-- SQL Files are in Supabase!
 -- Enable extensions
 --create extension if not exists "pgcrypto";
 
