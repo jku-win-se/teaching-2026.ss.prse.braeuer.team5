@@ -13,8 +13,8 @@ export function Sidebar() {
         <NavLink to="/" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Dashboard
         </NavLink>
-        <NavLink to="/devices" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
-          Devices
+        <NavLink to="/rooms" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
+          Räume
         </NavLink>
         <NavLink to="/simulator" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Simulator

@@ -6,3 +6,4 @@ npm-debug.log*
 .npm-cache/
 test-report.xml
 coverage/
+reports/

@@ -1,0 +1,175 @@
+:root {
+  /* Farben */
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --success: #16a34a;
+  --focus-color: #ecebe6; /* Dein gewünschtes Gelb */
+  
+  --bg-gray: #f9fafb;
+  --border-gray: #e5e7eb;
+  
+  /* Radien & Schatten */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Basis-Styles für alle Buttons in dieser Komponente --- */
+.rooms-container button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+/* Globaler Fokus-Style: Gelber Ring für Tastatur-Nutzer */
+.rooms-container button:focus-visible,
+.rooms-container input:focus {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 1px;
+}
+
+/* --- Layout --- */
+.rooms-container {
+  padding: 1.5rem;
+}
+
+.rooms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+/* --- Add Room Form --- */
+.add-button {
+  background: var(--primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  gap: 0.5rem;
+}
+
+.add-button:hover {
+  background: var(--primary-hover);
+}
+
+.add-room {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.add-room input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border-gray);
+  border-radius: var(--radius-sm);
+  
+}
+
+.add-room button {
+  background: var(--primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+}
+
+/* --- Room List & Cards --- */
+.room-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.room-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-gray);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-gray);
+}
+
+.room-name, .room-input {
+  flex: 1;
+  font-size: 1rem;
+}
+
+.room-input {
+  background: transparent;
+  border: none;
+}
+
+/* --- Icon Actions (Edit/Delete/Save) --- */
+.actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.actions button {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-gray);
+  background: white;
+}
+
+.actions button:hover {
+  background: #f2f3f5;
+}
+
+.actions button[aria-label*="Save"],
+.actions button:first-child { color: var(--success); }
+
+.actions button[aria-label*="Delete"],
+.actions button[aria-label*="Cancel"],
+.actions button:last-child { color: var(--danger); }
+
+/* --- Modal --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0; /* Abkürzung für top/left/width/height: 0/0/100%/100% */
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  width: 300px;
+  box-shadow: var(--shadow);
+}
+
+.modal h3 { margin-top: 0; }
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.modal-actions button {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+}
+
+.modal-actions .danger {
+  background: var(--danger);
+  color: white;
+}
+
+.modal-actions .danger:hover {
+  background: var(--danger-hover);
+}
