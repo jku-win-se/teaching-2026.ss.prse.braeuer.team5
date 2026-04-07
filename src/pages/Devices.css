@@ -1,0 +1,28 @@
+/* --- Haupt-Layout (WICHTIG für das Nebeneinander!) --- */
+.devices-layout {
+  display: flex;
+  gap: 24px;
+  align-items: stretch; /* Sorgt dafür, dass Sidebar und Content gleich hoch sind */
+}
+
+.devices-main {
+  flex: 1; /* Nimmt den restlichen Platz rechts neben der Sidebar ein */
+  padding-top: 0px; /* Ein bisschen Luft nach oben */
+  padding-left: 32px;
+}
+
+/* --- Grid Layout für die Cards --- */
+.devices-grid {
+  display: grid;
+  /* Kacheln sind mindestens 250px breit, füllen aber den Platz aus */
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+
+/* --- Mobile Responsive --- */
+@media (max-width: 900px) {
+  .devices-grid {
+    grid-template-columns: 1fr; /* Eine Spalte auf kleinen Bildschirmen */
+  }
+}

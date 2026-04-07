@@ -1,15 +1,4 @@
 :root {
-  /* Farben */
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --danger: #ef4444;
-  --danger-hover: #dc2626;
-  --success: #16a34a;
-  --focus-color: #ecebe6; /* Dein gewünschtes Gelb */
-  
-  --bg-gray: #f9fafb;
-  --border-gray: #e5e7eb;
-  
   /* Radien & Schatten */
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -97,6 +86,10 @@
   border: 1px solid var(--border-gray);
 }
 
+.room-card:hover {
+  box-shadow: 0 4px 10px 0px rgba(209, 209, 209, 0.3);
+}
+
 .room-name, .room-input {
   flex: 1;
   font-size: 1rem;
@@ -119,6 +112,18 @@
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-gray);
   background: white;
+}
+
+.actions .x {
+  color: var(--danger);
+}
+
+.actions div .check {
+  color: var(--primary) !important;
+}
+
+.actions button {
+  background: var(--bg-hover-gray);
 }
 
 .actions button:hover {
@@ -172,4 +177,93 @@
 
 .modal-actions .danger:hover {
   background: var(--danger-hover);
+}
+
+section{
+  padding-top: 0px;
+}
+
+/* --- Mobile Responsive --- */
+@media (max-width: 900px) {
+  .rooms-container {
+    padding: 1rem;
+  }
+
+  .rooms-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .rooms-header h2 {
+    margin: 0;
+  }
+
+  .add-button {
+    width: 100%;
+  }
+
+  .add-room {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .add-room input,
+  .add-room button {
+    width: 100%;
+  }
+
+  .room-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .modal {
+    width: 90%;
+    max-width: 400px;
+    margin: 20px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .rooms-container {
+    padding: 0.75rem;
+  }
+
+  .rooms-header {
+    margin-bottom: 0.75rem;
+  }
+
+  .add-room input,
+  .add-room button {
+    font-size: 16px; /* Verhindert Auto-Zoom auf iOS */
+  }
+
+  .room-card {
+    padding: 0.5rem;
+  }
+
+  .room-name {
+    font-size: 0.9rem;
+  }
+
+  .actions button {
+    width: 28px;
+    height: 28px;
+  }
 }

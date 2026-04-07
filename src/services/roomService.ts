@@ -1,4 +1,24 @@
+import { data } from "react-router-dom";
 import { supabase } from "../config/supabaseClient";
+import type { Room } from "../types";
+
+export async function fetchRooms(): Promise<Room[]> {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("rooms")
+    .select("*") as { data: Room[] | null; error: any };
+
+  if (error) {
+    console.error("Error fetching rooms:", error);
+    return [];
+  } else if (data === null) {
+    return [];
+  } else {
+    return data;
+  }
+}
+
 
 export async function deleteRoomFromTable(roomId: string) : Promise<boolean> {
   if(!supabase) {
@@ -18,7 +38,6 @@ export async function deleteRoomFromTable(roomId: string) : Promise<boolean> {
 
   return true;
 } 
-
 
 export async function updateRoomInTable(roomId: string, newName: string) : Promise<boolean> {
   if (!supabase) {

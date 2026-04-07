@@ -1,0 +1,89 @@
+
+
+.bauteile-sidebar {
+  width: 260px;
+  background-color: var(--background-sidebar2);
+  border-radius: 0 12px 12px 0; /* Nur rechts abrunden sieht bündig besser aus */
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+
+  /* Nutze PX, um genau das Padding des Elternelements auszugleichen */
+  /* Wenn .app-main 32px Padding hat, nimm hier -32px */
+  margin-top: -2rem; 
+  margin-left: -3.5rem;
+
+  /* Der saubere Weg für die Höhe: */
+  /* 100vh (ganzer Bildschirm) minus eventuelle Header-Höhe */
+  min-height: 100vh; 
+  
+  /* Damit die Sidebar nicht ÜBER den Bildschirm hinausragt: */
+  height: auto;
+  align-self: stretch;
+} 
+
+
+.bauteile-title {
+  font-size: 0.75rem;
+  color: #888;
+  letter-spacing: 1.5px;
+  text-transform: uppercase; /* Optional: Damit es wie im Screenshot aussieht */
+  margin-bottom: 20px; /* Abstand zur Liste nach unten */
+  font-weight: 600;
+  margin-top: 0; /* Verhindert ungewollte Abstände nach oben */
+}
+
+.bauteile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Etwas mehr Abstand zwischen den Buttons sieht oft sauberer aus */
+}
+
+/* Der Rest kann so bleiben, wie du ihn hattest */
+.bauteil-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--primary);
+  border: 1px solid #2a2a2a;
+  color: var(--text-color-2);
+  padding: 12px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.bauteil-btn:hover {
+  background-color: var(--primary-hover);
+ 
+}
+
+/* Media Query für Handys und Tablets */
+@media (max-width: 900px) {
+  .bauteile-sidebar {
+    width: 100%;           /* Volle Breite statt 260px */
+    min-height: auto;      /* Nicht mehr den ganzen Bildschirm einnehmen */
+    height: auto;
+    
+    /* WICHTIG: Margins zurücksetzen! */
+    /* Auf Mobile klebt die Sidebar meist oben, daher Margins auf 0 oder kleine Werte */
+    margin: 0 0 20px 0;    
+    
+    border-radius: 12px;   /* Auf Mobile sieht rundum abgerundet besser aus */
+    flex-shrink: 1;
+  }
+
+  .bauteile-list {
+    /* Optional: Buttons auf Mobile in einem Grid nebeneinander anzeigen */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .bauteile-title {
+    text-align: center;    /* Titel auf Mobile zentrieren */
+    margin-bottom: 12px;
+  }
+}

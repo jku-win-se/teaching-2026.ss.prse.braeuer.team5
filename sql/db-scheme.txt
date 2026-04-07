@@ -27,8 +27,9 @@ create table public.room_members (
 create table public.devices (
   id uuid primary key default gen_random_uuid(),
   room_id uuid references public.rooms(id) on delete cascade,
+  energy_consumption int, -- Komma ergänzt
   name text not null,
-  type text,
+  type text CHECK (type IN ('Schalter', 'Dimmer', 'Thermostat', 'Sensor', 'Jalousie')),
   state jsonb
 );
 

@@ -1,19 +1,40 @@
 .app-shell {
   display: grid;
   grid-template-columns: 240px 1fr;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .app-main {
   padding: 32px;
+  padding-bottom: 0px !important;
+}
+
+section {
+  padding-bottom: 0px !important;
+}
+
+.app-main section{
+  padding-top: 0px !important;
+  padding-left: 24px !important;
 }
 
 @media (max-width: 900px) {
   .app-shell {
+    
     grid-template-columns: 1fr;
+    min-height: 60vh !important; /* Verhindert, dass die Seite zu lang wird, wenn die Sidebar auf Mobile zu viel Platz einnimmt */
   }
 
   .app-main {
     padding: 20px;
+  }
+
+  .app shell aside {
+    display: flex;
+    justify-content: center; /* Zentriert horizontal */
+  }
+
+  .app-shell aside nav {
+    margin-left: 50px;
   }
 }
