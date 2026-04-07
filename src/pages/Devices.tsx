@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { Trash2 } from "lucide-react";
 import { type Device, type DeviceType } from "../types";
-import { fetchDevices, addDeviceToRoom, deleteDevice } from "../services/deviceService";
+import { fetchDevices, addDeviceToRoom, deleteDevice, updateDeviceName } from "../services/deviceService";
 import { DeviceTypeSidebar } from "../components/DeviceTypeSidebar";
+import { DeviceCard } from "../components/DeviceCard";
 import { AddModalDevice } from "../components/modals/AddModalDevice";
 import { DeleteModal } from "../components/modals/DeleteModal";
 import "./Devices.css";
@@ -56,11 +56,38 @@ export default function Devices() {
     }
   };
 
+  const handleUpdateDevice = async (deviceId: string, newName: string) => {
+    const success = await updateDeviceName(deviceId, newName);
+
+    if (success) {
+      setDevices((current) =>
+        current.map((device) =>
+          device.id === deviceId ? { ...device, name: newName } : device
+        )
+      );
+    }
+  };
+
+  const handleToggle = (deviceId: string, newState: boolean) => {
+  setDevices((currentDevices) => {
+    const updatedDevices = currentDevices.map((device) =>
+      device.id === deviceId
+        ? { ...device, state: { ...device.state, on: newState } }
+        : device
+    );
+
+    // Hier kannst du das neue Device loggen
+    const changedDevice = updatedDevices.find(d => d.id === deviceId);
+    console.log("Updated device:", changedDevice);
+
+    return updatedDevices; // sehr wichtig!
+  });
+};
+
   return (
     <section className="rooms-container">
       <div className="devices-layout">
         
-        {/* Hier wird die neue Komponente genutzt */}
         <DeviceTypeSidebar onSelectType={setAddingType} />
 
         <div className="devices-main">
@@ -74,27 +101,20 @@ export default function Devices() {
             </button>
           </div>
 
-          <div className="room-list">
+          <div className="devices-grid">
             {loading ? (
               <p>Laden...</p>
             ) : devices.length === 0 ? (
               <p>Es sind noch keine Geräte im Raum angelegt. Wähle links ein Bauteil aus.</p>
             ) : (
               devices.map((device) => (
-                <div key={device.id} className="room-card">
-                  <div>
-                    <strong>{device.name}</strong>
-                    <span className="device-type-badge">{device.type}</span>
-                    {device.energy_consumption && (
-                      <span className="device-energy"> {device.energy_consumption}W</span>
-                    )}
-                  </div>
-                  <div className="actions">
-                    <button onClick={() => setDeviceToDelete(device)}>
-                      <div style={{ color: "red" }}><Trash2 size={16} /></div>
-                    </button>
-                  </div>
-                </div>
+                <DeviceCard
+                  key={device.id}
+                  device={device}
+                  onToggle={handleToggle}
+                  onDelete={() => setDeviceToDelete(device)}
+                  onUpdate={handleUpdateDevice}
+                />
               ))
             )}
           </div>

@@ -1,9 +1,4 @@
 :root {
-  /* Farben */
-  --bg-gray: #f9fafb;
-  --bg-hover-gray: #f7f7f7;
-  --border-gray: #e5e7eb;
-  
   /* Radien & Schatten */
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -117,6 +112,18 @@
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-gray);
   background: white;
+}
+
+.actions .x {
+  color: var(--danger);
+}
+
+.actions div .check {
+  color: var(--primary) !important;
+}
+
+.actions button {
+  background: var(--bg-hover-gray);
 }
 
 .actions button:hover {

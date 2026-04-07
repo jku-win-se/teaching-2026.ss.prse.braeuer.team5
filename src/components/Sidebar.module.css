@@ -4,7 +4,7 @@
   gap: 28px;
   height: 100vh;
   padding: 28px 20px;
-  background: linear-gradient(180deg, var(--background-sidebar1-mix-1) 0%, var(--background-sidebar1_mix-1) 100%);
+  background: linear-gradient(180deg, var(--background-sidebar1-mix-1) 0%, var(--background-sidebar1_mix-2) 100%);
 }
 
 .eyebrow {

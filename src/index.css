@@ -9,23 +9,25 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
+  --text-color-1: #102033;
+  --text-color-2: #f8f9fa;
 
-  --primary: #3f38c8;
-  --primary-hover: #3832b1;
+  --primary: #1883ca;
+  --primary-hover: #1677b8;
   --danger: #ef4444;
   --danger-hover: #dc2626;
   --success: #16a34a;
   --focus-color: #ecebe6; /* Dein gewünschtes Gelb */
+  --bg-gray: #f9fafb;
+  --bg-hover-gray: #f7f7f7;
+  --border-gray: #e5e7eb;
 
   --active-link-color: #f1b24a;
 
-  --background-sidebar2: #1b305c;
-  --background-sidebar2-btn: #345888;
-  --background-sidebar2-btn-hover: rgb(69, 91, 121);
+  --background-sidebar2: #324d83;
 
   --background-sidebar1-mix-1: #102033;
-  --background-sidebar1_mix-1: #183963;
-
+  --background-sidebar1_mix-2: #213857;
 }
 
 * {

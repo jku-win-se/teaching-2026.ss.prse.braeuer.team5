@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Pencil, Trash2, Check, X, Plus, ChevronRight } from "lucide-react";
+import { Pencil, Trash2, Check, X, Plus } from "lucide-react";
 import "./Rooms.css";
 import { addToRoomTable, updateRoomInTable, deleteRoomFromTable, fetchRooms } from "../services/roomService";
 import { DeleteModal } from "../components/modals/DeleteModal";
 import type { Room } from "../types";
-
 
 export default function Rooms() {
 
@@ -61,7 +60,7 @@ export default function Rooms() {
       <div className="rooms-header">
         <h2>Rooms</h2>
         <button className="add-button" aria-label="Add room" onClick={() => setShowInput(!showInput)}>
-          <div style={{ color: "lightgray" }}><Plus size={16} /></div>
+          <div><Plus size={16} /></div>
           <span>Room</span>
         </button>
       </div>
@@ -108,10 +107,10 @@ function RoomRow({ room, onSelect, onUpdate, onDelete }: { room: Room, onSelect:
         <input className="room-input" value={editName} onChange={(e) => setEditName(e.target.value)} />
         <div className="actions">
           <button aria-label="Save changes" onClick={() => { onUpdate(room.id, editName); setIsEditing(false); }}>
-            <div style={{ color: "green" }}><Check size={16} /></div>
+            <div><Check className="check" size={16} /></div>
           </button>
           <button aria-label="Cancel editing" onClick={() => setIsEditing(false)}>
-            <div style={{ color: "red" }}><X size={16} /></div>
+            <div><X className="x" size={16} /></div>
           </button>
         </div>
       </div>

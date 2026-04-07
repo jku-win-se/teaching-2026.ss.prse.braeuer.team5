@@ -94,3 +94,26 @@ export async function updateDevice(
 
   return true;
 }
+
+export async function updateDeviceName(
+  deviceId: string,
+  name: string
+): Promise<boolean> {
+  if (!supabase) {
+    console.error("Supabase client not initialized");
+    return false;
+  }
+
+  const { error } = await supabase
+    .from("devices")
+    .update({ name })
+    .eq("id", deviceId);
+
+  if (error) {
+    console.error("Error updating device name:", error);
+    alert("Fehler beim Aktualisieren des Namens: " + error.message);
+    return false;
+  }
+
+  return true;
+}
