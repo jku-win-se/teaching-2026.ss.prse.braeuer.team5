@@ -1,27 +1,24 @@
 import { useState, useEffect } from "react";
-import { Pencil, Trash2, Check, X, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Pencil, Trash2, Check, X, Plus, ChevronRight } from "lucide-react";
 import "./Rooms.css";
-import { supabase } from "../config/supabaseClient"; // Dein Pfad zum Supabase-Client
-import { addToRoomTable, updateRoomInTable, deleteRoomFromTable } from "../services/roomService"; // Deine DB-Funktionen
-
-
-type Room = { id: string; name: string };
+import { addToRoomTable, updateRoomInTable, deleteRoomFromTable, fetchRooms } from "../services/roomService";
+import { DeleteModal } from "../components/modals/DeleteModal";
+import type { Room } from "../types";
 
 
 export default function Rooms() {
 
-  async function fetchRooms() {
-    if (!supabase) return;
-    const { data, error } = await supabase.from("rooms").select("*");
-    if (error) console.error("Error fetching rooms:", error);
-    else setRooms(data || []);
-  }
-
   // 1. Räume beim Start laden
   useEffect(() => {
-    fetchRooms();
+    async function getRooms() {
+      const rooms: Room[] = await fetchRooms();
+      setRooms(rooms);
+    } 
+    getRooms();
   }, []);
   
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [showInput, setShowInput] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
@@ -81,42 +78,27 @@ export default function Rooms() {
           <RoomRow 
             key={room.id} 
             room={room} 
+            onSelect={() => navigate(`/rooms/${room.id}`, { state: { roomName: room.name } })}
             onUpdate={handleUpdateRoom} 
             onDelete={() => setRoomToDelete(room)} 
           />
         ))}
       </div>
 
-      {/* Das ausgelagerte Modal (Logik bleibt hier, Darstellung ist unten) */}
-      {roomToDelete && (
-        <DeleteModal 
-          roomName={roomToDelete.name} 
-          onConfirm={confirmDelete} 
-          onCancel={() => setRoomToDelete(null)} 
-        />
-      )}
+      <DeleteModal
+        itemName={roomToDelete?.name || null}
+        itemType="Raum"
+        isOpen={roomToDelete !== null}
+        onClose={() => setRoomToDelete(null)}
+        onConfirm={confirmDelete}
+      />
     </section>
   );
 }
 
-// --- Unter-Komponente: Das Modal ---
-function DeleteModal({ roomName, onConfirm, onCancel }: { roomName: string, onConfirm: () => void, onCancel: () => void }) {
-  return (
-    <div className="modal-overlay">
-      <div className="modal">
-        <h3>Delete Room</h3>
-        <p>Do you really want to delete <b>{roomName}</b>?</p>
-        <div className="modal-actions">
-          <button onClick={onCancel}>Cancel</button>
-          <button className="danger" onClick={onConfirm}>Delete</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // --- Unter-Komponente: Die Zeile ---
-function RoomRow({ room, onUpdate, onDelete }: { room: Room, onUpdate: (id: string, name: string) => void, onDelete: () => void }) {
+
+function RoomRow({ room, onSelect, onUpdate, onDelete }: { room: Room, onSelect: () => void, onUpdate: (id: string, name: string) => void, onDelete: () => void }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(room.name);
 
@@ -125,11 +107,9 @@ function RoomRow({ room, onUpdate, onDelete }: { room: Room, onUpdate: (id: stri
       <div className="room-card">
         <input className="room-input" value={editName} onChange={(e) => setEditName(e.target.value)} />
         <div className="actions">
-          {/* NEU: aria-label="Save changes" */}
           <button aria-label="Save changes" onClick={() => { onUpdate(room.id, editName); setIsEditing(false); }}>
             <div style={{ color: "green" }}><Check size={16} /></div>
           </button>
-          {/* NEU: aria-label="Cancel editing" */}
           <button aria-label="Cancel editing" onClick={() => setIsEditing(false)}>
             <div style={{ color: "red" }}><X size={16} /></div>
           </button>
@@ -139,20 +119,49 @@ function RoomRow({ room, onUpdate, onDelete }: { room: Room, onUpdate: (id: stri
   }
 
   return (
-    <div className="room-card">
-      <span className="room-name">{room.name}</span>
+    <div 
+      className="room-card interactive" 
+      onClick={onSelect} // Der gesamte Hintergrund navigiert
+    >
+      <div className="room-info">
+        <span className="room-name">{room.name}</span>
+      </div>
+
       <div className="actions">
-        <button aria-label="Edit room" onClick={() => setIsEditing(true)}>
-          <div style={{ color: "gray" }}><Pencil size={16} /></div>
+        {/* WICHTIG: e.stopPropagation() verhindert das Auslösen von onSelect */}
+        <button 
+          className="icon-btn"
+          aria-label="Edit" 
+          onClick={(e) => {
+            e.stopPropagation(); 
+            setIsEditing(true);
+          }}
+        >
+          <div style={{ color: "gray" }}>
+            <Pencil size={18} />
+          </div>
         </button>
-        {/* NEU: aria-label="Delete room" */}
-        <button aria-label="Delete room" onClick={onDelete}>
-          <div style={{ color: "red" }}><Trash2 size={16} /></div>
+
+        <button 
+          className="icon-btn delete"
+          aria-label="Delete" 
+          onClick={(e) => {
+            e.stopPropagation(); 
+            onDelete();
+          }}
+        > 
+          <div>
+            <Trash2 size={18} color="red" />
+          </div>
+          
         </button>
       </div>
     </div>
   );
 }
+
+
+
 
 
 

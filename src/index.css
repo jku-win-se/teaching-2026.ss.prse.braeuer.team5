@@ -8,10 +8,30 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+
+  --primary: #3f38c8;
+  --primary-hover: #3832b1;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --success: #16a34a;
+  --focus-color: #ecebe6; /* Dein gewünschtes Gelb */
+
+  --active-link-color: #f1b24a;
+
+  --background-sidebar2: #1b305c;
+  --background-sidebar2-btn: #345888;
+  --background-sidebar2-btn-hover: rgb(69, 91, 121);
+
+  --background-sidebar1-mix-1: #102033;
+  --background-sidebar1_mix-1: #183963;
+
 }
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 a {
@@ -40,7 +60,7 @@ button {
   color: #ffffff;
   cursor: pointer;
   transition: border-color 0.25s, box-shadow 0.2s ease; /* Übergang für den Ring hinzugefügt */
-}
+} 
 
 /* --- Deinen Hover-Effekt beibehalten --- */
 button:hover {
@@ -57,4 +77,5 @@ button:focus-visible {
   /* Das sieht sauberer aus und hat perfekte Rundungen */
   box-shadow: 0 0 0 4px #facc15; /* Ein kräftiges, barrierefreies Gelb (Yellow 400) */
   outline: none; /* Doppelte Absicherung für alle Browser */
-}
+} 
+
