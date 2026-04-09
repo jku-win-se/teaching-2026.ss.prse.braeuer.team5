@@ -1,4 +1,3 @@
-import { data } from "react-router-dom";
 import { supabase } from "../config/supabaseClient";
 import type { Room } from "../types";
 
