@@ -55,4 +55,6 @@ jobs:
         with:
           name: quality-reports
           path: reports/
-          
+
+      - name: Test Build App 
+        run: npx vite build --mode ci
