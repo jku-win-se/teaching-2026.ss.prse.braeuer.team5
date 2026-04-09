@@ -1,7 +1,25 @@
 import { NavLink } from "react-router-dom";
+import { supabase } from "../config/supabaseClient";
 import styles from "./Sidebar.module.css";
 
 export function Sidebar() {
+
+  const handleLogout = async () => {
+  if (!supabase) return;
+
+  try {
+    await supabase.auth.signOut();
+    
+    localStorage.clear();
+    sessionStorage.clear();
+
+    const baseUrl = import.meta.env.BASE_URL;
+    window.location.href = window.location.origin + baseUrl + "login";
+  } catch (err) {
+    console.error(err);
+  }
+};
+
   return (
     <aside className={styles.sidebar}>
       <div>
@@ -20,6 +38,12 @@ export function Sidebar() {
           Simulator
         </NavLink>
       </nav>
+
+      <div className={styles.footer}>
+        <button onClick={handleLogout} className={styles.logoutButton}>
+          Abmelden
+        </button>
+      </div>
     </aside>
   );
 }
