@@ -12,23 +12,29 @@ import type { Session } from "@supabase/supabase-js";
 
 export default function App(): JSX.Element {
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!supabase);
 
   useEffect(() => {
     // 1. Initiale Session abfragen
-    if (supabase) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setSession(session);
-        setLoading(false);
-      });
-
-      // 2. Auth-Änderungen
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setSession(session);
-      });
-
-      return () => subscription.unsubscribe();
+    if (!supabase) {
+      console.error("Supabase client is not initialized");
+      return;
     }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+    setSession(session);
+    setLoading(false);
+  }).catch(() => {
+    setLoading(false);
+  });
+
+    // 2. Auth-Änderungen
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    setSession(session);
+    setLoading(false);
+  });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   if (loading) {

@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { supabase } from "../config/supabaseClient";
+import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -23,6 +25,9 @@ const SignUp = () => {
     const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/login`,
+    },
     });
 
     if (authError) {
@@ -34,6 +39,7 @@ const SignUp = () => {
       setSuccess(true);
       setLoading(false);
     } else {
+      navigate("/login");
       setLoading(false);
     }
   };
