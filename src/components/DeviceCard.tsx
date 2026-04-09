@@ -182,7 +182,7 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
         </span>
       </div>
 
-      {/* Footer: Status-Text, EINZIGER Toggle-Switch und spezifische Regler */}
+      {/* Footer*/}
       <div className="device-footer">
         <div className="status-row">
           <span className={statusClassName}>{statusText}</span>
@@ -192,7 +192,6 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
           />
         </div>
         
-        {/* Die spezifischen Regler erscheinen in einer eigenen Zeile darunter */}
         <div className="specific-controls-container">
           {renderSpecificControls()}
         </div>
