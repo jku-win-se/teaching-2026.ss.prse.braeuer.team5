@@ -8,13 +8,21 @@ export const deviceTypes: DeviceType[] = [
   "Jalousie",
 ];
 
+export interface DeviceState {
+  on?: boolean;
+  brightness?: number;
+  temperature?: number;
+  value?: string | number;
+  position?: 'offen' | 'geschlossen' | 'stop';
+}
+
 export type Device = {
   id: string;
   room_id: string;
   name: string;
   type: DeviceType;
   energy_consumption?: number | null;
-  state?: Record<string, unknown> | null;
+  state?: DeviceState;
 };
 
 export type Room = {

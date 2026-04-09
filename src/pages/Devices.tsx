@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { type Device, type DeviceType } from "../types";
-import { fetchDevices, addDeviceToRoom, deleteDevice, updateDeviceName } from "../services/deviceService";
+import { type Device, type DeviceType, type DeviceState } from "../types";
+import { fetchDevices, addDeviceToRoom, deleteDevice, updateDeviceName, updateDeviceState } from "../services/deviceService";
 import { DeviceTypeSidebar } from "../components/DeviceTypeSidebar";
 import { DeviceCard } from "../components/DeviceCard";
 import { AddModalDevice } from "../components/modals/AddModalDevice";
@@ -68,39 +68,50 @@ export default function Devices() {
     }
   };
 
-  const handleToggle = (deviceId: string, newState: boolean) => {
-  setDevices((currentDevices) => {
-    const updatedDevices = currentDevices.map((device) =>
-      device.id === deviceId
-        ? { ...device, state: { ...device.state, on: newState } }
-        : device
-    );
+ const handleToggle = async (deviceId: string, newState: boolean) => {
+    //UI Update
+    setDevices((currentDevices) => {
+      return currentDevices.map((device) =>
+        device.id === deviceId
+          ? { ...device, state: { ...device.state, on: newState } }
+          : device
+      );
+    });
 
-    // Hier kannst du das neue Device loggen
-    const changedDevice = updatedDevices.find(d => d.id === deviceId);
-    console.log("Updated device:", changedDevice);
+    //DB Update
+    const device = devices.find(d => d.id === deviceId);
+    if (device) {
+      const updatedFullState: DeviceState = { ...device.state, on: newState };
+      await updateDeviceState(deviceId, updatedFullState);
+    }
+  };
 
-    return updatedDevices; // sehr wichtig!
-  });
-};
+  //FR-06
+  const handleStateChange = async (deviceId: string, newState: Partial<DeviceState>) => {
+    const device = devices.find(d => d.id === deviceId);
+    if (!device) return;
+
+    const updatedFullState = { ...device.state, ...newState };
+
+    setDevices(prev => prev.map(d => 
+      d.id === deviceId ? { ...d, state: updatedFullState } : d
+    ));
+
+    await updateDeviceState(deviceId, updatedFullState);
+  };
 
   return (
     <section className="rooms-container">
       <div className="devices-layout">
-        
         <DeviceTypeSidebar onSelectType={setAddingType} />
-
         <div className="devices-main">
           <div className="rooms-header">
             <div>
               <h2>Geräte für Raum</h2>
               <p>{roomName}</p>
             </div>
-            <button className="add-button" onClick={() => navigate("/rooms")}>
-              Zurück
-            </button>
+            <button className="add-button" onClick={() => navigate("/rooms")}>Zurück</button>
           </div>
-
           <div className="devices-grid">
             {loading ? (
               <p>Laden...</p>
@@ -114,6 +125,7 @@ export default function Devices() {
                   onToggle={handleToggle}
                   onDelete={() => setDeviceToDelete(device)}
                   onUpdate={handleUpdateDevice}
+                  onStateChange={handleStateChange}
                 />
               ))
             )}
@@ -121,7 +133,6 @@ export default function Devices() {
         </div>
       </div>
 
-      {/* Modal Components */}
       <AddModalDevice
         deviceType={addingType}
         isOpen={addingType !== null}

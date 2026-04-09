@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Edit2, Trash2, Check, X } from "lucide-react";
-import { type Device } from "../types";
+import { Edit2, Trash2, Check, X, Sun, Thermometer, Layers, Activity } from "lucide-react";
+import { type Device, type DeviceState } from "../types";
 import { ToggleSwitch } from "./ToggleSwitch";
 import "./DeviceCard.css";
 
@@ -9,9 +9,10 @@ type DeviceCardProps = {
   onToggle: (deviceId: string, newState: boolean) => void;
   onDelete: (device: Device) => void;
   onUpdate: (deviceId: string, name: string) => void;
+  onStateChange: (deviceId: string, newState: Partial<DeviceState>) => void;
 };
 
-export function DeviceCard({ device, onToggle, onDelete, onUpdate }: DeviceCardProps) {
+export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange }: DeviceCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(device.name);
   const isOn = device.state?.on === true;
@@ -36,6 +37,74 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate }: DeviceCardP
   // Handle edit button click
   const handleEdit = () => {
     setIsEditing(true);
+  };
+
+  //FR-06
+  const renderSpecificControls = () => {
+    if (!isOn && device.type !== "Sensor") return null;
+
+    switch (device.type) {
+      case "Dimmer":
+        return (
+          <div className="custom-control">
+            <Sun size={14} />
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={device.state?.brightness ?? 0}
+              onChange={(e) => onStateChange(device.id, { brightness: parseInt(e.target.value, 10) })}
+            />
+            <span className="control-value">{device.state?.brightness ?? 0}%</span>
+          </div>
+        );
+
+      case "Thermostat":
+        return (
+          <div className="custom-control">
+            <Thermometer size={14} />
+            <input
+              type="number"
+              step="0.5"
+              className="temp-input"
+              value={device.state?.temperature ?? 21}
+              onChange={(e) => onStateChange(device.id, { temperature: parseFloat(e.target.value) })}
+            />
+            <span className="unit">°C</span>
+          </div>
+        );
+
+      case "Jalousie":
+        return (
+          <div className="custom-control">
+            <Layers size={14} />
+            <button 
+              className={`blind-btn ${device.state?.position === 'offen' ? 'active' : ''}`}
+              onClick={() => onStateChange(device.id, { position: 'offen' })}
+            >Auf</button>
+            <button 
+              className={`blind-btn ${device.state?.position === 'geschlossen' ? 'active' : ''}`}
+              onClick={() => onStateChange(device.id, { position: 'geschlossen' })}
+            >Zu</button>
+          </div>
+        );
+
+      case "Sensor":
+        return (
+          <div className="custom-control">
+            <Activity size={14} />
+            <input
+              type="text"
+              className="sensor-input"
+              value={String(device.state?.value ?? "")}
+              onChange={(e) => onStateChange(device.id, { value: e.target.value })}
+            />
+          </div>
+        );
+
+      default:
+        return null;
+    }
   };
 
   // Determine CSS class based on editing state
@@ -107,22 +176,26 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate }: DeviceCardP
 
       {/* Card Body: Info Badges */}
       <div className="device-info">
-        <span className="device-badge type-badge">{device.type}</span>
-        <span className="device-badge energy-badge">
+        <span className="badge type-badge">{device.type}</span>
+        <span className="badge energy-badge">
           {device.energy_consumption != null ? `${device.energy_consumption} W` : "0 W"}
         </span>
       </div>
 
-      {/* Card Footer: Toggle Switch & Status */}
-      <div className="device-controls">
-        <span className={statusClassName}>
-          {statusText}
-        </span>
-        <ToggleSwitch
-          isOn={isOn}
-          onChange={(newState) => onToggle(device.id, newState)}
-          ariaLabel={`Toggle ${device.name}`}
-        />
+      {/* Footer: Status-Text, EINZIGER Toggle-Switch und spezifische Regler */}
+      <div className="device-footer">
+        <div className="status-row">
+          <span className={statusClassName}>{statusText}</span>
+          <ToggleSwitch 
+            isOn={isOn} 
+            onChange={(newState) => onToggle(device.id, newState)} 
+          />
+        </div>
+        
+        {/* Die spezifischen Regler erscheinen in einer eigenen Zeile darunter */}
+        <div className="specific-controls-container">
+          {renderSpecificControls()}
+        </div>
       </div>
     </div>
   );
