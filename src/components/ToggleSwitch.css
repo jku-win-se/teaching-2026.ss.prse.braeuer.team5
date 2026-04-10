@@ -14,6 +14,17 @@
   flex-shrink: 0;
 }
 
+/* Expands the touch target to 44×44px without changing visual size */
+.toggle-switch::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+}
+
 .toggle-switch.on {
   background-color: var(--primary); /* Green when on */
 }

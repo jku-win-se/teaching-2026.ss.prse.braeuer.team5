@@ -21,8 +21,61 @@
 }
 
 /* --- Mobile Responsive --- */
+/* --- Mobile Fix (900px) --- */
 @media (max-width: 900px) {
+  .devices-layout {
+    display: block; /* Flexbox aufheben, damit Sidebar nicht stört */
+    gap: 0;
+  }
+
+  .devices-main {
+    /* WICHTIG: Padding links und rechts EXAKT gleich setzen */
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    
+    /* Sicherstellen, dass keine alten Margins das Layout verschieben */
+    margin: 0 !important; 
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .rooms-header {
+    width: 100%;
+    /* Verhindert, dass der Header an den Rand klatscht */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .mobile-sidebar-toggle button {
+    background-color: var(--primary);
+    color: white;
+  }
+
+  .mobile-sidebar-toggle button:hover {
+    background-color: var(--primary-hover);
+  }
+
   .devices-grid {
-    grid-template-columns: 1fr; /* Eine Spalte auf kleinen Bildschirmen */
+    width: 100%;
+    /* Zentriert die Karten-Gruppe */
+    justify-content: center;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .devices-main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .devices-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 }

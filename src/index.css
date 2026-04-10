@@ -12,8 +12,11 @@
   --text-color-1: #102033;
   --text-color-2: #f8f9fa;
 
-  --primary: #1883ca;
-  --primary-hover: #1677b8;
+  --background-sidebar1-mix-1: #102033;
+  --background-sidebar1_mix-2: #213857;
+
+  --primary: #4251a3;
+  --primary-hover: #425aa3;
   --danger: #ef4444;
   --danger-hover: #dc2626;
   --success: #16a34a;
@@ -24,10 +27,8 @@
 
   --active-link-color: #f1b24a;
 
-  --background-sidebar2: #324d83;
-
-  --background-sidebar1-mix-1: #102033;
-  --background-sidebar1_mix-2: #213857;
+  --background-sidebar2: #182b5f;
+  
 }
 
 * {

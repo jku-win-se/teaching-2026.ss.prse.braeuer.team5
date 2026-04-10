@@ -2,14 +2,17 @@
   display: flex;
   flex-direction: column;
   gap: 28px;
-  height: 100vh;
+  position: sticky;
+  top: 0;
+  min-height: 100vh; 
+  height: auto; 
   padding: 28px 20px;
   background: linear-gradient(180deg, var(--background-sidebar1-mix-1) 0%, var(--background-sidebar1_mix-2) 100%);
 }
 
 .eyebrow {
   margin: 0 0 6px;
-  color: #9eb7d5;
+  color: #cbd1d8;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -48,21 +51,28 @@
 }
 
 @media (max-width: 900px) {
+  
   .sidebar {
-    /* WICHTIG: Überschreibe die 100vh vom Desktop */
-    height: auto !important;; 
-    min-height: auto;
-    max-height: 10rem; /* Oder ein fester Wert, falls gewünscht */
+
+    /* 1. Höhe auf den Inhalt begrenzen */
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: none !important; /* Verhindert, dass die Navbar sich in einem Flex-Container ausdehnt */
+    align-self: start; /* Verhindert, dass das Grid die Sidebar auf Zeilenhöhe streckt */
+
+    /* 2. Abstände radikal verkleinern */
+    padding: 12px 15px !important; /* Weniger Padding oben/unten */
+    gap: 4px !important; /* Kleinerer Abstand zwischen Titel und Nav-Leiste */
     
-    padding: 15px;
-    gap: 8px; /* Kleinerer Abstand zwischen Titel und Nav */
-    
-    flex-direction: column; 
+    /* 3. Ausrichtung korrigieren */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start !important; /* Inhalt oben zusammenhalten statt verteilen */
     align-items: center;
     border-radius: 0;
-    
-    /* Falls im Parent ein Grid/Flex-Gap ist, das hier entfernen: */
-    margin-bottom: 0; 
+    z-index: 2;      /* Hoher Wert bringt es nach vorne */
+
   }
 
   .eyebrow {
@@ -83,6 +93,8 @@
     /* Versteckt die Scrollbar für einen sauberen Look (optional) */
     -ms-overflow-style: none;
     scrollbar-width: none;
+    justify-content: center;
+    margin-left: 0px !important;
   }
   
   .nav::-webkit-scrollbar {
