@@ -1,3 +1,17 @@
+/* --- Page Container --- */
+.devices-container {
+  padding: 1.5rem;
+  padding-bottom: 0px;
+}
+
+/* --- Page Header --- */
+.devices-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
 /* --- Haupt-Layout (WICHTIG für das Nebeneinander!) --- */
 .devices-layout {
   display: flex;
@@ -41,7 +55,7 @@
     align-items: flex-start;
   }
 
-  .rooms-header {
+  .devices-header {
     width: 100%;
     /* Verhindert, dass der Header an den Rand klatscht */
     display: flex;

@@ -104,7 +104,7 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate }: DeviceCardP
           </div>
         )}
       </div>
-
+      
       {/* Card Body: Info Badges */}
       <div className="device-info">
         <span className="device-badge type-badge">{device.type}</span>

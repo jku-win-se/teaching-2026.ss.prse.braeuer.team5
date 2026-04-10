@@ -88,7 +88,7 @@ export default function Devices() {
 };
 
   return (
-    <section className="rooms-container">
+    <section className="devices-container">
       <div className="devices-layout">
         
         {/* Sidebar bekommt jetzt Props für den State */}
@@ -99,7 +99,7 @@ export default function Devices() {
         />
 
         <div className="devices-main">
-          <div className="rooms-header">
+          <div className="devices-header">
             <div>
               <h2>Geräte für Raum</h2>
               <p>{roomName}</p>
