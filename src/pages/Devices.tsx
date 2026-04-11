@@ -127,8 +127,11 @@ export default function Devices() {
               </button>
             </div>
 
-            <button className="add-button" onClick={() => navigate("/rooms")}>Zurück</button>
+            <button className="add-button" onClick={() => navigate("/rooms")}>
+              Zurück
+            </button>
           </div>
+          
           <div className="devices-grid">
             {loading ? (
               <p>Laden...</p>

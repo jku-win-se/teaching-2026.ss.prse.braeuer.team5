@@ -9,9 +9,6 @@
   padding-bottom: 0px !important;
 }
 
-section {
-  padding-bottom: 0px !important;
-}
 
 .app-main section{
   padding-top: 0px !important;
@@ -20,21 +17,16 @@ section {
 
 @media (max-width: 900px) {
   .app-shell {
-    
     grid-template-columns: 1fr;
-    min-height: 60vh !important; /* Verhindert, dass die Seite zu lang wird, wenn die Sidebar auf Mobile zu viel Platz einnimmt */
+    align-content: start; /* prevents the grid from distributing 100dvh height across rows */
   }
 
   .app-main {
     padding: 20px;
   }
 
-  .app shell aside {
+  .app-shell aside {
     display: flex;
-    justify-content: center; /* Zentriert horizontal */
-  }
-
-  .app-shell aside nav {
-    margin-left: 50px;
+    justify-content: center;
   }
 }

@@ -79,6 +79,7 @@
   border-radius: 6px;
   font-size: 0.85rem;
   cursor: pointer;
+  color: #9ca3af;
 }
 
 .blind-btn.active {
