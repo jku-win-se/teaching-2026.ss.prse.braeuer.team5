@@ -102,22 +102,24 @@ export default function Devices() {
     await updateDeviceState(deviceId, updatedFullState);
   };
 
-  return (
+   return (
     <section className="devices-container">
       <div className="devices-layout">
+        
         {/* Sidebar bekommt jetzt Props für den State */}
         <DeviceTypeSidebar 
           onSelectType={setAddingType} 
           isOpen={isSidebarOpen} 
           onClose={() => setIsSidebarOpen(false)} 
         />
+
         <div className="devices-main">
           <div className="devices-header">
             <div>
               <h2>Geräte für Raum</h2>
               <p>{roomName}</p>
             </div>
-
+            
             <div className="mobile-sidebar-toggle" >
               {/* BURGER MENU BUTTON: Nur auf Mobile sichtbar über CSS */}
               <button 
@@ -131,7 +133,7 @@ export default function Devices() {
               Zurück
             </button>
           </div>
-          
+
           <div className="devices-grid">
             {loading ? (
               <p>Laden...</p>
@@ -153,6 +155,7 @@ export default function Devices() {
         </div>
       </div>
 
+      {/* Modal Components */}
       <AddModalDevice
         deviceType={addingType}
         isOpen={addingType !== null}
@@ -167,6 +170,6 @@ export default function Devices() {
         onClose={() => setDeviceToDelete(null)}
         onConfirm={handleDeleteDevice}
       />
-    </section>
+  </section>
   );
 }
