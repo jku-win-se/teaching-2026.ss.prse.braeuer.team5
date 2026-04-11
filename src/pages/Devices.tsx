@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { type Device, type DeviceType } from "../types";
-import { fetchDevices, addDeviceToRoom, deleteDevice, updateDeviceName } from "../services/deviceService";
+import { type Device, type DeviceType, type DeviceState } from "../types";
+import { fetchDevices, addDeviceToRoom, deleteDevice, updateDeviceName, updateDeviceState } from "../services/deviceService";
 import { DeviceTypeSidebar } from "../components/DeviceTypeSidebar";
 import { DeviceCard } from "../components/DeviceCard";
 import { AddModalDevice } from "../components/modals/AddModalDevice";
 import { DeleteModal } from "../components/modals/DeleteModal";
-import { Menu } from "lucide-react"; // Menu Icon importieren
+import { Menu } from "lucide-react";
 import "./Devices.css";
 
 type LocationState = {
@@ -25,7 +25,6 @@ export default function Devices() {
   const [deviceToDelete, setDeviceToDelete] = useState<Device | null>(null);
   const [addingType, setAddingType] = useState<DeviceType | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
 
   useEffect(() => {
     loadDevices();
@@ -71,23 +70,39 @@ export default function Devices() {
     }
   };
 
-  const handleToggle = (deviceId: string, newState: boolean) => {
-  setDevices((currentDevices) => {
-    const updatedDevices = currentDevices.map((device) =>
-      device.id === deviceId
-        ? { ...device, state: { ...device.state, on: newState } }
-        : device
-    );
+ const handleToggle = async (deviceId: string, newState: boolean) => {
+    //UI Update
+    setDevices((currentDevices) => {
+      return currentDevices.map((device) =>
+        device.id === deviceId
+          ? { ...device, state: { ...device.state, on: newState } }
+          : device
+      );
+    });
 
-    // Hier kannst du das neue Device loggen
-    const changedDevice = updatedDevices.find(d => d.id === deviceId);
-    console.log("Updated device:", changedDevice);
+    //DB Update
+    const device = devices.find(d => d.id === deviceId);
+    if (device) {
+      const updatedFullState: DeviceState = { ...device.state, on: newState };
+      await updateDeviceState(deviceId, updatedFullState);
+    }
+  };
 
-    return updatedDevices; // sehr wichtig!
-  });
-};
+  //FR-06
+  const handleStateChange = async (deviceId: string, newState: Partial<DeviceState>) => {
+    const device = devices.find(d => d.id === deviceId);
+    if (!device) return;
 
-  return (
+    const updatedFullState = { ...device.state, ...newState };
+
+    setDevices(prev => prev.map(d => 
+      d.id === deviceId ? { ...d, state: updatedFullState } : d
+    ));
+
+    await updateDeviceState(deviceId, updatedFullState);
+  };
+
+   return (
     <section className="devices-container">
       <div className="devices-layout">
         
@@ -132,6 +147,7 @@ export default function Devices() {
                   onToggle={handleToggle}
                   onDelete={() => setDeviceToDelete(device)}
                   onUpdate={handleUpdateDevice}
+                  onStateChange={handleStateChange}
                 />
               ))
             )}
