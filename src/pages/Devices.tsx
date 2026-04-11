@@ -117,6 +117,20 @@ export default function Devices() {
               <h2>Geräte für Raum</h2>
               <p>{roomName}</p>
             </div>
+            
+            <div className="mobile-sidebar-toggle" >
+              {/* BURGER MENU BUTTON: Nur auf Mobile sichtbar über CSS */}
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+              >
+                <Menu size={24} />
+              </button>
+            </div>
+
+            <button className="add-button" onClick={() => navigate("/rooms")}>
+              Zurück
+            </button>
+          </div>
 
             <div className="mobile-sidebar-toggle" >
               {/* BURGER MENU BUTTON: Nur auf Mobile sichtbar über CSS */}
@@ -164,6 +178,6 @@ export default function Devices() {
         onClose={() => setDeviceToDelete(null)}
         onConfirm={handleDeleteDevice}
       />
-    </section>
+  </section>
   );
 }
