@@ -41,7 +41,7 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
 
   //FR-06
   const renderSpecificControls = () => {
-    if (!isOn && device.type !== "Sensor") return null;
+    if (!isOn) return null;
 
     switch (device.type) {
       case "Dimmer":
@@ -49,31 +49,25 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
           <div className="custom-control">
             <Sun size={14} />
             <input
-              type="range"
-              min="0"
-              max="100"
+              type="range" min="0" max="100"
               value={device.state?.brightness ?? 0}
               onChange={(e) => onStateChange(device.id, { brightness: parseInt(e.target.value, 10) })}
             />
             <span className="control-value">{device.state?.brightness ?? 0}%</span>
           </div>
         );
-
       case "Thermostat":
         return (
           <div className="custom-control">
             <Thermometer size={14} />
             <input
-              type="number"
-              step="0.5"
-              className="temp-input"
+              type="number" step="0.5" className="temp-input"
               value={device.state?.temperature ?? 21}
               onChange={(e) => onStateChange(device.id, { temperature: parseFloat(e.target.value) })}
             />
             <span className="unit">°C</span>
           </div>
         );
-
       case "Jalousie":
         return (
           <div className="custom-control">
@@ -88,31 +82,25 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
             >Zu</button>
           </div>
         );
-
       case "Sensor":
         return (
           <div className="custom-control">
             <Activity size={14} />
             <input
-              type="text"
-              className="sensor-input"
+              type="text" className="sensor-input"
               value={String(device.state?.value ?? "")}
               onChange={(e) => onStateChange(device.id, { value: e.target.value })}
             />
           </div>
         );
-
-      default:
-        return null;
+      default: return null;
     }
   };
 
+  const showStatusAndToggle = device.type === "Schalter" || device.type === "Jalousie" || device.type === "Sensor";
+
   // Determine CSS class based on editing state
   const cardClassname = isEditing ? "device-card editing" : "device-card";
-
-  // Determine status text based on device state
-  const statusText = isOn ? "Eingeschaltet" : "Ausgeschaltet";
-  const statusClassName = isOn ? "status-text text-on" : "status-text text-off";
 
   return (
     <div className={cardClassname}>
@@ -183,14 +171,15 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
       </div>
 
       {/* Footer*/}
-      <div className="device-footer">
-        <div className="status-row">
-          <span className={statusClassName}>{statusText}</span>
-          <ToggleSwitch 
-            isOn={isOn} 
-            onChange={(newState) => onToggle(device.id, newState)} 
-          />
-        </div>
+      <div className="device-footer" onClick={(e) => e.stopPropagation()}>
+        {showStatusAndToggle && (
+          <div className="status-row">
+            <span className={isOn ? "status-text text-on" : "status-text text-off"}>
+              {isOn ? "Eingeschaltet" : "Ausgeschaltet"}
+            </span>
+            <ToggleSwitch isOn={isOn} onChange={(val) => onToggle(device.id, val)} />
+          </div>
+        )}
         
         <div className="specific-controls-container">
           {renderSpecificControls()}
