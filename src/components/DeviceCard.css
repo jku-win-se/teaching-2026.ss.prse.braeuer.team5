@@ -1,0 +1,280 @@
+/* --- Card Styling --- */
+.device-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.device-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.device-card.editing {
+  background: white;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(63, 56, 200, 0.1);
+}
+
+/* --- Footer & Status Row --- */
+.device-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.device-footer:not(:has(.status-row)) {
+  border-top: none;
+  padding-top: 0;
+  gap: 4px;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.status-text.text-on { color: #3f38c8; }
+.status-text.text-off { color: #9ca3af; }
+
+/* --- Specific Controls (Slider, Buttons) --- */
+.specific-controls-container {
+  width: 100%;
+}
+
+.custom-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f9fafb;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.custom-control input[type="range"] {
+  flex: 1;
+}
+
+.blind-btn {
+  flex: 1;
+  padding: 6px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #9ca3af;
+}
+
+.blind-btn.active {
+  background: #3f38c8;
+  color: white;
+  border-color: #3f38c8;
+}
+
+/* --- Edit Input Container --- */
+.edit-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* --- Edit Input --- */
+.device-input {
+  min-width: 0;
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  color: #111827;
+}
+
+.device-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(63, 56, 200, 0.1);
+}
+
+/* --- Card Header --- */
+.device-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.device-name {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #111827;
+  font-weight: 600;
+}
+
+/* --- Device Actions (Edit, Delete, Save, Cancel) --- */
+.device-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.edit-btn {
+  color: #4b5563;
+}
+
+.edit-btn:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.edit-btn:focus-visible {
+  outline: 2px solid #3f38c8;
+  outline-offset: 2px;
+}
+
+.save-btn {
+  color: var(--primary);
+}
+
+.save-btn:hover {
+  background-color: #f2f2f8;;
+}
+
+.save-btn:focus-visible {
+  outline: 2px solid #b8b5e4;
+  outline-offset: 2px;
+}
+
+.cancel-btn {
+  color: #ef4444;
+}
+
+.cancel-btn:hover {
+  background-color: #fef2f2;
+}
+
+.cancel-btn:focus-visible {
+  outline: 2px solid #ef4444;
+  outline-offset: 2px;
+}
+
+.delete-btn {
+  color: #ef4444;
+}
+
+.delete-btn:hover {
+  background-color: #fef2f2;
+}
+
+.delete-btn:focus-visible {
+  outline: 2px solid #ef4444;
+  outline-offset: 2px;
+}
+
+/* --- Info Badges (Type & Energy) --- */
+.device-info {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.device-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.type-badge {
+  background: #e0f2fe;
+  color: #3f38c8;
+}
+
+.energy-badge {
+  background: #fef3c7;
+  color: #f1b24a;
+}
+
+/* --- Controls (Toggle + Status) --- */
+.device-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+  gap: 12px;
+}
+
+.status-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.status-text.text-on {
+  color: var(--primary);
+}
+
+.status-text.text-off {
+  color: #9ca3af;
+}
+
+/* --- Mobile Responsive --- */
+@media (max-width: 480px) {
+  .device-card {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .device-name {
+    font-size: 1rem;
+  }
+
+  .device-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .action-btn {
+    padding: 4px;
+  }
+
+  .device-input {
+    padding: 8px 10px;
+    font-size: 0.95rem;
+  }
+}

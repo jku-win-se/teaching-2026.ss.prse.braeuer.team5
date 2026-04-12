@@ -8,6 +8,9 @@ on:
 jobs:
   check-quality:
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUB_KEY: ${{ secrets.VITE_SUPABASE_PUB_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,12 +40,21 @@ jobs:
           pmd check -d ./src -R pmd-ruleset.xml -f html > reports/pmd-report.html || true
           pmd check -d ./src -R pmd-ruleset.xml -f xml  > reports/pmd-report.xml  || true
 
+
+      - name: Debug Environment
+        run: |
+          echo "URL length: ${#VITE_SUPABASE_URL}"
+          echo "Key length: ${#VITE_SUPABASE_PUB_KEY}"
+      
       - name: Run Tests
         run: npm run test:ci
-
+      
       - name: Upload Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: quality-reports
           path: reports/
+
+      - name: Test Build App 
+        run: npx vite build --mode ci

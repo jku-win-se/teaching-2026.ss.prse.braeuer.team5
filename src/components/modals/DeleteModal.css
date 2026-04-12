@@ -1,0 +1,16 @@
+/* DeleteModal styles are using classes from Rooms.css */
+/* The modal-overlay and modal classes are shared */
+/* This file is created for organizational purposes and can be extended if needed */
+
+@media (max-width: 900px) {
+  .modal {
+    width: 90%;
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    width: calc(100% - 20px);
+  }
+}

@@ -2,14 +2,17 @@
   display: flex;
   flex-direction: column;
   gap: 28px;
-  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  min-height: 100vh; 
+  height: auto; 
   padding: 28px 20px;
-  background: linear-gradient(180deg, #102033 0%, #19365b 100%);
+  background: linear-gradient(180deg, var(--background-sidebar1-mix-1) 0%, var(--background-sidebar1_mix-2) 100%);
 }
 
 .eyebrow {
   margin: 0 0 6px;
-  color: #9eb7d5;
+  color: #cbd1d8;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -42,13 +45,66 @@
 }
 
 .activeLink {
-  background: #f1b24a;
+  background: var(--active-link-color);
   color: #102033;
   font-weight: 700;
 }
 
 @media (max-width: 900px) {
+  
   .sidebar {
-    min-height: auto;
+
+    /* 1. Höhe auf den Inhalt begrenzen */
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: none !important; /* Verhindert, dass die Navbar sich in einem Flex-Container ausdehnt */
+    align-self: start; /* Verhindert, dass das Grid die Sidebar auf Zeilenhöhe streckt */
+
+    /* 2. Abstände radikal verkleinern */
+    padding: 12px 15px !important; /* Weniger Padding oben/unten */
+    gap: 4px !important; /* Kleinerer Abstand zwischen Titel und Nav-Leiste */
+    
+    /* 3. Ausrichtung korrigieren */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start !important; /* Inhalt oben zusammenhalten statt verteilen */
+    align-items: center;
+    border-radius: 0;
+    z-index: 2;      /* Hoher Wert bringt es nach vorne */
+
+  }
+
+  .eyebrow {
+    display: none; /* Spart Platz auf dem Handy */
+  }
+
+  .title {
+    font-size: 1.2rem; /* Titel etwas kleiner */
+    margin-bottom: 5px;
+  }
+
+  .nav {
+    flex-direction: row; /* Links nebeneinander statt untereinander */
+    width: 100%;
+    overflow-x: auto; /* Erlaubt horizontales Scrollen, falls die Links nicht passen */
+    padding-bottom: 5px;
+    
+    /* Versteckt die Scrollbar für einen sauberen Look (optional) */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    justify-content: center;
+    margin-left: 0px !important;
+  }
+  
+  .nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .navLink, .activeLink {
+    white-space: nowrap; /* Verhindert Zeilenumbruch im Text */
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    flex-shrink: 0; /* Wichtig für das horizontale Scrollen */
   }
 }

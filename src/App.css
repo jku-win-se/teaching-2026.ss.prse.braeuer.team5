@@ -1,19 +1,32 @@
 .app-shell {
   display: grid;
   grid-template-columns: 240px 1fr;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .app-main {
   padding: 32px;
+  padding-bottom: 0px !important;
+}
+
+
+.app-main section{
+  padding-top: 0px !important;
+  padding-left: 24px !important;
 }
 
 @media (max-width: 900px) {
   .app-shell {
     grid-template-columns: 1fr;
+    align-content: start; /* prevents the grid from distributing 100dvh height across rows */
   }
 
   .app-main {
     padding: 20px;
+  }
+
+  .app-shell aside {
+    display: flex;
+    justify-content: center;
   }
 }

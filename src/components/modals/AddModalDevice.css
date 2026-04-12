@@ -1,0 +1,186 @@
+/* --- Modal Overlay for Device Add --- */
+.modal-overlay-device {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* --- Device Modal --- */
+.modal-device {
+  background: white;
+  border-radius: 8px;
+  width: 450px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* --- Device Modal Header --- */
+.modal-header-device {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header-device h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #102033;
+}
+
+.modal-header-device .icon-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #6b7280;
+  min-width: auto;
+  transition: color 0.2s ease;
+}
+
+.modal-header-device .icon-btn:hover {
+  color: #3f38c8;
+}
+
+.modal-header-device .icon-btn:focus-visible {
+  outline: 2px solid #3f38c8;
+  outline-offset: 2px;
+  color: #3f38c8;
+}
+
+/* --- Modal Content --- */
+.modal-content-device {
+  padding: 1.5rem;
+}
+
+.modal-content-device label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #102033;
+}
+
+.modal-content-device input {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: white;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.modal-content-device input:hover {
+  border-color: #bfdbfe;
+}
+
+.modal-content-device input:focus {
+  outline: none;
+  border-color: #3f38c8;
+  box-shadow: 0 0 0 2px rgba(63, 56, 200, 0.1);
+}
+
+/* --- Error Message --- */
+.error-message {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-top: -8px;
+  font-weight: 500;
+}
+
+/* --- Modal Actions --- */
+.modal-actions-device {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.modal-actions-device button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-actions-device button:first-child {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.modal-actions-device button:first-child:hover {
+  background: #d1d5db;
+}
+
+.modal-actions-device button.primary {
+  background: #3f38c8;
+  color: white;
+}
+
+.modal-actions-device button.primary:hover {
+  background: #3832b1;
+}
+
+.modal-actions-device button.primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(63, 56, 200, 0.2);
+}
+
+/* --- Mobile Responsive --- */
+@media (max-width: 900px) {
+  .modal-device {
+    width: 90%;
+    max-width: 450px;
+  }
+
+  .modal-content-device {
+    padding: 1rem;
+  }
+
+  .modal-actions-device {
+    padding: 1rem;
+  }
+
+  .modal-content-device input {
+    font-size: 16px; /* Verhindert den Auto-Zoom auf iOS */
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-device {
+    width: calc(100% - 20px);
+    border-radius: 6px;
+  }
+
+  .modal-header-device {
+    padding: 1rem;
+  }
+
+  .modal-content-device {
+    padding: 1rem;
+  }
+
+  .modal-actions-device {
+    padding: 1rem;
+    gap: 0.5rem;
+  }
+
+  .modal-actions-device button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}
