@@ -15,12 +15,4 @@ export const supabase = isSupabaseConfigured
 
 if (!supabase) { 
   alert("Supabase-URL oder Public Key fehlen! Bitte in der .env Datei setzen.");
-} else {
-  // TEST-LOGIN: Einfach direkt hier drunter klatschen
-  supabase.auth.signInWithPassword({
-    email: 'test@example.com',
-    password: '1234'
-  }).then(({ error }) => {
-    if (error) alert("Login fehlgeschlagen: " + error.message);
-  });
-}
+} 
