@@ -40,7 +40,7 @@ const Register = () => {
 
   return (
     <div className="auth-container">
-      <h1>Registrieren</h1>
+      <h1>Register</h1>
       <p>Erstelle ein Konto für dein Smart Home</p>
 
       <form onSubmit={handleRegister} className="auth-form">

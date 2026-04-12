@@ -1,6 +1,5 @@
-import { data } from "react-router-dom";
 import { supabase } from "../config/supabaseClient";
-import type { Room } from "../types";
+import type { Device, Room } from "../types";
 
 export async function fetchRooms(): Promise<Room[]> {
   if (!supabase) return [];
@@ -18,7 +17,6 @@ export async function fetchRooms(): Promise<Room[]> {
     return data;
   }
 }
-
 
 export async function deleteRoomFromTable(roomId: string) : Promise<boolean> {
   if(!supabase) {
@@ -72,4 +70,25 @@ export async function addToRoomTable(roomName: string) : Promise<string | null> 
   }
   
   return data; // Hier kommt die echte UUID von Supabase zurück!
+}
+
+
+export async function fetchNumberOfDevicesInRoom(roomId: string): Promise<number> {
+
+  if (!supabase) return 0;
+
+  const { data, error } = await supabase
+    .from("devices")
+    .select("*", { count: "exact" })
+    .eq("room_id", roomId) as { data: Device[] | null; error: any; count: number | null };
+
+  if (error) {
+    console.error("Error fetching device count:", error);
+    return 0;
+  } else if(data === null || data === undefined) {
+    return 0;
+  } else{
+    return data.length;
+  }
+
 }

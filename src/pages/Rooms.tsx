@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, Check, X, Plus } from "lucide-react";
 import "./Rooms.css";
-import { addToRoomTable, updateRoomInTable, deleteRoomFromTable, fetchRooms } from "../services/roomService";
+import { addToRoomTable, updateRoomInTable, deleteRoomFromTable, fetchRooms, fetchNumberOfDevicesInRoom } from "../services/roomService";
 import { DeleteModal } from "../components/modals/DeleteModal";
 import type { Room } from "../types";
 
@@ -100,6 +100,15 @@ export default function Rooms() {
 function RoomRow({ room, onSelect, onUpdate, onDelete }: { room: Room, onSelect: () => void, onUpdate: (id: string, name: string) => void, onDelete: () => void }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(room.name);
+  const [deviceCount, setDeviceCount] = useState<number>(0);
+
+  useEffect(() => {
+    async function getDeviceCount() {
+      const count = await fetchNumberOfDevicesInRoom(room.id);
+      setDeviceCount(count);
+    }
+    getDeviceCount();
+  }, [room.id]);
 
   if (isEditing) {
     return (
@@ -124,6 +133,7 @@ function RoomRow({ room, onSelect, onUpdate, onDelete }: { room: Room, onSelect:
     >
       <div className="room-info">
         <span className="room-name">{room.name}</span>
+        <span className="device-count">{deviceCount} Geräte</span>
       </div>
 
       <div className="actions">
@@ -137,7 +147,7 @@ function RoomRow({ room, onSelect, onUpdate, onDelete }: { room: Room, onSelect:
           }}
         >
           <div style={{ color: "gray" }}>
-            <Pencil size={18} />
+            <Pencil size={20} />
           </div>
         </button>
 
@@ -150,7 +160,7 @@ function RoomRow({ room, onSelect, onUpdate, onDelete }: { room: Room, onSelect:
           }}
         > 
           <div>
-            <Trash2 size={18} color="red" />
+            <Trash2 size={20} color="red" />
           </div>
           
         </button>
@@ -158,7 +168,6 @@ function RoomRow({ room, onSelect, onUpdate, onDelete }: { room: Room, onSelect:
     </div>
   );
 }
-
 
 
 

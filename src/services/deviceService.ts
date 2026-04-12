@@ -1,5 +1,5 @@
 import { supabase } from "../config/supabaseClient";
-import type { Device, DeviceType } from "../types";
+import type { Device, DeviceType, DeviceState } from "../types";
 
 export async function fetchDevices(roomId: string): Promise<Device[]> {
   if (!supabase) {
@@ -117,3 +117,23 @@ export async function updateDeviceName(
 
   return true;
 }
+
+//FR-06
+export const updateDeviceState = async (deviceId: string, newState: DeviceState) => {
+  if (!supabase) {
+    console.error("Supabase client not initialized");
+    return false;
+  }
+
+  const { data, error } = await supabase
+    .from('devices')
+    .update({ state: newState }) 
+    .eq('id', deviceId)
+    .select();
+
+  if (error) {
+    console.error("Fehler beim Update des Zustands:", error);
+    return null;
+  }
+  return data[0];
+};
