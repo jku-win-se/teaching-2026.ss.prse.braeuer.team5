@@ -48,7 +48,7 @@ export default function App(): JSX.Element {
       />
 
       <Route
-        path="/"
+        path="*"
         element={
           session ? (
             <div className="app-shell">

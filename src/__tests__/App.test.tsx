@@ -17,6 +17,17 @@ vi.mock('../config/supabaseClient', () => ({
         data: { subscription: { unsubscribe: vi.fn() } },
       })),
     },
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockReturnThis(),
+      then: vi.fn().mockImplementation((callback) => 
+        Promise.resolve(callback({ data: [], error: null }))
+      ),
+    }),
   },
 }))
 
