@@ -15,66 +15,80 @@ import type { Session } from "@supabase/supabase-js";
 export default function App(): JSX.Element {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
-  const initAuth = async () => {
-    if (!supabase) {
-      setTimeout(() => setLoading(false), 0);
-      return;
-    }
+    let authSubscription: { unsubscribe: () => void } | null = null;
 
-    const { data: { session: initialSession } } = await supabase.auth.getSession();
-
-    setSession(initialSession);
-    setLoading(false);
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
-      if (event === 'SIGNED_OUT') {
-        setSession(null);
-      } else {
-        setSession(currentSession);
+    const initAuth = async () => {
+      if (!supabase) {
+        console.error("Supabase client not found");
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-    });
 
-    return subscription;
-  };
+      try {
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        setSession(initialSession);
+      } catch (error) {
+        console.error("Fehler beim Session-Check:", error);
+      } finally {
+        setLoading(false);
+      }
 
-  const authPromise = initAuth();
+      const { data } = supabase.auth.onAuthStateChange((event, currentSession) => {
+        console.log("Auth Event:", event);
+        
+        if (event === 'SIGNED_OUT') {
+          setSession(null);
+        } else {
+          setSession(currentSession);
+        }
+        setLoading(false);
+      });
 
-  return () => {
-    authPromise.then(sub => sub?.unsubscribe()); 
-  };
-}, []);
+      authSubscription = data.subscription;
+    };
 
-  console.log("DEBUG - Session Status:", session);
-  console.log("DEBUG - Ist Session vorhanden?:", !!session);
+    initAuth();
+
+    return () => {
+      if (authSubscription) {
+        authSubscription.unsubscribe();
+      }
+    };
+  }, []);
+
   if (loading) {
     return <div className="loading-screen">Lade App...</div>;
   }
 
-  if (!session) {
-    return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    );
-  }
-
   return (
-    <div className="app-shell">
-      <Sidebar />
-      <main className="app-main">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/rooms" element={<Rooms />} />
-          <Route path="/rooms/:roomId" element={<Devices />} />
-          <Route path="/simulator" element={<Simulator />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes> 
-      </main> 
-    </div>
+    <Routes>
+      {!session ? (
+        <>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </>
+      ) : (
+        <Route
+          path="*"
+          element={
+            <div className="app-shell">
+              <Sidebar />
+              <main className="app-main">
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/rooms" element={<Rooms />} />
+                  <Route path="/rooms/:roomId" element={<Devices />} />
+                  <Route path="/simulator" element={<Simulator />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </main>
+            </div>
+          }
+        />
+      )}
+    </Routes>
   );
 }

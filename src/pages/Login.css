@@ -1,0 +1,105 @@
+/* Container, der die gesamte Seite füllt */
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f4f7f9; /* Heller Hintergrund wie im Dashboard */
+  font-family: 'Inter', -apple-system, sans-serif;
+  padding: 20px;
+}
+
+/* Die Login-Karte */
+.auth-form {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* Überschrift "Login" */
+.auth-container h1 {
+  color: #1a202c;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+/* Beschreibungstext unter der Überschrift */
+.auth-container p {
+  color: #718096;
+  margin-bottom: 1.5rem;
+}
+
+/* Styling für die Inputs */
+.auth-form input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease-in-out;
+  background-color: #f8fafc;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #3182ce; /* Smart Home Blau */
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+  background-color: white;
+}
+
+/* Der Login-Button */
+.auth-form button {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: #3182ce;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 0.5rem;
+}
+
+.auth-form button:hover:not(:disabled) {
+  background-color: #2b6cb0;
+}
+
+.auth-form button:disabled {
+  background-color: #cbd5e0;
+  cursor: not-allowed;
+}
+
+/* Fehlermeldung */
+.error-message {
+  background-color: #fff5f5;
+  color: #c53030;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #feb2b2;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Link zur Registrierung */
+.auth-container a {
+  color: #3182ce;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-container a:hover {
+  text-decoration: underline;
+}

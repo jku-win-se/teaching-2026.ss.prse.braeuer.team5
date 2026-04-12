@@ -51,7 +51,7 @@ const Register = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="deine@email.de"
+            placeholder="deine@email.at"
           />
         </div>
         <div className="input-group">

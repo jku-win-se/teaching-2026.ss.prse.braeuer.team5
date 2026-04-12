@@ -3,22 +3,18 @@ import { supabase } from "../config/supabaseClient";
 import styles from "./Sidebar.module.css";
 
 export function Sidebar() {
-
+  
   const handleLogout = async () => {
-  if (!supabase) return;
 
-  try {
-    await supabase.auth.signOut();
-    
-    localStorage.clear();
-    sessionStorage.clear();
+    if (!supabase) return;
 
-    const baseUrl = import.meta.env.BASE_URL;
-    window.location.href = window.location.origin + baseUrl + "login";
-  } catch (err) {
-    console.error(err);
-  }
-};
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (err) {
+      console.error("Logout fehlgeschlagen:", err);
+    }
+  };
 
   return (
     <aside className={styles.sidebar}>
