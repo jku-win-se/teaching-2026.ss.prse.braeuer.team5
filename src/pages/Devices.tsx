@@ -116,7 +116,7 @@ export default function Devices() {
         <div className="devices-main">
           <div className="devices-header">
             <div>
-              <h2>Geräte für Raum</h2>
+              <h2>Devices</h2>
               <p>{roomName}</p>
             </div>
             
