@@ -80,7 +80,7 @@ export default function App(): JSX.Element {
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/rooms" element={<Rooms />} />
-                  <Route path="/rooms/:roomId" element={<Devices />} />
+                  <Route path="/devices" element={<Devices />} />
                   <Route path="/simulator" element={<Simulator />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
