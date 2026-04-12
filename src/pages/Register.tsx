@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { supabase } from "../config/supabaseClient";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-const SignUp = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const Register = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
-  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setMessage(null);
 
     if (!supabase) {
       setError("Supabase client is not initialized");
@@ -21,67 +21,65 @@ const SignUp = () => {
       return;
     }
 
-    // Supabase Auth Sign-up
-    const { data, error: authError } = await supabase.auth.signUp({
+    const { error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/login`,
-    },
+      },
     });
 
     if (authError) {
-      // Akzeptanzkriterium: Fehler klar anzeigen
       setError(authError.message);
       setLoading(false);
-    } else if (data.user && data.session === null) {
-      // Fall: Registrierung erfolgreich, aber Bestätigung ausstehend
-      setSuccess(true);
-      setLoading(false);
     } else {
-      navigate("/login");
+      setMessage("Registrierung erfolgreich! Bitte prüfe deine E-Mails zur Bestätigung.");
       setLoading(false);
     }
   };
 
-  if (success) {
-    return (
-      <div className="auth-form">
-        <h1>Register</h1>
-        <p>Erfolg! Bitte überprüfe dein Postfach für den Bestätigungslink.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="auth-form">
-      <h1>Register</h1>
-      <form onSubmit={handleSignUp}>
-        <input
-          type="email"
-          placeholder="Ihre E-Mail eingeben"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Ihr Passwort eingeben"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+    <div className="auth-container">
+      <h1>Registrieren</h1>
+      <p>Erstelle ein Konto für dein Smart Home</p>
+
+      <form onSubmit={handleRegister} className="auth-form">
+        <div className="input-group">
+          <label>E-Mail</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="deine@email.at"
+          />
+        </div>
+        <div className="input-group">
+          <label>Passwort</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="Mind. 6 Zeichen"
+          />
+        </div>
+
         <button type="submit" disabled={loading}>
-          {loading ? 'Lädt...' : 'Registrieren'}
+          {loading ? "Wird erstellt..." : "Konto erstellen"}
         </button>
       </form>
 
-      {error && (
-        <p role="alert" style={{ color: 'red', marginTop: '10px' }}>
-          {error}
+      {error && <p style={{ color: "red", marginTop: "1rem" }}>{error}</p>}
+      {message && <p style={{ color: "green", marginTop: "1rem" }}>{message}</p>}
+
+      <div className="auth-footer" style={{ marginTop: "1.5rem" }}>
+        <p>
+          Bereits ein Konto? <Link to="/login">Hier einloggen</Link>
         </p>
-      )}    </div>
+      </div>
+    </div>
   );
 };
 
-export default SignUp;
+export default Register;
