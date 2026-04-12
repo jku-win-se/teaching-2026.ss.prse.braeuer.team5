@@ -25,11 +25,11 @@ describe('App', () => {
     vi.clearAllMocks()
   })
 
-const getSessionMock = supabase!.auth.getSession as MockedFunction<
-  () => Promise<{ data: { session: Session | null }; error: null }>
->
+  const getSessionMock = supabase!.auth.getSession as MockedFunction<
+    () => Promise<{ data: { session: Session | null }; error: null }>
+  >
 
-  //simulate logged in user
+  // Helper: Simulate logged in user
   const mockLoggedInSession = () => {
     getSessionMock.mockResolvedValue({
       data: { 
@@ -45,7 +45,7 @@ const getSessionMock = supabase!.auth.getSession as MockedFunction<
     })
   }
 
-  //simulate logged out user
+  // Helper: Simulate logged out user
   const mockLoggedOutSession = () => {
     getSessionMock.mockResolvedValue({
       data: { session: null },
@@ -74,8 +74,22 @@ const getSessionMock = supabase!.auth.getSession as MockedFunction<
       </MemoryRouter>
     )
     
-    await waitFor(() =>{
+    await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
+    })
+  })
+
+  it('renders the Rooms page on /rooms path', async () => {
+    mockLoggedInSession()
+    render(
+      <MemoryRouter initialEntries={['/rooms']}>
+        <App />
+      </MemoryRouter>
+    )
+    
+    await waitFor(() => {
+      // Prüft auf die Überschrift "Rooms" wie im ersten File gefordert
+      expect(screen.getByRole('heading', { name: 'Rooms' })).toBeInTheDocument()
     })
   })
 
@@ -87,7 +101,7 @@ const getSessionMock = supabase!.auth.getSession as MockedFunction<
       </MemoryRouter>
     )
     
-    await waitFor(() =>{
+    await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Devices' })).toBeInTheDocument()
     })
   })
@@ -100,7 +114,7 @@ const getSessionMock = supabase!.auth.getSession as MockedFunction<
       </MemoryRouter>
     )
     
-    await waitFor(() =>{
+    await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Simulator' })).toBeInTheDocument()
     })
   })
@@ -113,7 +127,7 @@ const getSessionMock = supabase!.auth.getSession as MockedFunction<
       </MemoryRouter>
     )
     
-    await waitFor(() =>{
+    await waitFor(() => {
       const sidebar = screen.getByRole('navigation')
       expect(sidebar).toBeInTheDocument()
     })
@@ -127,14 +141,13 @@ const getSessionMock = supabase!.auth.getSession as MockedFunction<
       </MemoryRouter>
     )
     
-    await waitFor(() =>{
+    await waitFor(() => {
       const appShell = container.querySelector('.app-shell')
       expect(appShell).toBeInTheDocument()
       expect(appShell).toHaveClass('app-shell')
     })
   })
 
-  //register page test
   it('renders the Register page when not authenticated', async () => {
     mockLoggedOutSession()
     render(
@@ -143,10 +156,11 @@ const getSessionMock = supabase!.auth.getSession as MockedFunction<
       </MemoryRouter>
     )
     
-    await waitFor(() =>{
+    await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Register' })).toBeInTheDocument()
     })
 
+    // Sicherstellen, dass die Sidebar NICHT gerendert wird, wenn man ausgeloggt ist
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
   })
 })
