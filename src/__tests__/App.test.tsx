@@ -79,10 +79,24 @@ describe('App', () => {
     })
   })
 
-  it('renders the Devices page on /devices path', async () => {
+  it('renders the Rooms page on /rooms path', async () => {
     mockLoggedInSession()
     render(
       <MemoryRouter initialEntries={['/rooms']}>
+        <App />
+      </MemoryRouter>
+    )
+    
+    await waitFor(() => {
+      // Prüft auf die Überschrift "Rooms" wie im ersten File gefordert
+      expect(screen.getByRole('heading', { name: 'Rooms' })).toBeInTheDocument()
+    })
+  })
+
+  it('renders the Devices page on /devices path', async () => {
+    mockLoggedInSession()
+    render(
+      <MemoryRouter initialEntries={['/devices']}>
         <App />
       </MemoryRouter>
     )
