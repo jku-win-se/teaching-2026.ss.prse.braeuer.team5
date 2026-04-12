@@ -4,7 +4,6 @@ import { supabase } from "./config/supabaseClient";
 import "./App.css";
 import { Sidebar } from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
-import Rooms from "./pages/Rooms";
 import Devices from "./pages/Devices";
 import Simulator from "./pages/Simulator";
 import Register from "./pages/Register";
