@@ -6,6 +6,7 @@ import { DeviceTypeSidebar } from "../components/DeviceTypeSidebar";
 import { DeviceCard } from "../components/DeviceCard";
 import { AddModalDevice } from "../components/modals/AddModalDevice";
 import { DeleteModal } from "../components/modals/DeleteModal";
+import { Menu } from "lucide-react";
 import "./Devices.css";
 
 type LocationState = {
@@ -23,6 +24,7 @@ export default function Devices() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [deviceToDelete, setDeviceToDelete] = useState<Device | null>(null);
   const [addingType, setAddingType] = useState<DeviceType | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     loadDevices();
@@ -100,18 +102,38 @@ export default function Devices() {
     await updateDeviceState(deviceId, updatedFullState);
   };
 
-  return (
-    <section className="rooms-container">
+   return (
+    <section className="devices-container">
       <div className="devices-layout">
-        <DeviceTypeSidebar onSelectType={setAddingType} />
+        
+        {/* Sidebar bekommt jetzt Props für den State */}
+        <DeviceTypeSidebar 
+          onSelectType={setAddingType} 
+          isOpen={isSidebarOpen} 
+          onClose={() => setIsSidebarOpen(false)} 
+        />
+
         <div className="devices-main">
-          <div className="rooms-header">
+          <div className="devices-header">
             <div>
               <h2>Geräte für Raum</h2>
               <p>{roomName}</p>
             </div>
-            <button className="add-button" onClick={() => navigate("/rooms")}>Zurück</button>
+            
+            <div className="mobile-sidebar-toggle" >
+              {/* BURGER MENU BUTTON: Nur auf Mobile sichtbar über CSS */}
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+              >
+                <Menu size={24} />
+              </button>
+            </div>
+
+            <button className="add-button" onClick={() => navigate("/rooms")}>
+              Zurück
+            </button>
           </div>
+
           <div className="devices-grid">
             {loading ? (
               <p>Laden...</p>
@@ -133,6 +155,7 @@ export default function Devices() {
         </div>
       </div>
 
+      {/* Modal Components */}
       <AddModalDevice
         deviceType={addingType}
         isOpen={addingType !== null}
@@ -147,6 +170,6 @@ export default function Devices() {
         onClose={() => setDeviceToDelete(null)}
         onConfirm={handleDeleteDevice}
       />
-    </section>
+  </section>
   );
 }
