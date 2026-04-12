@@ -188,4 +188,3 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
     </div>
   );
 }
-
