@@ -1,7 +1,20 @@
 import { NavLink } from "react-router-dom";
+import { supabase } from "../config/supabaseClient";
 import styles from "./Sidebar.module.css";
 
 export function Sidebar() {
+  
+  const handleLogout = async () => {
+
+    if (!supabase) return;
+
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (err) {
+      console.error("Logout fehlgeschlagen:", err);
+    }
+  };
 
   return (
     <aside className={styles.sidebar}>
@@ -21,6 +34,12 @@ export function Sidebar() {
           Simulator
         </NavLink>
       </nav>
+
+      <div className={styles.footer}>
+        <button onClick={handleLogout} className={styles.logoutButton}>
+          Abmelden
+        </button>
+      </div>
     </aside>
   );
 }
