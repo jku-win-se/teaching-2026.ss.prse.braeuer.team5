@@ -1,3 +1,4 @@
+import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "../config/supabaseClient";
 import type { Device, Room, RoomMembership, RoomRole } from "../types";
 
@@ -6,7 +7,7 @@ async function fetchOwnRoomMemberships(): Promise<RoomMembership[]> {
 
   const { data, error } = await supabase
     .from("room_members")
-    .select("room_id, role") as { data: RoomMembership[] | null; error: any };
+    .select("room_id, role") as { data: RoomMembership[] | null; error: PostgrestError | null };
 
   if (error) {
     console.error("Error fetching room memberships:", error);
@@ -46,7 +47,7 @@ export async function fetchRooms(): Promise<Room[]> {
   const { data, error } = await supabase
     .from("rooms")
     .select("*")
-    .in("id", roomIds) as { data: Room[] | null; error: any };
+    .in("id", roomIds) as { data: Room[] | null; error: PostgrestError | null };
 
   if (error) {
     console.error("Error fetching rooms:", error);
@@ -130,7 +131,7 @@ export async function fetchNumberOfDevicesInRoom(roomId: string): Promise<number
   const { data, error } = await supabase
     .from("devices")
     .select("*", { count: "exact" })
-    .eq("room_id", roomId) as { data: Device[] | null; error: any; count: number | null };
+    .eq("room_id", roomId) as { data: Device[] | null; error: PostgrestError | null; count: number | null };
 
   if (error) {
     console.error("Error fetching device count:", error);

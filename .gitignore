@@ -9,3 +9,4 @@ coverage/
 reports/
 issues/
 .vscode/ 
+supabase/.temp/
