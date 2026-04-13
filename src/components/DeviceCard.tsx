@@ -47,27 +47,35 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
       case "Dimmer":
         return (
           <div className="custom-control">
-            <Sun size={14} />
+            <Sun size={14} className="control-icon" />
             <input
               type="range" min="0" max="100"
               value={device.state?.brightness ?? 0}
+              style={{ "--val": device.state?.brightness ?? 0 } as React.CSSProperties}
               onChange={(e) => onStateChange(device.id, { brightness: parseInt(e.target.value, 10) })}
             />
             <span className="control-value">{device.state?.brightness ?? 0}%</span>
           </div>
         );
-      case "Thermostat":
+      case "Thermostat": {
+        const temp = device.state?.temperature ?? 21;
         return (
           <div className="custom-control">
-            <Thermometer size={14} />
-            <input
-              type="number" step="0.5" className="temp-input"
-              value={device.state?.temperature ?? 21}
-              onChange={(e) => onStateChange(device.id, { temperature: parseFloat(e.target.value) })}
-            />
-            <span className="unit">°C</span>
+            <Thermometer size={14} className="control-icon" />
+            <div className="temp-control">
+              <button
+                className="temp-btn"
+                onClick={() => onStateChange(device.id, { temperature: Math.max(5, temp - 0.5) })}
+              >−</button>
+              <span className="temp-display">{temp.toFixed(1)} °C</span>
+              <button
+                className="temp-btn"
+                onClick={() => onStateChange(device.id, { temperature: Math.min(35, temp + 0.5) })}
+              >+</button>
+            </div>
           </div>
         );
+      }
       case "Jalousie":
         return (
           <div className="custom-control">
@@ -97,7 +105,7 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
     }
   };
 
-  const showStatusAndToggle = device.type === "Schalter" || device.type === "Jalousie" || device.type === "Sensor";
+  const showStatusAndToggle = device.type === "Schalter" || device.type === "Jalousie" || device.type === "Sensor" || device.type === "Thermostat";
 
   // Determine CSS class based on editing state
   const cardClassname = isEditing ? "device-card editing" : "device-card";

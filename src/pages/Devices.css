@@ -9,9 +9,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
   margin-bottom: 1.5rem;
+  gap: 12px;
 }
-
 /* --- Haupt-Layout (WICHTIG für das Nebeneinander!) --- */
 .devices-layout {
   display: flex;

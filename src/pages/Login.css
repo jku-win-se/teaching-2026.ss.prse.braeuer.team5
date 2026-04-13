@@ -50,7 +50,7 @@
 
 .auth-form input:focus {
   outline: none;
-  border-color: #3182ce; /* Smart Home Blau */
+  border-color: var(--primary); /* Smart Home Blau */
   box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
   background-color: white;
 }
@@ -59,7 +59,7 @@
 .auth-form button {
   width: 100%;
   padding: 0.8rem;
-  background-color: #3182ce;
+  background-color: var(--primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -71,7 +71,7 @@
 }
 
 .auth-form button:hover:not(:disabled) {
-  background-color: #2b6cb0;
+  background-color: var(--primary-hover);
 }
 
 .auth-form button:disabled {

@@ -50,6 +50,15 @@
   font-weight: 700;
 }
 
+.logoutbtn{
+  border: none;
+}
+
+.logoutbtn:hover{
+  background-color: #202a35
+}
+
+
 @media (max-width: 900px) {
   
   .sidebar {

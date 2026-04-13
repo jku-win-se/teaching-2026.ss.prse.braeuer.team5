@@ -1,58 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, Check, X, Plus } from "lucide-react";
 import "./Rooms.css";
-import { addToRoomTable, updateRoomInTable, deleteRoomFromTable, fetchRooms, fetchNumberOfDevicesInRoom } from "../services/roomService";
+import { useRooms } from "../hooks/useRooms";
+import { useDeviceCount } from "../hooks/useDeviceCount";
 import { DeleteModal } from "../components/modals/DeleteModal";
 import type { Room } from "../types";
 
 export default function Rooms() {
-
-  // 1. Räume beim Start laden
-  useEffect(() => {
-    async function getRooms() {
-      const rooms: Room[] = await fetchRooms();
-      setRooms(rooms);
-    } 
-    getRooms();
-  }, []);
-  
   const navigate = useNavigate();
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const { rooms, addRoom, updateRoom, deleteRoom } = useRooms();
   const [showInput, setShowInput] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
   const [roomToDelete, setRoomToDelete] = useState<Room | null>(null);
 
-  // --- Logik ---
   const handleAddRoom = async () => {
     if (!newRoomName.trim()) return;
-
-    const newId = await addToRoomTable(newRoomName);
-
-    if (newId) {
-      // Wir nehmen die echte ID von Supabase statt Date.now()
-      setRooms([...rooms, { id: newId, name: newRoomName }]);
+    const success = await addRoom(newRoomName);
+    if (success) {
       setNewRoomName("");
       setShowInput(false);
     }
   };
 
-  const handleUpdateRoom = async (id: string, name: string) => {
-    const success = await updateRoomInTable(id, name);
-    
-    if (success) {
-      // Nur wenn DB-Update erfolgreich war, lokalen State updaten
-      setRooms(rooms.map(r => r.id === id ? { ...r, name } : r));
-    }
-  };
-
-  const confirmDelete = async() => {
+  const confirmDelete = async () => {
     if (!roomToDelete) return;
-    const success = await deleteRoomFromTable(roomToDelete.id);
-    if (success) {
-      setRooms(rooms.filter(r => r.id !== roomToDelete.id));
-      setRoomToDelete(null);
-    }
+    const success = await deleteRoom(roomToDelete.id);
+    if (success) setRoomToDelete(null);
   };
 
   return (
@@ -77,8 +51,8 @@ export default function Rooms() {
           <RoomRow 
             key={room.id} 
             room={room} 
-            onSelect={() => navigate(`/rooms/${room.id}`, { state: { roomName: room.name } })}
-            onUpdate={handleUpdateRoom} 
+            onSelect={() => navigate(`/room/${room.id}`, { state: { roomName: room.name } })}
+            onUpdate={updateRoom}
             onDelete={() => setRoomToDelete(room)} 
           />
         ))}
@@ -100,15 +74,7 @@ export default function Rooms() {
 function RoomRow({ room, onSelect, onUpdate, onDelete }: { room: Room, onSelect: () => void, onUpdate: (id: string, name: string) => void, onDelete: () => void }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(room.name);
-  const [deviceCount, setDeviceCount] = useState<number>(0);
-
-  useEffect(() => {
-    async function getDeviceCount() {
-      const count = await fetchNumberOfDevicesInRoom(room.id);
-      setDeviceCount(count);
-    }
-    getDeviceCount();
-  }, [room.id]);
+  const deviceCount = useDeviceCount(room.id);
 
   if (isEditing) {
     return (
