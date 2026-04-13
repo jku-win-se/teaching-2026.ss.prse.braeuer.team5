@@ -7,7 +7,7 @@ import {
   updateDeviceState,
 } from "../services/deviceService";
 
-const {
+const { 
   mockSingle,
   mockSelect,
   mockInsert,
