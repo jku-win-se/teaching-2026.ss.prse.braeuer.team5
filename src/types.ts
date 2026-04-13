@@ -1,4 +1,5 @@
 export type DeviceType = "Schalter" | "Dimmer" | "Thermostat" | "Sensor" | "Jalousie";
+export type RoomRole = "owner" | "member";
 
 export const deviceTypes: DeviceType[] = [
   "Schalter",
@@ -7,6 +8,7 @@ export const deviceTypes: DeviceType[] = [
   "Sensor",
   "Jalousie",
 ];
+
 
 export interface DeviceState {
   on?: boolean;
@@ -29,4 +31,11 @@ export type Room = {
   id: string;
   name: string;
   created_at?: string | null;
+  role?: RoomRole;
+};
+
+export type RoomMembership = {
+  room_id: string;
+  role: RoomRole;
+  user_id: string;
 };

@@ -29,7 +29,7 @@ const Register = () => {
       },
     });
 
-    if (authError) {1
+    if (authError) {
       setError(authError.message);
       setLoading(false);
     } else {

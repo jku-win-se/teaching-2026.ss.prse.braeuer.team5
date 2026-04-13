@@ -1,12 +1,58 @@
+import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "../config/supabaseClient";
-import type { Device, Room } from "../types";
+import type { Device, Room, RoomMembership, RoomRole } from "../types";
+
+async function fetchOwnRoomMemberships(): Promise<RoomMembership[]> {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("room_members")
+    .select("room_id, role, user_id") as { data: RoomMembership[] | null; error: PostgrestError | null };
+
+  if (error) {
+    console.error("Error fetching room memberships:", error);
+    return [];
+  }
+
+  return data ?? [];
+}
+
+export async function fetchRoomRole(roomId: string, userId: string | undefined): Promise<RoomRole | null> {
+  const memberships = await fetchOwnRoomMemberships();
+  return memberships.find((membership) => membership.room_id === roomId && membership.user_id === userId)?.role ?? null;
+}
+
+async function requireOwnerRole(roomId: string, actionLabel: string): Promise<boolean> {
+  const userId = (await supabase?.auth.getUser())?.data?.user?.id;
+  if (!userId) {
+    alert(`Nur Eigentuemer duerfen ${actionLabel}.`);
+    return false;
+  }
+  const role = await fetchRoomRole(roomId, userId);
+
+  if (role === "owner") {
+    return true;
+  }
+
+  alert(`Nur Eigentuemer duerfen ${actionLabel}.`);
+  return false;
+}
 
 export async function fetchRooms(): Promise<Room[]> {
   if (!supabase) return [];
 
+  const memberships = await fetchOwnRoomMemberships();
+  if (memberships.length === 0) return [];
+
+  const roleByRoomId = Object.fromEntries(
+    memberships.map((membership) => [membership.room_id, membership.role])
+  ) as Record<string, RoomRole>;
+  const roomIds = Object.keys(roleByRoomId);
+
   const { data, error } = await supabase
     .from("rooms")
-    .select("*") as { data: Room[] | null; error: any };
+    .select("*")
+    .in("id", roomIds) as { data: Room[] | null; error: PostgrestError | null };
 
   if (error) {
     console.error("Error fetching rooms:", error);
@@ -14,13 +60,18 @@ export async function fetchRooms(): Promise<Room[]> {
   } else if (data === null) {
     return [];
   } else {
-    return data;
+    return data.map((room) => ({ ...room, role: roleByRoomId[room.id] }));
   }
 }
 
 export async function deleteRoomFromTable(roomId: string) : Promise<boolean> {
   if(!supabase) {
     console.error("Supabase client not initialized");
+    return false;
+  }
+
+  const canDelete = await requireOwnerRole(roomId, "Raeume loeschen");
+  if (!canDelete) {
     return false;
   }
 
@@ -40,6 +91,11 @@ export async function deleteRoomFromTable(roomId: string) : Promise<boolean> {
 export async function updateRoomInTable(roomId: string, newName: string) : Promise<boolean> {
   if (!supabase) {
     console.error("Supabase client not initialized");
+    return false;
+  }
+
+  const canUpdate = await requireOwnerRole(roomId, "Raeume bearbeiten");
+  if (!canUpdate) {
     return false;
   }
 
@@ -80,7 +136,7 @@ export async function fetchNumberOfDevicesInRoom(roomId: string): Promise<number
   const { data, error } = await supabase
     .from("devices")
     .select("*", { count: "exact" })
-    .eq("room_id", roomId) as { data: Device[] | null; error: any; count: number | null };
+    .eq("room_id", roomId) as { data: Device[] | null; error: PostgrestError | null; count: number | null };
 
   if (error) {
     console.error("Error fetching device count:", error);

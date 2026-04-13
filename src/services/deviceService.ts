@@ -1,5 +1,47 @@
+import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "../config/supabaseClient";
 import type { Device, DeviceType, DeviceState } from "../types";
+import { fetchRoomRole } from "./roomService";
+
+async function getCurrentUserId(): Promise<string | null> {
+  return (await supabase?.auth.getUser())?.data?.user?.id ?? null;
+}
+
+
+async function requireOwnerForRoom(roomId: string, actionLabel: string): Promise<boolean> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return false;
+  }
+  const role = await fetchRoomRole(roomId, userId);
+
+  if (role === "owner") {
+    return true;
+  }
+
+  alert(`Nur Eigentuemer duerfen ${actionLabel}.`);
+  return false;
+}
+
+async function fetchDeviceRoomId(deviceId: string): Promise<string | null> {
+  if (!supabase) {
+    console.error("Supabase client not initialized");
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("devices")
+    .select("room_id")
+    .eq("id", deviceId)
+    .single() as { data: { room_id: string } | null; error: PostgrestError | null };
+
+  if (error) {
+    console.error("Error fetching device room:", error);
+    return null;
+  }
+
+  return data?.room_id ?? null;
+}
 
 export async function fetchDevices(roomId: string): Promise<Device[]> {
   if (!supabase) {
@@ -59,6 +101,16 @@ export async function deleteDevice(deviceId: string): Promise<boolean> {
     return false;
   }
 
+  const roomId = await fetchDeviceRoomId(deviceId);
+  if (!roomId) {
+    return false;
+  }
+
+  const canDelete = await requireOwnerForRoom(roomId, "Geraete loeschen");
+  if (!canDelete) {
+    return false;
+  }
+
   const { error } = await supabase
     .from("devices")
     .delete()
@@ -102,6 +154,16 @@ export async function updateDeviceName(
 ): Promise<boolean> {
   if (!supabase) {
     console.error("Supabase client not initialized");
+    return false;
+  }
+
+  const roomId = await fetchDeviceRoomId(deviceId);
+  if (!roomId) {
+    return false;
+  }
+
+  const canRename = await requireOwnerForRoom(roomId, "Geraete umbenennen");
+  if (!canRename) {
     return false;
   }
 

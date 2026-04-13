@@ -13,6 +13,11 @@
   margin-bottom: 1.5rem;
   gap: 12px;
 }
+
+.device-role-hint {
+  margin: 0.25rem 0 0;
+  color: #666;
+}
 /* --- Haupt-Layout (WICHTIG für das Nebeneinander!) --- */
 .devices-layout {
   display: flex;
