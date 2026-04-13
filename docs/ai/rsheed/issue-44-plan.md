@@ -121,6 +121,7 @@ Fuer Raeume einen echten Invite-Flow vorbereiten, damit Eigentuemer weitere Pers
 
 - Soll der aktuelle Release-1-Invite-Flow spaeter noch von "nur bestehende Accounts" auf "auch noch nicht registrierte E-Mail-Adressen" erweitert werden?
 - Brauchen wir fuer Release 1 bereits aktive Ablaufpruefung fuer `expires_at` oder reicht zunaechst ein dauerhafter `pending`-Status?
+- Sollen abgelehnte Einladungen spaeter sichtbar bleiben oder fuer Release 1 einfach neu erzeugt werden koennen?
 
 ## Assumptions
 
@@ -170,6 +171,18 @@ Fuer Raeume einen echten Invite-Flow vorbereiten, damit Eigentuemer weitere Pers
 
 - Entscheidung: Die erste technische Umsetzung von `#44` laedt nur bestehende registrierte Accounts ein.
   Grund: Das ist fuer Release 1 kleiner, sicherer und passt zur Edge-Function-Pruefung per bestehendem Auth-User.
+
+- Entscheidung: Die Mitgliederliste soll fuer `owner` und `member` sichtbar sein.
+  Grund: FR-13 verbietet fuer Mitglieder Verwaltung, aber nicht das reine Sehen anderer Raum-Mitglieder; das passt fachlich und verbessert die Orientierung im Raum.
+
+- Entscheidung: Offene Einladungen sollen in der Mitgliedersektion mit Status sichtbar sein.
+  Grund: Der Owner soll direkt im Raumkontext sehen koennen, dass eine Einladung bereits gesendet wurde und noch auf Antwort wartet.
+
+- Entscheidung: Die Sidebar soll fuer `#44` kein Glocken-Icon mehr zeigen, sondern nur den Text `Einladungen` mit optionalem Pending-Count.
+  Grund: Vom Nutzer explizit gewuenscht; das reduziert visuelle Unruhe ohne den Invite-Einstieg zu verlieren.
+
+- Entscheidung: Fuer Release 1 sollen `declined`-Einladungen nicht als eigener komplexer Verlauf aufgebaut werden.
+  Grund: Kleiner MVP-Scope; erneutes Einladen ist wichtiger als ein vollstaendiger Einladungshistorien-Flow.
 
 ## Plan
 
@@ -224,6 +237,10 @@ Fuer Raeume einen echten Invite-Flow vorbereiten, damit Eigentuemer weitere Pers
 - Notifications-Seite fuer offene Einladungen angelegt
 - Mitgliedersektion in `src/pages/Devices.tsx` fuer Owner eingebaut
 - erste Invite-Flow-Tests fuer Sidebar/Notifications hinzugefuegt
+- fachlich nachgezogen:
+  - Mitgliederliste auch fuer `member`
+  - Pending-Status direkt in der Mitgliedersektion
+  - Sidebar ohne Glocken-Icon
 
 ### Offen
 
@@ -250,3 +267,7 @@ Vor einer echten Demo den Supabase-Teil bewusst freigeben und ausrollen:
 - `room_invites` in Supabase anlegen
 - Edge Function `room-invites` deployen
 - danach Invite-Flow manuell mit Owner-/Member-Accounts pruefen
+
+Danach den naechsten UI-Feinschnitt fuer `#44` einzeln umsetzen:
+- zuerst Sidebar von Glocke auf reinen Text `Einladungen` umstellen
+- danach Mitglieder-/Invite-Liste im Raumkontext erweitern
