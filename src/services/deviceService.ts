@@ -24,7 +24,8 @@ export async function addDeviceToRoom(
   roomId: string,
   name: string,
   type: DeviceType,
-  energy_consumption?: number | null
+  energy_consumption?: number | null,
+  initialState?: DeviceState
 ): Promise<Device | null> {
   if (!supabase) {
     console.error("Supabase client not initialized");
@@ -38,7 +39,7 @@ export async function addDeviceToRoom(
       name,
       type,
       energy_consumption: energy_consumption ?? null,
-      state: {},
+      state: initialState ?? {},
     })
     .select()
     .single();

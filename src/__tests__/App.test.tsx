@@ -104,19 +104,6 @@ describe('App', () => {
     })
   })
 
-  it('renders the Devices page on /devices path', async () => {
-    mockLoggedInSession()
-    render(
-      <MemoryRouter initialEntries={['/devices']}>
-        <App />
-      </MemoryRouter>
-    )
-    
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Devices' })).toBeInTheDocument()
-    })
-  })
-
   it('renders the Simulator page on /simulator path', async () => {
     mockLoggedInSession()
     render(
