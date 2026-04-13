@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { type Device, type DeviceType } from "../types";
 import { useDevices } from "../hooks/useDevices";
+import { useRoomRole } from "../hooks/useRoomRole";
 import { DeviceTypeSidebar } from "../components/DeviceTypeSidebar";
 import { DeviceCard } from "../components/DeviceCard";
 import { AddModalDevice } from "../components/modals/AddModalDevice";
@@ -19,6 +20,7 @@ export default function Devices() {
   const location = useLocation();
   const state = location.state as LocationState | null;
   const roomName = state?.roomName ?? "Raum";
+  const { canManage, loading: roleLoading } = useRoomRole(roomId);
 
   const { devices, loading, addDevice, removeDevice, renameDevice, toggleDevice, changeDeviceState } = useDevices(roomId);
   const [deviceToDelete, setDeviceToDelete] = useState<Device | null>(null);
@@ -37,15 +39,14 @@ export default function Devices() {
     if (success) setDeviceToDelete(null);
   };
 
-   return (
+  return (
     <section className="devices-container">
       <div className="devices-layout">
-        
-        {/* Sidebar bekommt jetzt Props für den State */}
-        <DeviceTypeSidebar 
-          onSelectType={setAddingType} 
-          isOpen={isSidebarOpen} 
-          onClose={() => setIsSidebarOpen(false)} 
+        <DeviceTypeSidebar
+          onSelectType={setAddingType}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          canManage={canManage}
         />
 
         <div className="devices-main">
@@ -53,19 +54,19 @@ export default function Devices() {
             <div>
               <h2>Devices</h2>
               <p>{roomName}</p>
+              {!roleLoading && !canManage ? (
+                <p className="device-role-hint">Als Mitglied kannst du Geraete steuern, aber nicht verwalten.</p>
+              ) : null}
             </div>
-            
-            <div className="mobile-sidebar-toggle" >
-              {/* BURGER MENU BUTTON: Nur auf Mobile sichtbar über CSS */}
-              <button 
-                onClick={() => setIsSidebarOpen(true)}
-              >
+
+            <div className="mobile-sidebar-toggle">
+              <button onClick={() => setIsSidebarOpen(true)}>
                 <Menu size={24} />
               </button>
             </div>
 
             <button className="add-button" onClick={() => navigate("/rooms")}>
-              Zurück
+              Zurueck
             </button>
           </div>
 
@@ -73,7 +74,7 @@ export default function Devices() {
             {loading ? (
               <p>Laden...</p>
             ) : devices.length === 0 ? (
-              <p>Es sind noch keine Geräte im Raum angelegt. Wähle links ein Bauteil aus.</p>
+              <p>{canManage ? "Es sind noch keine Geraete im Raum angelegt. Waehle links ein Bauteil aus." : "Es sind noch keine Geraete im Raum angelegt."}</p>
             ) : (
               devices.map((device) => (
                 <DeviceCard
@@ -83,6 +84,7 @@ export default function Devices() {
                   onDelete={() => setDeviceToDelete(device)}
                   onUpdate={renameDevice}
                   onStateChange={changeDeviceState}
+                  canManage={canManage}
                 />
               ))
             )}
@@ -90,21 +92,20 @@ export default function Devices() {
         </div>
       </div>
 
-      {/* Modal Components */}
       <AddModalDevice
         deviceType={addingType}
-        isOpen={addingType !== null}
+        isOpen={addingType !== null && canManage}
         onClose={() => setAddingType(null)}
         onSave={handleAddDevice}
       />
 
       <DeleteModal
         itemName={deviceToDelete?.name || null}
-        itemType="Gerät"
+        itemType="Geraet"
         isOpen={deviceToDelete !== null}
         onClose={() => setDeviceToDelete(null)}
         onConfirm={handleDeleteDevice}
       />
-  </section>
+    </section>
   );
 }

@@ -10,36 +10,27 @@ type DeviceCardProps = {
   onDelete: (device: Device) => void;
   onUpdate: (deviceId: string, name: string) => void;
   onStateChange: (deviceId: string, newState: Partial<DeviceState>) => void;
+  canManage: boolean;
 };
 
-export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange }: DeviceCardProps) {
+export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange, canManage }: DeviceCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(device.name);
   const isOn = device.state?.on === true;
 
-  // Handle save button click
   const handleSave = () => {
     const trimmedName = editName.trim();
-    const isNameValid = trimmedName.length > 0;
-    
-    if (isNameValid) {
+    if (trimmedName.length > 0) {
       onUpdate(device.id, trimmedName);
       setIsEditing(false);
     }
   };
 
-  // Handle cancel button click
   const handleCancel = () => {
     setEditName(device.name);
     setIsEditing(false);
   };
 
-  // Handle edit button click
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-
-  //FR-06
   const renderSpecificControls = () => {
     if (!isOn) return null;
 
@@ -49,7 +40,9 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
           <div className="custom-control">
             <Sun size={14} className="control-icon" />
             <input
-              type="range" min="0" max="100"
+              type="range"
+              min="0"
+              max="100"
               value={device.state?.brightness ?? 0}
               style={{ "--val": device.state?.brightness ?? 0 } as React.CSSProperties}
               onChange={(e) => onStateChange(device.id, { brightness: parseInt(e.target.value, 10) })}
@@ -66,12 +59,16 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
               <button
                 className="temp-btn"
                 onClick={() => onStateChange(device.id, { temperature: Math.max(5, temp - 0.5) })}
-              >−</button>
-              <span className="temp-display">{temp.toFixed(1)} °C</span>
+              >
+                -
+              </button>
+              <span className="temp-display">{temp.toFixed(1)} C</span>
               <button
                 className="temp-btn"
                 onClick={() => onStateChange(device.id, { temperature: Math.min(35, temp + 0.5) })}
-              >+</button>
+              >
+                +
+              </button>
             </div>
           </div>
         );
@@ -80,14 +77,18 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
         return (
           <div className="custom-control">
             <Layers size={14} />
-            <button 
-              className={`blind-btn ${device.state?.position === 'offen' ? 'active' : ''}`}
-              onClick={() => onStateChange(device.id, { position: 'offen' })}
-            >Auf</button>
-            <button 
-              className={`blind-btn ${device.state?.position === 'geschlossen' ? 'active' : ''}`}
-              onClick={() => onStateChange(device.id, { position: 'geschlossen' })}
-            >Zu</button>
+            <button
+              className={`blind-btn ${device.state?.position === "offen" ? "active" : ""}`}
+              onClick={() => onStateChange(device.id, { position: "offen" })}
+            >
+              Auf
+            </button>
+            <button
+              className={`blind-btn ${device.state?.position === "geschlossen" ? "active" : ""}`}
+              onClick={() => onStateChange(device.id, { position: "geschlossen" })}
+            >
+              Zu
+            </button>
           </div>
         );
       case "Sensor":
@@ -95,27 +96,25 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
           <div className="custom-control">
             <Activity size={14} />
             <input
-              type="text" className="sensor-input"
+              type="text"
+              className="sensor-input"
               value={String(device.state?.value ?? "")}
               onChange={(e) => onStateChange(device.id, { value: e.target.value })}
             />
           </div>
         );
-      default: return null;
+      default:
+        return null;
     }
   };
 
   const showStatusAndToggle = device.type === "Schalter" || device.type === "Jalousie" || device.type === "Sensor" || device.type === "Thermostat";
-
-  // Determine CSS class based on editing state
   const cardClassname = isEditing ? "device-card editing" : "device-card";
 
   return (
     <div className={cardClassname}>
-      {/* Card Header: Name & Actions */}
       <div className="device-card-header">
         {isEditing ? (
-          // Edit Mode: Show input field with save/cancel buttons
           <div className="edit-input-group">
             <input
               className="device-input"
@@ -124,53 +123,30 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
               autoFocus
             />
             <div className="device-actions">
-              <button
-                className="action-btn save-btn"
-                onClick={handleSave}
-                title="Speichern"
-                aria-label="Save device name"
-              >
+              <button className="action-btn save-btn" onClick={handleSave} title="Speichern" aria-label="Save device name">
                 <Check size={20} />
               </button>
-              <button
-                className="action-btn cancel-btn"
-                onClick={handleCancel}
-                title="Abbrechen"
-                aria-label="Cancel editing"
-              >
+              <button className="action-btn cancel-btn" onClick={handleCancel} title="Abbrechen" aria-label="Cancel editing">
                 <X size={20} />
               </button>
             </div>
           </div>
         ) : (
-          // View Mode: Show device name
           <h3 className="device-name">{device.name}</h3>
         )}
-        
-        {!isEditing && (
-          // Show edit/delete buttons only when not editing
+
+        {!isEditing && canManage ? (
           <div className="device-actions">
-            <button
-              className="action-btn edit-btn"
-              onClick={handleEdit}
-              title="Bearbeiten"
-              aria-label={`Edit ${device.name}`}
-            >
+            <button className="action-btn edit-btn" onClick={() => setIsEditing(true)} title="Bearbeiten" aria-label={`Edit ${device.name}`}>
               <Edit2 size={16} />
             </button>
-            <button
-              className="action-btn delete-btn"
-              onClick={() => onDelete(device)}
-              title="Löschen"
-              aria-label={`Delete ${device.name}`}
-            >
+            <button className="action-btn delete-btn" onClick={() => onDelete(device)} title="Loeschen" aria-label={`Delete ${device.name}`}>
               <Trash2 size={16} />
             </button>
           </div>
-        )}
+        ) : null}
       </div>
-      
-      {/* Card Body: Info Badges */}
+
       <div className="device-info">
         <span className="badge type-badge">{device.type}</span>
         <span className="badge energy-badge">
@@ -178,20 +154,17 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
         </span>
       </div>
 
-      {/* Footer*/}
       <div className="device-footer" onClick={(e) => e.stopPropagation()}>
-        {showStatusAndToggle && (
+        {showStatusAndToggle ? (
           <div className="status-row">
             <span className={isOn ? "status-text text-on" : "status-text text-off"}>
               {isOn ? "Eingeschaltet" : "Ausgeschaltet"}
             </span>
             <ToggleSwitch isOn={isOn} onChange={(val) => onToggle(device.id, val)} />
           </div>
-        )}
-        
-        <div className="specific-controls-container">
-          {renderSpecificControls()}
-        </div>
+        ) : null}
+
+        <div className="specific-controls-container">{renderSpecificControls()}</div>
       </div>
     </div>
   );

@@ -1,5 +1,37 @@
 import { supabase } from "../config/supabaseClient";
 import type { Device, DeviceType, DeviceState } from "../types";
+import { fetchRoomRole } from "./roomService";
+
+async function requireOwnerForRoom(roomId: string, actionLabel: string): Promise<boolean> {
+  const role = await fetchRoomRole(roomId);
+
+  if (role === "owner") {
+    return true;
+  }
+
+  alert(`Nur Eigentuemer duerfen ${actionLabel}.`);
+  return false;
+}
+
+async function fetchDeviceRoomId(deviceId: string): Promise<string | null> {
+  if (!supabase) {
+    console.error("Supabase client not initialized");
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("devices")
+    .select("room_id")
+    .eq("id", deviceId)
+    .single() as { data: { room_id: string } | null; error: any };
+
+  if (error) {
+    console.error("Error fetching device room:", error);
+    return null;
+  }
+
+  return data?.room_id ?? null;
+}
 
 export async function fetchDevices(roomId: string): Promise<Device[]> {
   if (!supabase) {
@@ -31,6 +63,11 @@ export async function addDeviceToRoom(
     return null;
   }
 
+  const canAdd = await requireOwnerForRoom(roomId, "Geraete hinzufuegen");
+  if (!canAdd) {
+    return null;
+  }
+
   const { data, error } = await supabase
     .from("devices")
     .insert({
@@ -55,6 +92,16 @@ export async function addDeviceToRoom(
 export async function deleteDevice(deviceId: string): Promise<boolean> {
   if (!supabase) {
     console.error("Supabase client not initialized");
+    return false;
+  }
+
+  const roomId = await fetchDeviceRoomId(deviceId);
+  if (!roomId) {
+    return false;
+  }
+
+  const canDelete = await requireOwnerForRoom(roomId, "Geraete loeschen");
+  if (!canDelete) {
     return false;
   }
 
@@ -101,6 +148,16 @@ export async function updateDeviceName(
 ): Promise<boolean> {
   if (!supabase) {
     console.error("Supabase client not initialized");
+    return false;
+  }
+
+  const roomId = await fetchDeviceRoomId(deviceId);
+  if (!roomId) {
+    return false;
+  }
+
+  const canRename = await requireOwnerForRoom(roomId, "Geraete umbenennen");
+  if (!canRename) {
     return false;
   }
 
