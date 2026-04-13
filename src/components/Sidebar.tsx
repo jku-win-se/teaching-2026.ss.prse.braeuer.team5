@@ -1,7 +1,23 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
+import { supabase } from "../config/supabaseClient";
 import styles from "./Sidebar.module.css";
 
 export function Sidebar() {
+  
+  const handleLogout = async () => {
+
+    if (!supabase) return;
+
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (err) {
+      console.error("Logout fehlgeschlagen:", err);
+    }
+  };
+
+  const location = useLocation();
+  const isRoomsActive = location.pathname === "/rooms" || location.pathname.startsWith("/room/");
 
   return (
     <aside className={styles.sidebar}>
@@ -14,13 +30,19 @@ export function Sidebar() {
         <NavLink to="/" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Dashboard
         </NavLink>
-        <NavLink to="/rooms" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
+        <NavLink to="/rooms" className={() => (isRoomsActive ? styles.activeLink : styles.navLink)}>
           Räume
         </NavLink>
         <NavLink to="/simulator" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Simulator
         </NavLink>
       </nav>
+
+      <div className={styles.footer}>
+        <button onClick={handleLogout} className={styles.logoutbtn}>
+          Abmelden
+        </button>
+      </div>
     </aside>
   );
 }

@@ -50,7 +50,7 @@
   font-weight: 500;
 }
 
-.status-text.text-on { color: #3f38c8; }
+.status-text.text-on { color: var(--primary);}
 .status-text.text-off { color: #9ca3af; }
 
 /* --- Specific Controls (Slider, Buttons) --- */
@@ -62,30 +62,144 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #f9fafb;
-  padding: 8px;
-  border-radius: 8px;
+  background: rgba(66, 81, 163, 0.07);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(66, 81, 163, 0.15);
 }
 
+.control-icon {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* --- Range Slider (Dimmer) --- */
 .custom-control input[type="range"] {
   flex: 1;
+  height: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: linear-gradient(
+    to right,
+    var(--primary) calc(var(--val, 0) * 1%),
+    #d1d5db calc(var(--val, 0) * 1%)
+  );
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  min-width: 0;
 }
 
+.custom-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(66, 81, 163, 0.45);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.custom-control input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(66, 81, 163, 0.55);
+}
+
+.custom-control input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(66, 81, 163, 0.45);
+  cursor: pointer;
+}
+
+.custom-control input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 999px;
+}
+
+.control-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary);
+  min-width: 34px;
+  text-align: right;
+}
+
+/* --- Thermostat +/- Control --- */
+.temp-control {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  border: 1.5px solid rgba(66, 81, 163, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+}
+
+.temp-btn {
+  background: white;
+  border: none;
+  color: var(--primary);
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+  border-radius: 0;
+}
+
+.temp-btn:hover {
+  background: var(--primary);
+  color: white;
+  border-color: transparent;
+}
+
+.temp-display {
+  flex: 1;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #111827;
+  border-left: 1px solid rgba(66, 81, 163, 0.2);
+  border-right: 1px solid rgba(66, 81, 163, 0.2);
+  padding: 5px 4px;
+  user-select: none;
+}
+
+/* --- Blind Buttons (Jalousie) --- */
 .blind-btn {
   flex: 1;
-  padding: 6px;
-  border: 1px solid #d1d5db;
+  padding: 6px 10px;
+  border: 1.5px solid rgba(66, 81, 163, 0.25);
   background: white;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
-  color: #9ca3af;
+  color: #6b7280;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.blind-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .blind-btn.active {
-  background: #3f38c8;
+  background: var(--primary);
+  border-color: var(--primary);
   color: white;
-  border-color: #3f38c8;
+  box-shadow: 0 2px 6px rgba(66, 81, 163, 0.3);
 }
 
 /* --- Edit Input Container --- */
@@ -222,11 +336,17 @@
 .type-badge {
   background: #e0f2fe;
   color: #3f38c8;
+  padding: 1px 2px;
+  border-radius: 3px;
+
 }
 
 .energy-badge {
   background: #fef3c7;
   color: #f1b24a;
+  padding: 1px 2px;
+  border-radius: 3px;
+
 }
 
 /* --- Controls (Toggle + Status) --- */

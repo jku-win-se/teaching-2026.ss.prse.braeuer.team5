@@ -104,10 +104,10 @@ describe('App', () => {
     })
   })
 
-  it('renders the Devices page on /devices path', async () => {
+  it('renders the Devices page on /room/:id path', async () => {
     mockLoggedInSession()
     render(
-      <MemoryRouter initialEntries={['/devices']}>
+      <MemoryRouter initialEntries={['/room/test-room-id']}>
         <App />
       </MemoryRouter>
     )
