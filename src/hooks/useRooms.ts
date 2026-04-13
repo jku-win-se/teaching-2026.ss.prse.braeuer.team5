@@ -12,7 +12,7 @@ export function useRooms() {
   const addRoom = async (name: string): Promise<boolean> => {
     const newId = await addToRoomTable(name);
     if (newId) {
-      setRooms((current) => [...current, { id: newId, name }]);
+      setRooms((current) => [...current, { id: newId, name, role: "owner" }]);
       return true;
     }
     return false;

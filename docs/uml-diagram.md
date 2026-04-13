@@ -5,26 +5,39 @@
 ```mermaid
 graph TD
     main["main.tsx\n(BrowserRouter)"]
-    App["App.tsx\n(Routes)"]
-    Sidebar["Sidebar\n(NavLinks)"]
-    Dashboard["Dashboard\n/"]
-    Rooms["Rooms\n/rooms"]
-    Devices["Devices\n/rooms/:roomId"]
-    Simulator["Simulator\n/simulator"]
-    DeviceTypeSidebar["DeviceTypeSidebar\n(Drawer)"]
-    DeviceCard["DeviceCard"]
-    ToggleSwitch["ToggleSwitch"]
-    AddModalDevice["AddModalDevice\n(Modal)"]
-    DeleteModalDevices["DeleteModal\n(Gerät löschen)"]
-    DeleteModalRooms["DeleteModal\n(Raum löschen)"]
+    App["App.tsx\n(useAuth · Route Guard)"]
+
+    subgraph Unauthenticated
+        Login["Login\n/login"]
+        Register["Register\n/register"]
+    end
+
+    subgraph Authenticated
+        Sidebar["Sidebar\n(NavLinks · useLocation)"]
+        Dashboard["Dashboard\n/"]
+        Rooms["Rooms\n/rooms\n(useRooms)"]
+        RoomRow["RoomRow\n(useDeviceCount)"]
+        Devices["Devices\n/room/:id\n(useDevices)"]
+        Simulator["Simulator\n/simulator"]
+        DeviceTypeSidebar["DeviceTypeSidebar\n(Drawer)"]
+        DeviceCard["DeviceCard"]
+        ToggleSwitch["ToggleSwitch"]
+        AddModalDevice["AddModalDevice\n(Modal)"]
+        DeleteModalDevices["DeleteModal\n(Gerät löschen)"]
+        DeleteModalRooms["DeleteModal\n(Raum löschen)"]
+    end
 
     main --> App
-    App --> Sidebar
-    App --> Dashboard
-    App --> Rooms
-    App --> Devices
-    App --> Simulator
+    App --> Login
+    App --> Register
+    App --> Authenticated
 
+    Sidebar --> Dashboard
+    Sidebar --> Rooms
+    Sidebar --> Devices
+    Sidebar --> Simulator
+
+    Rooms --> RoomRow
     Rooms --> DeleteModalRooms
 
     Devices --> DeviceTypeSidebar
@@ -43,7 +56,7 @@ classDiagram
     class Room {
         +String id
         +String name
-        +String created_at
+        +String? created_at
     }
 
     class Device {
@@ -51,8 +64,8 @@ classDiagram
         +String room_id
         +String name
         +DeviceType type
-        +Number energy_consumption
-        +Record state
+        +Number? energy_consumption
+        +DeviceState? state
     }
 
     class DeviceType {
@@ -64,8 +77,17 @@ classDiagram
         Jalousie
     }
 
+    class DeviceState {
+        +Boolean? on
+        +Number? brightness
+        +Number? temperature
+        +String|Number? value
+        +String? position
+    }
+
     Room "1" --> "0..*" Device : contains
     Device --> DeviceType : is of
+    Device --> DeviceState : has
 ```
 
 ---
@@ -75,8 +97,18 @@ classDiagram
 ```mermaid
 graph LR
     subgraph Pages
-        Rooms["Rooms"]
-        Devices["Devices"]
+        App["App.tsx\n(Route Guard)"]
+        Login["Login\n/login"]
+        Register["Register\n/register"]
+        Rooms["Rooms\n/rooms"]
+        Devices["Devices\n/room/:id"]
+    end
+
+    subgraph Hooks
+        useAuth["useAuth"]
+        useRooms["useRooms"]
+        useDeviceCount["useDeviceCount"]
+        useDevices["useDevices"]
     end
 
     subgraph Services
@@ -85,12 +117,22 @@ graph LR
     end
 
     subgraph Backend
-        supabase["supabaseClient\n(Supabase)"]
+        supabase["supabaseClient"]
         db[("Supabase DB\nrooms / devices")]
     end
 
-    Rooms -->|"fetchRooms()\naddToRoomTable()\ndeleteRoomFromTable()\nupdateRoomInTable()\nfetchNumberOfDevicesInRoom()"| roomSvc
-    Devices -->|"fetchDevices()\naddDeviceToRoom()\ndeleteDevice()\nupdateDeviceName()"| deviceSvc
+    App -->|"session, loading"| useAuth
+    Rooms --> useRooms
+    Rooms --> useDeviceCount
+    Devices --> useDevices
+
+    useAuth -->|"getSession()\nonAuthStateChange()\nsignOut()"| supabase
+    Login -->|"signInWithPassword()"| supabase
+    Register -->|"signUp()"| supabase
+
+    useRooms -->|"fetchRooms()\naddToRoomTable()\nupdateRoomInTable()\ndeleteRoomFromTable()"| roomSvc
+    useDeviceCount -->|"fetchNumberOfDevicesInRoom()"| roomSvc
+    useDevices -->|"fetchDevices()\naddDeviceToRoom()\ndeleteDevice()\nupdateDeviceName()\nupdateDeviceState()"| deviceSvc
 
     roomSvc --> supabase
     deviceSvc --> supabase
@@ -107,6 +149,8 @@ graph LR
     rooms["/rooms"] --> Rooms
     roomId["/rooms/:roomId"] --> Devices
     sim["/simulator"] --> Simulator
+    login["/login"] --> Login
+    register["/register"] --> Register
 ```
 
 ---

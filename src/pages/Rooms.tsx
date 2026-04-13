@@ -48,12 +48,12 @@ export default function Rooms() {
 
       <div className="room-list">
         {rooms.map((room) => (
-          <RoomRow 
-            key={room.id} 
-            room={room} 
+          <RoomRow
+            key={room.id}
+            room={room}
             onSelect={() => navigate(`/room/${room.id}`, { state: { roomName: room.name } })}
             onUpdate={updateRoom}
-            onDelete={() => setRoomToDelete(room)} 
+            onDelete={() => setRoomToDelete(room)}
           />
         ))}
       </div>
@@ -69,12 +69,12 @@ export default function Rooms() {
   );
 }
 
-// --- Unter-Komponente: Die Zeile ---
-
-function RoomRow({ room, onSelect, onUpdate, onDelete }: { room: Room, onSelect: () => void, onUpdate: (id: string, name: string) => void, onDelete: () => void }) {
+function RoomRow({ room, onSelect, onUpdate, onDelete }: { room: Room; onSelect: () => void; onUpdate: (id: string, name: string) => void; onDelete: () => void }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(room.name);
   const deviceCount = useDeviceCount(room.id);
+  const canManage = room.role === "owner";
+  const roleLabel = canManage ? "Eigentuemer" : "Mitglied";
 
   if (isEditing) {
     return (
@@ -93,49 +93,46 @@ function RoomRow({ room, onSelect, onUpdate, onDelete }: { room: Room, onSelect:
   }
 
   return (
-    <div 
-      className="room-card interactive" 
-      onClick={onSelect} // Der gesamte Hintergrund navigiert
-    >
+    <div className="room-card interactive" onClick={onSelect}>
       <div className="room-info">
-        <span className="room-name">{room.name}</span>
-        <span className="device-count">{deviceCount} Geräte</span>
+        <div className="room-title-row">
+          <span className="room-name">{room.name}</span>
+          <span className={`room-role-badge ${canManage ? "owner" : "member"}`}>{roleLabel}</span>
+        </div>
+        <span className="device-count">{deviceCount} Geraete</span>
       </div>
 
-      <div className="actions">
-        {/* WICHTIG: e.stopPropagation() verhindert das Auslösen von onSelect */}
-        <button 
-          className="icon-btn"
-          aria-label="Edit" 
-          onClick={(e) => {
-            e.stopPropagation(); 
-            setIsEditing(true);
-          }}
-        >
-          <div style={{ color: "gray" }}>
-            <Pencil size={20} />
-          </div>
-        </button>
+      {canManage ? (
+        <div className="actions">
+          <button
+            className="icon-btn"
+            aria-label="Edit"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(true);
+            }}
+          >
+            <div style={{ color: "gray" }}>
+              <Pencil size={20} />
+            </div>
+          </button>
 
-        <button 
-          className="icon-btn delete"
-          aria-label="Delete" 
-          onClick={(e) => {
-            e.stopPropagation(); 
-            onDelete();
-          }}
-        > 
-          <div>
-            <Trash2 size={20} color="red" />
-          </div>
-          
-        </button>
-      </div>
+          <button
+            className="icon-btn delete"
+            aria-label="Delete"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+          >
+            <div>
+              <Trash2 size={20} color="red" />
+            </div>
+          </button>
+        </div>
+      ) : (
+        <span className="room-permission-note">Nur Steuerung</span>
+      )}
     </div>
   );
 }
-
-
-
-
-

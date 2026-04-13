@@ -12,14 +12,15 @@ const BAUTEILE = [
 
 interface DeviceTypeSidebarProps {
   onSelectType: (type: DeviceType) => void;
-  isOpen: boolean;        // Neu
-  onClose: () => void;    // Neu
+  isOpen: boolean;
+  onClose: () => void;
+  canManage: boolean;
 }
 
-export function DeviceTypeSidebar({ onSelectType, isOpen, onClose }: DeviceTypeSidebarProps) {
+export function DeviceTypeSidebar({ onSelectType, isOpen, onClose, canManage }: DeviceTypeSidebarProps) {
   const handleSelect = (type: DeviceType) => {
-    onSelectType(type as DeviceType);
-    onClose(); // Schließt Sidebar nach Auswahl
+    onSelectType(type);
+    onClose();
   };
 
   return (
@@ -29,20 +30,24 @@ export function DeviceTypeSidebar({ onSelectType, isOpen, onClose }: DeviceTypeS
       <aside className={`device-type-sidebar ${isOpen ? "open" : ""}`}>
         <h3 className="bauteile-title">BAUTEILE</h3>
         <div className="mobile-sidebar-cancel">
-          <div className="close-menu" onClick={onClose}>✕</div>
+          <div className="close-menu" onClick={onClose}>x</div>
         </div>
-        
-        <div className="bauteile-list">
-          {BAUTEILE.map(({ type, icon }) => (
-            <button key={type} className="bauteil-btn" onClick={() => handleSelect(type as DeviceType)}>
-              <div className="bauteil-left">
-                <span className="bauteil-icon">{icon}</span>
-                <span>{type}</span>
-              </div>
-              <Plus size={16} />
-            </button>
-          ))}
-        </div>
+
+        {canManage ? (
+          <div className="bauteile-list">
+            {BAUTEILE.map(({ type, icon }) => (
+              <button key={type} className="bauteil-btn" onClick={() => handleSelect(type as DeviceType)}>
+                <div className="bauteil-left">
+                  <span className="bauteil-icon">{icon}</span>
+                  <span>{type}</span>
+                </div>
+                <Plus size={16} />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="bauteile-hint">Nur Eigentuemer duerfen Geraete hinzufuegen.</p>
+        )}
       </aside>
     </>
   );
