@@ -9,6 +9,7 @@ export const deviceTypes: DeviceType[] = [
   "Jalousie",
 ];
 
+
 export interface DeviceState {
   on?: boolean;
   brightness?: number;
@@ -36,4 +37,5 @@ export type Room = {
 export type RoomMembership = {
   room_id: string;
   role: RoomRole;
+  user_id: string;
 };

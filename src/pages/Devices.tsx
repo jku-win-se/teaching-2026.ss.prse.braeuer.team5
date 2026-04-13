@@ -66,7 +66,7 @@ export default function Devices() {
             </div>
 
             <button className="add-button" onClick={() => navigate("/rooms")}>
-              Zurueck
+              Zurück
             </button>
           </div>
 

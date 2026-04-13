@@ -7,7 +7,7 @@ async function fetchOwnRoomMemberships(): Promise<RoomMembership[]> {
 
   const { data, error } = await supabase
     .from("room_members")
-    .select("room_id, role") as { data: RoomMembership[] | null; error: PostgrestError | null };
+    .select("room_id, role, user_id") as { data: RoomMembership[] | null; error: PostgrestError | null };
 
   if (error) {
     console.error("Error fetching room memberships:", error);
@@ -17,13 +17,18 @@ async function fetchOwnRoomMemberships(): Promise<RoomMembership[]> {
   return data ?? [];
 }
 
-export async function fetchRoomRole(roomId: string): Promise<RoomRole | null> {
+export async function fetchRoomRole(roomId: string, userId: string | undefined): Promise<RoomRole | null> {
   const memberships = await fetchOwnRoomMemberships();
-  return memberships.find((membership) => membership.room_id === roomId)?.role ?? null;
+  return memberships.find((membership) => membership.room_id === roomId && membership.user_id === userId)?.role ?? null;
 }
 
 async function requireOwnerRole(roomId: string, actionLabel: string): Promise<boolean> {
-  const role = await fetchRoomRole(roomId);
+  const userId = (await supabase?.auth.getUser())?.data?.user?.id;
+  if (!userId) {
+    alert(`Nur Eigentuemer duerfen ${actionLabel}.`);
+    return false;
+  }
+  const role = await fetchRoomRole(roomId, userId);
 
   if (role === "owner") {
     return true;
