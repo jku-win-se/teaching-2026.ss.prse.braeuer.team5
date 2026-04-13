@@ -1,70 +1,177 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { MockedFunction } from 'vitest'
+import type { Session } from '@supabase/supabase-js'
+import { render, screen, waitFor } from '@testing-library/react'
 import { BrowserRouter, MemoryRouter } from 'react-router-dom'
 import '@testing-library/jest-dom'
 import App from '../App'
+import { supabase } from '../config/supabaseClient'
+
+// Mock the supabase client
+vi.mock('../config/supabaseClient', () => ({
+  isSupabaseConfigured: true,
+  supabase: {
+    auth: {
+      getSession: vi.fn(),
+      onAuthStateChange: vi.fn(() => ({
+        data: { subscription: { unsubscribe: vi.fn() } },
+      })),
+    },
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockReturnThis(),
+      then: vi.fn().mockImplementation((callback) => 
+        Promise.resolve(callback({ data: [], error: null }))
+      ),
+    }),
+  },
+}))
 
 describe('App', () => {
-  it('renders the app shell with sidebar and main content', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  const getSessionMock = supabase!.auth.getSession as MockedFunction<
+    () => Promise<{ data: { session: Session | null }; error: null }>
+  >
+
+  // Helper: Simulate logged in user
+  const mockLoggedInSession = () => {
+    getSessionMock.mockResolvedValue({
+      data: { 
+        session: { 
+          user: { id: 'test-user', app_metadata: {}, user_metadata: {}, aud: '', created_at: '' }, 
+          access_token: 'test-token', 
+          refresh_token: 'test-refresh', 
+          expires_in: 3600, 
+          token_type: 'bearer' 
+        } 
+      },
+      error: null,
+    })
+  }
+
+  // Helper: Simulate logged out user
+  const mockLoggedOutSession = () => {
+    getSessionMock.mockResolvedValue({
+      data: { session: null },
+      error: null,
+    })
+  }
+
+  it('renders the app shell with sidebar and main content', async () => {
+    mockLoggedInSession()
     render(
       <BrowserRouter>
         <App />
       </BrowserRouter>
     )
-    
-    const appShell = screen.getByRole('main')
-    expect(appShell).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(screen.getByRole('main')).toBeInTheDocument()
+    })
   })
 
-  it('renders the Dashboard page on root path', () => {
+  it('renders the Dashboard page on root path', async () => {
+    mockLoggedInSession()
     render(
       <MemoryRouter initialEntries={['/']}>
         <App />
       </MemoryRouter>
     )
     
-    expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
+    })
   })
 
-  it('renders the Rooms page on /rooms path', () => {
+  it('renders the Rooms page on /rooms path', async () => {
+    mockLoggedInSession()
     render(
       <MemoryRouter initialEntries={['/rooms']}>
         <App />
       </MemoryRouter>
     )
     
-    expect(screen.getByRole('heading', { name: 'Rooms' })).toBeInTheDocument()
+    await waitFor(() => {
+      // Prüft auf die Überschrift "Rooms" wie im ersten File gefordert
+      expect(screen.getByRole('heading', { name: 'Rooms' })).toBeInTheDocument()
+    })
   })
 
-  it('renders the Simulator page on /simulator path', () => {
+  it('renders the Devices page on /devices path', async () => {
+    mockLoggedInSession()
+    render(
+      <MemoryRouter initialEntries={['/devices']}>
+        <App />
+      </MemoryRouter>
+    )
+    
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Devices' })).toBeInTheDocument()
+    })
+  })
+
+  it('renders the Simulator page on /simulator path', async () => {
+    mockLoggedInSession()
     render(
       <MemoryRouter initialEntries={['/simulator']}>
         <App />
       </MemoryRouter>
     )
     
-    expect(screen.getByRole('heading', { name: 'Simulator' })).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Simulator' })).toBeInTheDocument()
+    })
   })
 
-  it('renders Sidebar component', () => {
+  it('renders Sidebar component', async () => {
+    mockLoggedInSession()
     render(
       <MemoryRouter>
         <App />
       </MemoryRouter>
     )
     
-    const sidebar = screen.getByRole('navigation')
-    expect(sidebar).toBeInTheDocument()
+    await waitFor(() => {
+      const sidebar = screen.getByRole('navigation')
+      expect(sidebar).toBeInTheDocument()
+    })
   })
 
-  it('has correct CSS classes for layout', () => {
+  it('has correct CSS classes for layout', async () => {
+    mockLoggedInSession()
     const { container } = render(
       <MemoryRouter>
         <App />
       </MemoryRouter>
     )
     
-    const appShell = container.querySelector('.app-shell')
-    expect(appShell).toHaveClass('app-shell')
+    await waitFor(() => {
+      const appShell = container.querySelector('.app-shell')
+      expect(appShell).toBeInTheDocument()
+      expect(appShell).toHaveClass('app-shell')
+    })
+  })
+
+  it('renders the Register page when not authenticated', async () => {
+    mockLoggedOutSession()
+    render(
+      <MemoryRouter initialEntries={['/register']}>
+        <App />
+      </MemoryRouter>
+    )
+    
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Register' })).toBeInTheDocument()
+    })
+
+    // Sicherstellen, dass die Sidebar NICHT gerendert wird, wenn man ausgeloggt ist
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
   })
 })
