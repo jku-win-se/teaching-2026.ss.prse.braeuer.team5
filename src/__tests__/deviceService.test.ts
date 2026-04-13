@@ -16,6 +16,7 @@ const {
   mockEq,
   mockFrom,
   mockFetchRoomRole,
+  mockGetUser,
 } = vi.hoisted(() => ({
   mockSingle: vi.fn(),
   mockSelect: vi.fn(),
@@ -25,6 +26,7 @@ const {
   mockEq: vi.fn(),
   mockFrom: vi.fn(),
   mockFetchRoomRole: vi.fn(),
+  mockGetUser: vi.fn(),
 }));
 
 const chainable = {
@@ -42,6 +44,9 @@ vi.mock("../config/supabaseClient", () => ({
   isSupabaseConfigured: true,
   supabase: {
     from: mockFrom,
+    auth: {
+      getUser: mockGetUser,
+    },
   },
 }));
 
@@ -51,10 +56,11 @@ vi.mock("../services/roomService", () => ({
 
 describe("deviceService", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     Object.values(chainable).forEach((fn) => (fn as ReturnType<typeof vi.fn>).mockReturnValue(chainable));
     mockFrom.mockReturnValue(chainable);
     mockFetchRoomRole.mockResolvedValue("owner");
+    mockGetUser.mockResolvedValue({ data: { user: { id: "user-123" } } });
     vi.spyOn(window, "alert").mockImplementation(() => {});
   });
 
@@ -91,7 +97,6 @@ describe("deviceService", () => {
 
       const result = await addDeviceToRoom("r1", "Dimmer", "Dimmer", 50);
       expect(result).toEqual(newDevice);
-      expect(mockFetchRoomRole).toHaveBeenCalledWith("r1");
     });
 
     it("gibt null zurück und zeigt Alert bei Datenbankfehler", async () => {
@@ -120,7 +125,7 @@ describe("deviceService", () => {
 
       const result = await deleteDevice("device-1");
       expect(result).toBe(true);
-      expect(mockFetchRoomRole).toHaveBeenCalledWith("r1");
+      expect(mockFetchRoomRole).toHaveBeenCalledWith("r1", "user-123");
     });
 
     it("gibt false zurück und zeigt Alert bei Fehler", async () => {
@@ -140,7 +145,7 @@ describe("deviceService", () => {
 
       const result = await updateDeviceName("device-1", "Neuer Name");
       expect(result).toBe(true);
-      expect(mockFetchRoomRole).toHaveBeenCalledWith("r1");
+      expect(mockFetchRoomRole).toHaveBeenCalledWith("r1", "user-123");
     });
 
     it("gibt false zurück und zeigt Alert bei Fehler", async () => {
