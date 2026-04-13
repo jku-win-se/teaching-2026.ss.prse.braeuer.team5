@@ -44,6 +44,25 @@
   color: #ffffff;
 }
 
+.navWithIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inviteCount {
+  min-width: 1.25rem;
+  height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #f97316;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .activeLink {
   background: var(--active-link-color);
   color: #102033;

@@ -7,6 +7,14 @@ import '@testing-library/jest-dom'
 import App from '../App'
 import { supabase } from '../config/supabaseClient'
 
+vi.mock('../services/inviteService', () => ({
+  fetchPendingRoomInvites: vi.fn().mockResolvedValue([]),
+  respondToRoomInvite: vi.fn(),
+  fetchRoomMembers: vi.fn(),
+  createRoomInvite: vi.fn(),
+  removeRoomMember: vi.fn(),
+}))
+
 // Mock the supabase client
 vi.mock('../config/supabaseClient', () => ({
   isSupabaseConfigured: true,
@@ -127,6 +135,19 @@ describe('App', () => {
     
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Simulator' })).toBeInTheDocument()
+    })
+  })
+
+  it('renders the Notifications page on /notifications path', async () => {
+    mockLoggedInSession()
+    render(
+      <MemoryRouter initialEntries={['/notifications']}>
+        <App />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Einladungen' })).toBeInTheDocument()
     })
   })
 

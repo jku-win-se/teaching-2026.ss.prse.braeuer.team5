@@ -8,11 +8,26 @@ export function useDevices(roomId: string | undefined) {
 
   useEffect(() => {
     if (!roomId) return;
-    setLoading(true);
-    fetchDevices(roomId).then((loadedDevices) => {
+
+    let isCancelled = false;
+
+    const loadDevices = async () => {
+      setLoading(true);
+      const loadedDevices = await fetchDevices(roomId);
+
+      if (isCancelled) {
+        return;
+      }
+
       setDevices(loadedDevices);
       setLoading(false);
-    });
+    };
+
+    void loadDevices();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [roomId]);
 
   const addDevice = async (deviceName: string, type: DeviceType, energyConsumption: number | null) => {

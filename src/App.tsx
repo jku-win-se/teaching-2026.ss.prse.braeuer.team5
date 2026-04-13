@@ -4,6 +4,7 @@ import { Sidebar } from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Rooms from "./pages/Rooms";
 import Devices from "./pages/Devices";
+import Notifications from "./pages/Notifications";
 import Simulator from "./pages/Simulator";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
@@ -36,6 +37,7 @@ export default function App(): JSX.Element {
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/rooms" element={<Rooms />} />
                   <Route path="/room/:id" element={<Devices />} />
+                  <Route path="/notifications" element={<Notifications />} />
                   <Route path="/simulator" element={<Simulator />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

@@ -1,7 +1,7 @@
 /* --- Page Container --- */
 .devices-container {
   padding: 1.5rem;
-  padding-bottom: 0px;
+  padding-bottom: 0;
 }
 
 /* --- Page Header --- */
@@ -18,43 +18,140 @@
   margin: 0.25rem 0 0;
   color: #666;
 }
-/* --- Haupt-Layout (WICHTIG für das Nebeneinander!) --- */
+
+/* --- Main Layout --- */
 .devices-layout {
   display: flex;
   gap: 24px;
-  align-items: stretch; /* Sorgt dafür, dass Sidebar und Content gleich hoch sind */
+  align-items: stretch;
 }
 
 .devices-main {
-  flex: 1; /* Nimmt den restlichen Platz rechts neben der Sidebar ein */
-  padding-top: 0px; /* Ein bisschen Luft nach oben */
+  flex: 1;
+  padding-top: 0;
   padding-left: 32px;
 }
 
-/* --- Grid Layout für die Cards --- */
+/* --- Grid Layout --- */
 .devices-grid {
   display: grid;
-  /* Kacheln sind mindestens 250px breit, füllen aber den Platz aus */
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
   margin-top: 24px;
 }
 
-/* --- Mobile Responsive --- */
-/* --- Mobile Fix (900px) --- */
+.members-section {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.members-section-header h3,
+.members-section-header p,
+.member-card p {
+  margin: 0;
+}
+
+.members-section-header p {
+  margin-top: 0.35rem;
+  color: #6b7280;
+}
+
+.member-invite-form {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.member-invite-form input {
+  flex: 1;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  font: inherit;
+}
+
+.member-invite-form button {
+  min-width: 3rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.member-invite-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.members-error,
+.members-success {
+  margin: 0.9rem 0 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+}
+
+.members-error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.members-success {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.member-list {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.member-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+}
+
+.member-email {
+  font-weight: 600;
+}
+
+.member-role {
+  margin-top: 0.3rem !important;
+  color: #6b7280;
+  text-transform: capitalize;
+}
+
+.member-remove-button {
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 0.9rem;
+  background: #fef2f2;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+/* --- Mobile --- */
 @media (max-width: 900px) {
   .devices-layout {
-    display: block; /* Flexbox aufheben, damit Sidebar nicht stört */
+    display: block;
     gap: 0;
   }
 
   .devices-main {
-    /* WICHTIG: Padding links und rechts EXAKT gleich setzen */
     padding-left: 16px !important;
     padding-right: 16px !important;
-    
-    /* Sicherstellen, dass keine alten Margins das Layout verschieben */
-    margin: 0 !important; 
+    margin: 0 !important;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -63,7 +160,6 @@
 
   .devices-header {
     width: 100%;
-    /* Verhindert, dass der Header an den Rand klatscht */
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -81,10 +177,15 @@
 
   .devices-grid {
     width: 100%;
-    /* Zentriert die Karten-Gruppe */
     justify-content: center;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 16px;
+  }
+
+  .member-card,
+  .member-invite-form {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 

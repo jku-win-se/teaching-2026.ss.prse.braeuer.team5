@@ -119,8 +119,8 @@ Fuer Raeume einen echten Invite-Flow vorbereiten, damit Eigentuemer weitere Pers
 
 ## Open Questions
 
-- Soll fuer Release 1 ein noch nicht registrierter Benutzer bereits eingeladen werden koennen oder beschraenken wir den ersten echten Invite-Flow auf bestehende Accounts?
-- Brauchen wir fuer Release 1 bereits `expires_at` oder reicht zunaechst ein dauerhafter `pending`-Status?
+- Soll der aktuelle Release-1-Invite-Flow spaeter noch von "nur bestehende Accounts" auf "auch noch nicht registrierte E-Mail-Adressen" erweitert werden?
+- Brauchen wir fuer Release 1 bereits aktive Ablaufpruefung fuer `expires_at` oder reicht zunaechst ein dauerhafter `pending`-Status?
 
 ## Assumptions
 
@@ -168,6 +168,9 @@ Fuer Raeume einen echten Invite-Flow vorbereiten, damit Eigentuemer weitere Pers
 - Entscheidung: Der Release-1-Invite-Flow soll komplett als In-App-Flow mit `pending`, `accept` und `decline` gedacht werden, auch wenn echter Mailversand spaeter folgen kann.
   Grund: Vom Nutzer gewuenschter Funktionskern; Glocke und Decisions sind Teil der Zieldefinition.
 
+- Entscheidung: Die erste technische Umsetzung von `#44` laedt nur bestehende registrierte Accounts ein.
+  Grund: Das ist fuer Release 1 kleiner, sicherer und passt zur Edge-Function-Pruefung per bestehendem Auth-User.
+
 ## Plan
 
 1. Invite-Datenmodell und Edge-Function-Grenzen festziehen
@@ -213,32 +216,37 @@ Fuer Raeume einen echten Invite-Flow vorbereiten, damit Eigentuemer weitere Pers
 - bestaetigt, dass im aktuellen Repo noch keine bestehende Edge-Function-Struktur vorhanden ist
 - Edge Function als serverseitige Architektur fuer `#44` bestaetigt
 - konkrete Construction-Reihenfolge fuer Invite-Tabelle, Edge Functions, Glocke und Notifications abgeleitet
+- erste Construction fuer `#44` begonnen
+- SQL-Artefakt `sql/room-invites.txt` fuer Invite-Tabelle vorbereitet
+- Edge Function `supabase/functions/room-invites/index.ts` fuer create/list/accept/decline/remove angelegt
+- Frontend-Service `src/services/inviteService.ts` fuer den Edge-Function-Aufruf angelegt
+- Sidebar um Glocke und Pending-Count erweitert
+- Notifications-Seite fuer offene Einladungen angelegt
+- Mitgliedersektion in `src/pages/Devices.tsx` fuer Owner eingebaut
+- erste Invite-Flow-Tests fuer Sidebar/Notifications hinzugefuegt
 
 ### Offen
 
-- sichere serverseitige Invite-Architektur festlegen
-- genauen Release-1-Umfang fuer Glocke / Accept / Decline festziehen
-- spaetere Units of Work fuer Construction validieren
+- pruefen, ob fuer Release 1 noch eine SQL-Unique-Absicherung fuer offene Invites noetig ist
+- Supabase-Seite fuer `room_invites` und Edge Function wirklich anlegen/deployen
+- manuelle Invite-Demo mit zwei Accounts durchklicken
 
 ### Blocker
 
-- Menschliche Validierung fuer Auth-/Einladungsverhalten und sichere Serverlogik steht noch aus
-- Abhaengigkeit zu `#37` Rollenmodell
-- kein technischer Blocker durch Auth mehr; nur Rollenmodell und fachliche Scope-Entscheidung offen
+- kein aktueller fachlicher Blocker
+- Abhaengigkeit zu `#37` Rollenmodell bleibt bestehen
 
 ## Verification
 
-- Typecheck: nicht separat ausgefuehrt
-- Lint: nicht ausgefuehrt
-- Build: bestanden auf aktuellem `main` mit `npm.cmd run build`
-- Tests: bestanden auf aktuellem `main` mit `npm.cmd run test -- --run`
-- Manuelle Pruefung: Repository, SQL-Dateien, GitHub-Issue und sichtbarer App-Stand geprueft
+- Typecheck: implizit ueber `npm.cmd run build` bestanden
+- Lint: bestanden mit `npm.cmd run lint`
+- Build: bestanden mit `npm.cmd run build`
+- Tests: bestanden mit `npm.cmd run test -- --run`
+- Manuelle Pruefung: Repository, SQL-Dateien, GitHub-Issue, sichtbarer App-Stand und Referenzprojekt geprueft; Invite-Flow in Supabase noch offen
 
 ## Next Step
 
-Die konkrete Construction-Reihenfolge fuer `#44` bestaetigen:
-- Invite-Tabelle
-- Edge Functions fuer create/accept/decline
-- Sidebar-Glocke
-- Notifications-Seite
-- Mitgliederliste und Entfernen im Raumkontext
+Vor einer echten Demo den Supabase-Teil bewusst freigeben und ausrollen:
+- `room_invites` in Supabase anlegen
+- Edge Function `room-invites` deployen
+- danach Invite-Flow manuell mit Owner-/Member-Accounts pruefen

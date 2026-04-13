@@ -1,3 +1,4 @@
+import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "../config/supabaseClient";
 import type { Device, DeviceType, DeviceState } from "../types";
 import { fetchRoomRole } from "./roomService";
@@ -23,7 +24,7 @@ async function fetchDeviceRoomId(deviceId: string): Promise<string | null> {
     .from("devices")
     .select("room_id")
     .eq("id", deviceId)
-    .single() as { data: { room_id: string } | null; error: any };
+    .single() as { data: { room_id: string } | null; error: PostgrestError | null };
 
   if (error) {
     console.error("Error fetching device room:", error);

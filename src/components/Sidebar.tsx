@@ -1,11 +1,14 @@
+import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { Bell } from "lucide-react";
 import { supabase } from "../config/supabaseClient";
+import { fetchPendingRoomInvites } from "../services/inviteService";
 import styles from "./Sidebar.module.css";
 
 export function Sidebar() {
-  
-  const handleLogout = async () => {
+  const [pendingInviteCount, setPendingInviteCount] = useState(0);
 
+  const handleLogout = async () => {
     if (!supabase) return;
 
     try {
@@ -19,6 +22,19 @@ export function Sidebar() {
   const location = useLocation();
   const isRoomsActive = location.pathname === "/rooms" || location.pathname.startsWith("/room/");
 
+  useEffect(() => {
+    const loadPendingInvites = async () => {
+      try {
+        const invites = await fetchPendingRoomInvites();
+        setPendingInviteCount(invites.length);
+      } catch {
+        setPendingInviteCount(0);
+      }
+    };
+
+    loadPendingInvites();
+  }, [location.pathname]);
+
   return (
     <aside className={styles.sidebar}>
       <div>
@@ -31,7 +47,14 @@ export function Sidebar() {
           Dashboard
         </NavLink>
         <NavLink to="/rooms" className={() => (isRoomsActive ? styles.activeLink : styles.navLink)}>
-          Räume
+          Raeume
+        </NavLink>
+        <NavLink to="/notifications" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
+          <span className={styles.navWithIcon}>
+            <Bell size={16} />
+            <span>Einladungen</span>
+            {pendingInviteCount > 0 ? <span className={styles.inviteCount}>{pendingInviteCount}</span> : null}
+          </span>
         </NavLink>
         <NavLink to="/simulator" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Simulator
