@@ -121,7 +121,6 @@ Fuer Raeume einen echten Invite-Flow vorbereiten, damit Eigentuemer weitere Pers
 
 - Soll der aktuelle Release-1-Invite-Flow spaeter noch von "nur bestehende Accounts" auf "auch noch nicht registrierte E-Mail-Adressen" erweitert werden?
 - Brauchen wir fuer Release 1 bereits aktive Ablaufpruefung fuer `expires_at` oder reicht zunaechst ein dauerhafter `pending`-Status?
-- Sollen abgelehnte Einladungen spaeter sichtbar bleiben oder fuer Release 1 einfach neu erzeugt werden koennen?
 
 ## Assumptions
 
@@ -184,6 +183,12 @@ Fuer Raeume einen echten Invite-Flow vorbereiten, damit Eigentuemer weitere Pers
 - Entscheidung: Fuer Release 1 sollen `declined`-Einladungen nicht als eigener komplexer Verlauf aufgebaut werden.
   Grund: Kleiner MVP-Scope; erneutes Einladen ist wichtiger als ein vollstaendiger Einladungshistorien-Flow.
 
+- Entscheidung: `declined`-Einladungen sollen fuer den Owner sichtbar bleiben.
+  Grund: Vom Nutzer explizit so gewuenscht; der Owner soll den aktuellen Einladungsausgang direkt im Raumkontext sehen koennen.
+
+- Entscheidung: Abgelehnte Einladungen sollen zwei Owner-Aktionen bekommen: `Erneut senden` und `Loeschen`.
+  Grund: Das ist fachlich klarer als automatisches Entfernen und passt besser zu einem nachvollziehbaren Invite-Flow.
+
 ## Plan
 
 1. Invite-Datenmodell und Edge-Function-Grenzen festziehen
@@ -241,6 +246,13 @@ Fuer Raeume einen echten Invite-Flow vorbereiten, damit Eigentuemer weitere Pers
   - Mitgliederliste auch fuer `member`
   - Pending-Status direkt in der Mitgliedersektion
   - Sidebar ohne Glocken-Icon
+- fachlich nachgezogen:
+  - `declined` bleibt fuer Owner sichtbar
+  - Owner bekommt `Erneut senden` und `Loeschen` fuer abgelehnte Einladungen
+- Implementierung begonnen:
+  - Mitgliederliste wird nicht mehr nur fuer `owner`, sondern fuer alle Raum-Mitglieder vorgesehen
+  - offene `pending`-Einladungen werden in der Mitgliedersektion als eigener Status-Eintrag angezeigt
+  - `declined`-Einladungen bleiben fuer Owner sichtbar und bekommen `Erneut senden` plus `Loeschen`
 
 ### Offen
 

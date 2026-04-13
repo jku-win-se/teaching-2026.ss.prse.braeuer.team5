@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Bell } from "lucide-react";
 import { supabase } from "../config/supabaseClient";
 import { fetchPendingRoomInvites } from "../services/inviteService";
 import styles from "./Sidebar.module.css";
@@ -50,11 +49,8 @@ export function Sidebar() {
           Raeume
         </NavLink>
         <NavLink to="/notifications" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
-          <span className={styles.navWithIcon}>
-            <Bell size={16} />
-            <span>Einladungen</span>
-            {pendingInviteCount > 0 ? <span className={styles.inviteCount}>{pendingInviteCount}</span> : null}
-          </span>
+          Einladungen
+          {pendingInviteCount > 0 ? <span className={styles.inviteCount}>{pendingInviteCount}</span> : null}
         </NavLink>
         <NavLink to="/simulator" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Simulator

@@ -47,12 +47,24 @@ export async function fetchRoomMembers(roomId: string): Promise<RoomMember[]> {
   return invokeInviteFunction<RoomMember[]>(`/rooms/${roomId}/members`);
 }
 
+export async function fetchRoomInvites(roomId: string): Promise<RoomInvite[]> {
+  return invokeInviteFunction<RoomInvite[]>(`/rooms/${roomId}/invites`);
+}
+
 export async function createRoomInvite(roomId: string, email: string) {
   return invokeInviteFunction(`/rooms/${roomId}/invites`, "POST", { email });
 }
 
 export async function removeRoomMember(roomId: string, memberUserId: string) {
   return invokeInviteFunction(`/rooms/${roomId}/members/${memberUserId}`, "DELETE");
+}
+
+export async function resendRoomInvite(inviteId: string) {
+  return invokeInviteFunction(`/invites/${inviteId}/resend`, "POST");
+}
+
+export async function deleteRoomInvite(inviteId: string) {
+  return invokeInviteFunction(`/invites/${inviteId}`, "DELETE");
 }
 
 export async function respondToRoomInvite(inviteId: string, action: "accept" | "decline") {

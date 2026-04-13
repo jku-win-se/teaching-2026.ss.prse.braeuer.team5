@@ -101,6 +101,21 @@ async function requireOwner(adminClient: ReturnType<typeof createClient>, roomId
   }
 }
 
+async function requireRoomMember(adminClient: ReturnType<typeof createClient>, roomId: string, userId: string) {
+  const { data, error } = await adminClient
+    .from("room_members")
+    .select("room_id, role")
+    .eq("room_id", roomId)
+    .eq("user_id", userId)
+    .single() as { data: RoomMembershipRow | null; error: unknown };
+
+  if (error || !data) {
+    throw jsonResponse({ error: "Only room members may view this room" }, 403);
+  }
+
+  return data;
+}
+
 async function findUserByEmail(adminClient: ReturnType<typeof createClient>, email: string) {
   const normalizedEmail = email.trim().toLowerCase();
   const { data, error } = await adminClient.auth.admin.listUsers();
@@ -147,7 +162,7 @@ async function listPendingInvites(req: Request) {
 
 async function listRoomMembers(req: Request, roomId: string) {
   const { user, adminClient } = await requireUser(req);
-  await requireOwner(adminClient, roomId, user.id);
+  await requireRoomMember(adminClient, roomId, user.id);
 
   const { data, error } = await adminClient
     .from("room_members")
@@ -170,6 +185,36 @@ async function listRoomMembers(req: Request, roomId: string) {
   );
 
   return jsonResponse(members);
+}
+
+async function listRoomInvites(req: Request, roomId: string) {
+  const { user, adminClient } = await requireUser(req);
+  const membership = await requireRoomMember(adminClient, roomId, user.id);
+
+  const { data, error } = await adminClient
+    .from("room_invites")
+    .select("id, room_id, email, role, status, expires_at, accepted_at, created_at")
+    .eq("room_id", roomId)
+    .in("status", membership.role === "owner" ? ["pending", "declined"] : ["pending"])
+    .order("created_at", { ascending: false }) as { data: RoomInviteRow[] | null; error: unknown };
+
+  if (error) {
+    return jsonResponse({ error: "Could not load room invites" }, 500);
+  }
+
+  return jsonResponse(
+    (data ?? []).map((invite) => ({
+      id: invite.id,
+      room_id: invite.room_id,
+      room_name: "",
+      email: invite.email,
+      role: invite.role,
+      status: invite.status,
+      expires_at: invite.expires_at,
+      accepted_at: invite.accepted_at,
+      created_at: invite.created_at,
+    }))
+  );
 }
 
 async function createInvite(req: Request, roomId: string) {
@@ -249,6 +294,81 @@ async function removeMember(req: Request, roomId: string, memberUserId: string) 
   }
 
   return jsonResponse({ message: "Mitglied erfolgreich entfernt." });
+}
+
+async function resendInvite(req: Request, inviteId: string) {
+  const { user, adminClient } = await requireUser(req);
+
+  const { data, error } = await adminClient
+    .from("room_invites")
+    .select("*")
+    .eq("id", inviteId)
+    .single() as { data: RoomInviteRow | null; error: unknown };
+
+  if (error || !data) {
+    return jsonResponse({ error: "Invite not found" }, 404);
+  }
+
+  await requireOwner(adminClient, data.room_id, user.id);
+
+  const targetUser = await findUserByEmail(adminClient, data.email);
+  if (!targetUser) {
+    return jsonResponse({ error: "Nur bereits registrierte Nutzer koennen eingeladen werden." }, 400);
+  }
+
+  const { data: existingMember } = await adminClient
+    .from("room_members")
+    .select("user_id")
+    .eq("room_id", data.room_id)
+    .eq("user_id", targetUser.id)
+    .maybeSingle();
+
+  if (existingMember) {
+    return jsonResponse({ error: "Dieser Nutzer ist bereits Mitglied des Raums." }, 400);
+  }
+
+  const { error: updateError } = await adminClient
+    .from("room_invites")
+    .update({
+      status: "pending",
+      accepted_at: null,
+      invited_by: user.id,
+      created_at: new Date().toISOString(),
+    })
+    .eq("id", inviteId);
+
+  if (updateError) {
+    return jsonResponse({ error: "Invite could not be resent" }, 500);
+  }
+
+  return jsonResponse({ message: "Einladung erneut gesendet." });
+}
+
+async function deleteInvite(req: Request, inviteId: string) {
+  const { user, adminClient } = await requireUser(req);
+
+  const { data, error } = await adminClient
+    .from("room_invites")
+    .select("id, room_id")
+    .eq("id", inviteId)
+    .single() as { data: Pick<RoomInviteRow, "id" | "room_id"> | null; error: unknown };
+
+  if (error || !data) {
+    return jsonResponse({ error: "Invite not found" }, 404);
+  }
+
+  await requireOwner(adminClient, data.room_id, user.id);
+
+  const { error: deleteError } = await adminClient
+    .from("room_invites")
+    .delete()
+    .eq("id", inviteId);
+
+  if (deleteError) {
+    return jsonResponse({ error: "Invite could not be deleted" }, 500);
+  }
+
+  return jsonResponse({ message: "Einladung geloescht." });
 }
 
 async function respondToInvite(req: Request, inviteId: string, action: "accept" | "decline") {
@@ -342,6 +462,10 @@ Deno.serve(async (req) => {
         return await listRoomMembers(req, roomId);
       }
 
+      if (req.method === "GET" && segments[2] === "invites") {
+        return await listRoomInvites(req, roomId);
+      }
+
       if (req.method === "POST" && segments[2] === "invites") {
         return await createInvite(req, roomId);
       }
@@ -353,6 +477,14 @@ Deno.serve(async (req) => {
 
     if (req.method === "POST" && segments[0] === "invites" && segments[1] && (segments[2] === "accept" || segments[2] === "decline")) {
       return await respondToInvite(req, segments[1], segments[2]);
+    }
+
+    if (req.method === "POST" && segments[0] === "invites" && segments[1] && segments[2] === "resend") {
+      return await resendInvite(req, segments[1]);
+    }
+
+    if (req.method === "DELETE" && segments[0] === "invites" && segments[1]) {
+      return await deleteInvite(req, segments[1]);
     }
 
     return jsonResponse({ error: "Not found" }, 404);
