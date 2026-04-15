@@ -5,9 +5,13 @@ import type { Device, Room, RoomMembership, RoomRole } from "../types";
 async function fetchOwnRoomMemberships(): Promise<RoomMembership[]> {
   if (!supabase) return [];
 
+  const userId = (await supabase.auth.getUser())?.data?.user?.id;
+  if (!userId) return [];
+
   const { data, error } = await supabase
     .from("room_members")
-    .select("room_id, role, user_id") as { data: RoomMembership[] | null; error: PostgrestError | null };
+    .select("room_id, role, user_id")
+    .eq("user_id", userId) as { data: RoomMembership[] | null; error: PostgrestError | null };
 
   if (error) {
     console.error("Error fetching room memberships:", error);
