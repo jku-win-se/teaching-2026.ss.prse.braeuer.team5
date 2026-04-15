@@ -39,3 +39,21 @@ export type RoomMembership = {
   role: RoomRole;
   user_id: string;
 };
+
+export type RoomMember = {
+  user_id: string;
+  role: RoomRole;
+  email: string;
+};
+
+export type RoomInvite = {
+  id: string;
+  room_id: string;
+  room_name: string;
+  email: string;
+  role: "member";
+  status: "pending" | "accepted" | "declined";
+  expires_at?: string | null;
+  accepted_at?: string | null;
+  created_at: string;
+};

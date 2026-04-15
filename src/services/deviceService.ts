@@ -74,6 +74,11 @@ export async function addDeviceToRoom(
     return null;
   }
 
+  const canAdd = await requireOwnerForRoom(roomId, "Geraete hinzufuegen");
+  if (!canAdd) {
+    return null;
+  }
+
   const { data, error } = await supabase
     .from("devices")
     .insert({

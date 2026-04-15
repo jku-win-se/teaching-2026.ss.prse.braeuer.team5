@@ -5,6 +5,7 @@ import { useDevices } from "../hooks/useDevices";
 import { useRoomRole } from "../hooks/useRoomRole";
 import { DeviceTypeSidebar } from "../components/DeviceTypeSidebar";
 import { DeviceCard } from "../components/DeviceCard";
+import { RoomMembers } from "../components/RoomMembers";
 import { AddModalDevice } from "../components/modals/AddModalDevice";
 import { DeleteModal } from "../components/modals/DeleteModal";
 import { Menu } from "lucide-react";
@@ -20,7 +21,7 @@ export default function Devices() {
   const location = useLocation();
   const state = location.state as LocationState | null;
   const roomName = state?.roomName ?? "Raum";
-  const { canManage, loading: roleLoading } = useRoomRole(roomId);
+  const { role, canManage, loading: roleLoading } = useRoomRole(roomId);
 
   const { devices, loading, addDevice, removeDevice, renameDevice, toggleDevice, changeDeviceState } = useDevices(roomId);
   const [deviceToDelete, setDeviceToDelete] = useState<Device | null>(null);
@@ -89,6 +90,8 @@ export default function Devices() {
               ))
             )}
           </div>
+
+          <RoomMembers roomId={roomId} role={role} canManage={canManage} />
         </div>
       </div>
 

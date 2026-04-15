@@ -1,0 +1,21 @@
+create table public.room_invites (
+  id uuid primary key default gen_random_uuid(),
+  room_id uuid not null references public.rooms(id) on delete cascade,
+  email text not null,
+  invited_by uuid not null references auth.users(id) on delete cascade,
+  role text not null default 'member' check (role in ('member')),
+  status text not null default 'pending' check (status in ('pending', 'accepted', 'declined')),
+  expires_at timestamptz,
+  accepted_at timestamptz,
+  created_at timestamptz default now()
+);
+
+create index idx_room_invites_room_id on public.room_invites(room_id);
+create index idx_room_invites_email on public.room_invites(email);
+
+alter table public.room_invites enable row level security;
+
+create policy "Users can view their own room invites"
+on public.room_invites
+for select
+using (lower(email) = lower(coalesce(auth.jwt() ->> 'email', '')));

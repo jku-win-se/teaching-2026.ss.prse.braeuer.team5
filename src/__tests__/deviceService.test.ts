@@ -7,7 +7,7 @@ import {
   updateDeviceState,
 } from "../services/deviceService";
 
-const { 
+const {
   mockSingle,
   mockSelect,
   mockInsert,
@@ -97,6 +97,7 @@ describe("deviceService", () => {
 
       const result = await addDeviceToRoom("r1", "Dimmer", "Dimmer", 50);
       expect(result).toEqual(newDevice);
+      expect(mockFetchRoomRole).toHaveBeenCalledWith("r1", "user-123");
     });
 
     it("gibt null zurück und zeigt Alert bei Datenbankfehler", async () => {
