@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { RoomRole } from "../types";
 import { fetchRoomRole } from "../services/roomService";
+import { supabase } from "../config/supabaseClient";
 
 export function useRoomRole(roomId: string | undefined) {
   const [role, setRole] = useState<RoomRole | null>(null);
@@ -16,7 +17,9 @@ export function useRoomRole(roomId: string | undefined) {
       }
 
       setLoading(true);
-      const nextRole = await fetchRoomRole(roomId);
+
+      const userId = (await supabase?.auth.getUser())?.data?.user?.id;
+      const nextRole = await fetchRoomRole(roomId, userId);
 
       if (active) {
         setRole(nextRole);

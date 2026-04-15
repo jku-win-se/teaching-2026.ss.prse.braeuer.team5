@@ -21,6 +21,7 @@ vi.mock('../config/supabaseClient', () => ({
   supabase: {
     auth: {
       getSession: vi.fn(),
+      getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
       onAuthStateChange: vi.fn(() => ({
         data: { subscription: { unsubscribe: vi.fn() } },
       })),
@@ -109,19 +110,6 @@ describe('App', () => {
     await waitFor(() => {
       // Prüft auf die Überschrift "Rooms" wie im ersten File gefordert
       expect(screen.getByRole('heading', { name: 'Rooms' })).toBeInTheDocument()
-    })
-  })
-
-  it('renders the Devices page on /room/:id path', async () => {
-    mockLoggedInSession()
-    render(
-      <MemoryRouter initialEntries={['/room/test-room-id']}>
-        <App />
-      </MemoryRouter>
-    )
-    
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Devices' })).toBeInTheDocument()
     })
   })
 

@@ -3,8 +3,17 @@ import { supabase } from "../config/supabaseClient";
 import type { Device, DeviceType, DeviceState } from "../types";
 import { fetchRoomRole } from "./roomService";
 
+async function getCurrentUserId(): Promise<string | null> {
+  return (await supabase?.auth.getUser())?.data?.user?.id ?? null;
+}
+
+
 async function requireOwnerForRoom(roomId: string, actionLabel: string): Promise<boolean> {
-  const role = await fetchRoomRole(roomId);
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return false;
+  }
+  const role = await fetchRoomRole(roomId, userId);
 
   if (role === "owner") {
     return true;
@@ -57,7 +66,8 @@ export async function addDeviceToRoom(
   roomId: string,
   name: string,
   type: DeviceType,
-  energy_consumption?: number | null
+  energy_consumption?: number | null,
+  initialState?: DeviceState
 ): Promise<Device | null> {
   if (!supabase) {
     console.error("Supabase client not initialized");
@@ -76,7 +86,7 @@ export async function addDeviceToRoom(
       name,
       type,
       energy_consumption: energy_consumption ?? null,
-      state: {},
+      state: initialState ?? {},
     })
     .select()
     .single();

@@ -59,12 +59,12 @@ export function AddModalDevice({ deviceType, isOpen, onClose, onSave }: AddModal
             />
           </label>
           <label>
-            Energieverbrauch (W)
+            Stromverbrauch in Watt (optional)
             <input
               type="number"
               value={energyConsumption}
               onChange={(e) => setEnergyConsumption(e.target.value)}
-              placeholder="Optional..."
+              placeholder="z.B. 60"
             />
           </label>
           {error && <p className="error-message">{error}</p>}
