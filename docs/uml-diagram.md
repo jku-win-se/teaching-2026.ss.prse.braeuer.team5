@@ -17,7 +17,8 @@ graph TD
         Dashboard["Dashboard /"]
         Rooms["Rooms /rooms (useRooms)"]
         RoomRow["RoomRow (useDeviceCount)"]
-        Devices["Devices /room/:id (useDevices)"]
+        Devices["Devices /room/:id (useDevices · useRoomRole)"]
+        Notifications["Notifications /notifications"]
         Simulator["Simulator /simulator"]
         DeviceTypeSidebar["DeviceTypeSidebar (Drawer)"]
         DeviceCard["DeviceCard"]
@@ -25,6 +26,7 @@ graph TD
         AddModalDevice["AddModalDevice (Modal)"]
         DeleteModalDevices["DeleteModal (Geraet loeschen)"]
         DeleteModalRooms["DeleteModal (Raum loeschen)"]
+        RoomMembers["RoomMembers (Mitglieder · Einladungen)"]
     end
 
     main --> App
@@ -35,6 +37,7 @@ graph TD
     Sidebar --> Dashboard
     Sidebar --> Rooms
     Sidebar --> Devices
+    Sidebar --> Notifications
     Sidebar --> Simulator
 
     Rooms --> RoomRow
@@ -44,6 +47,7 @@ graph TD
     Devices --> DeviceCard
     Devices --> AddModalDevice
     Devices --> DeleteModalDevices
+    Devices --> RoomMembers
     DeviceCard --> ToggleSwitch
 ```
 
@@ -53,47 +57,24 @@ graph TD
 
 ```mermaid
 graph LR
-    subgraph Pages
-        App["App.tsx (Route Guard)"]
-        Login["Login /login"]
-        Register["Register /register"]
-        Rooms["Rooms /rooms"]
-        Devices["Devices /room/:id"]
+    subgraph Frontend["Frontend"]
+        pages["Pages & Components\n(React)"]
+        hooks["Hooks"]
+        services["Services"]
+        supabase["Supabase Client\n(Auth · DB)"]
     end
 
-    subgraph Hooks
-        useAuth["useAuth"]
-        useRooms["useRooms"]
-        useDeviceCount["useDeviceCount"]
-        useDevices["useDevices"]
+    subgraph Backend["Backend (Supabase)"]
+        edgeFn["Edge Function\nroom-invites"]
+        db[("DB")]
     end
 
-    subgraph Services
-        roomSvc["roomService"]
-        deviceSvc["deviceService"]
-    end
-
-    subgraph Backend
-        supabase["supabaseClient"]
-        db[("Supabase DB rooms / devices")]
-    end
-
-    App -->|"session, loading"| useAuth
-    Rooms --> useRooms
-    Rooms --> useDeviceCount
-    Devices --> useDevices
-
-    useAuth -->|"getSession() onAuthStateChange() signOut()"| supabase
-    Login -->|"signInWithPassword()"| supabase
-    Register -->|"signUp()"| supabase
-
-    useRooms -->|"fetchRooms() addToRoomTable() updateRoomInTable() deleteRoomFromTable()"| roomSvc
-    useDeviceCount -->|"fetchNumberOfDevicesInRoom()"| roomSvc
-    useDevices -->|"fetchDevices() addDeviceToRoom() deleteDevice() updateDeviceName() updateDeviceState()"| deviceSvc
-
-    roomSvc --> supabase
-    deviceSvc --> supabase
-    supabase <--> db
+    pages -->|"nutzen"| hooks
+    hooks -->|"rufen auf"| services
+    services -->|"Auth · Rooms · Devices"| supabase
+    services -->|"Einladungen · Mitglieder"| edgeFn
+    supabase <-->|"REST"| db
+    edgeFn -->|"service role"| db
 ```
 
 ---
@@ -104,7 +85,8 @@ graph LR
 graph LR
     root["/"] --> Dashboard
     rooms["/rooms"] --> Rooms
-    roomId["/rooms/:roomId"] --> Devices
+    roomId["/room/:id"] --> Devices
+    notifications["/notifications"] --> Notifications
     sim["/simulator"] --> Simulator
     login["/login"] --> Login
     register["/register"] --> Register
@@ -189,8 +171,8 @@ classDiagram
     class Room {
         +String id
         +String name
-        +String created_at
-        +RoomRole role
+        +String? created_at
+        +RoomRole? role
     }
 
     class Device {
@@ -198,8 +180,8 @@ classDiagram
         +String room_id
         +String name
         +DeviceType type
-        +Number energy_consumption
-        +DeviceState state
+        +Number? energy_consumption
+        +DeviceState? state
     }
 
     class DeviceType {
@@ -212,11 +194,11 @@ classDiagram
     }
 
     class DeviceState {
-        +Boolean on
-        +Number brightness
-        +Number temperature
-        +String value
-        +String position
+        +Boolean? on
+        +Number? brightness
+        +Number? temperature
+        +String|Number? value
+        +String? position
     }
 
     class RoomRole {
@@ -231,9 +213,29 @@ classDiagram
         +RoomRole role
     }
 
+    class RoomMember {
+        +String user_id
+        +RoomRole role
+        +String email
+    }
+
+    class RoomInvite {
+        +String id
+        +String room_id
+        +String room_name
+        +String email
+        +String role
+        +String status
+        +String? expires_at
+        +String? accepted_at
+        +String created_at
+    }
+
     Room "1" --> "0..*" Device : contains
     Room "1" --> "0..*" RoomMembership : has
+    Room "1" --> "0..*" RoomInvite : has
     RoomMembership --> RoomRole : role
+    RoomMember --> RoomRole : role
     Room --> RoomRole : role
     Device --> DeviceType : type
     Device --> DeviceState : state
