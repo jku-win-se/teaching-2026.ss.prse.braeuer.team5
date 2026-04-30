@@ -1,5 +1,8 @@
 # Smart Home Team 5
 
+![Coverage](https://raw.githubusercontent.com/jku-win-se/teaching-2026.ss.prse.braeuer.team5/main/.github/badges/coverage.svg)
+![CI](https://github.com/jku-win-se/teaching-2026.ss.prse.braeuer.team5/actions/workflows/ci-quality-check.yaml/badge.svg)
+
 Webanwendung fuer das PRSE-Projekt im SS26. Die Anwendung dient zur Verwaltung simulierter Smart-Home-Geraete, Raeume und spaeter auch Regeln, Zeitplaenen und Auswertungen.
 
 ## Aktueller Stand

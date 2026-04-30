@@ -1,0 +1,69 @@
+name: CI - Coverage Badge
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  update-coverage-badge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUB_KEY: ${{ secrets.VITE_SUPABASE_PUB_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests with Coverage
+        run: npm run test:coverage
+
+      - name: Extract Coverage Percentage
+        id: coverage
+        run: |
+          PCT=$(node -e "
+            const s = require('./coverage/coverage-summary.json');
+            process.stdout.write(String(Math.floor(s.total.lines.pct)));
+          ")
+          echo "pct=$PCT" >> $GITHUB_OUTPUT
+
+      - name: Determine Badge Color
+        id: color
+        run: |
+          PCT=${{ steps.coverage.outputs.pct }}
+          if [ "$PCT" -ge 80 ]; then COLOR="brightgreen"
+          elif [ "$PCT" -ge 70 ]; then COLOR="yellow"
+          elif [ "$PCT" -ge 50 ]; then COLOR="orange"
+          else COLOR="red"
+          fi
+          echo "color=$COLOR" >> $GITHUB_OUTPUT
+
+      - name: Download Badge SVG
+        run: |
+          mkdir -p .github/badges
+          curl -s -o .github/badges/coverage.svg \
+            "https://img.shields.io/badge/coverage-${{ steps.coverage.outputs.pct }}%25-${{ steps.color.outputs.color }}?style=flat"
+
+      - name: Commit and Push Badge
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/badges/coverage.svg
+          git diff --cached --quiet && echo "No badge change, skipping commit" && exit 0
+          git commit -m "ci: update coverage badge to ${{ steps.coverage.outputs.pct }}% [skip ci]"
+          git push
