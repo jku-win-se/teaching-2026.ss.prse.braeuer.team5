@@ -24,21 +24,11 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Install PMD
-        run: |
-          wget https://github.com/pmd/pmd/releases/download/pmd_releases/7.0.0/pmd-dist-7.0.0-bin.zip
-          unzip -q pmd-dist-7.0.0-bin.zip
-          echo "$PWD/pmd-bin-7.0.0/bin" >> $GITHUB_PATH
-
-      - name: Run PMD
+      - name: Run ESLint
         run: |
           mkdir -p reports
-
-          touch reports/pmd-report.txt reports/pmd-report.html reports/pmd-report.xml
-
-          pmd check -d ./src -R pmd-ruleset.xml -f text > reports/pmd-report.txt || true
-          pmd check -d ./src -R pmd-ruleset.xml -f html > reports/pmd-report.html || true
-          pmd check -d ./src -R pmd-ruleset.xml -f xml  > reports/pmd-report.xml  || true
+          npx eslint . --format json --output-file reports/eslint-report.json || true
+          npx eslint . --format html --output-file reports/eslint-report.html || true
 
 
       - name: Debug Environment
