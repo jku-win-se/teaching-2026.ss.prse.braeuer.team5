@@ -57,7 +57,7 @@ graph TD
 
 ```mermaid
 graph LR
-    subgraph Frontend["Frontend (React App)"]
+    subgraph Frontend["Frontend"]
         pages["Pages & Components\n(React)"]
         hooks["Hooks"]
         services["Services"]
@@ -66,7 +66,7 @@ graph LR
 
     subgraph Backend["Backend (Supabase)"]
         edgeFn["Edge Function\nroom-invites"]
-        db[("DB\n(RLS)")]
+        db[("DB")]
     end
 
     pages -->|"nutzen"| hooks
