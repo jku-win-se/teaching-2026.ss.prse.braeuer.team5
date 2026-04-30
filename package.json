@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "lint:ci": "eslint . --format json --output-file reports/eslint-report.json",
     "preview": "vite preview",
     "test": "vitest",
     "test:watch": "vitest -w",
