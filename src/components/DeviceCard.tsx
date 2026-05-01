@@ -32,7 +32,7 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
   };
 
   const renderSpecificControls = () => {
-    if (!isOn) return null;
+    if (!isOn && device.type !== "Dimmer") return null;
 
     switch (device.type) {
       case "Dimmer":
@@ -45,7 +45,7 @@ export function DeviceCard({ device, onToggle, onDelete, onUpdate, onStateChange
               max="100"
               value={device.state?.brightness ?? 0}
               style={{ "--val": device.state?.brightness ?? 0 } as React.CSSProperties}
-              onChange={(e) => onStateChange(device.id, { brightness: parseInt(e.target.value, 10) })}
+              onChange={(e) => onStateChange(device.id, { on: true, brightness: parseInt(e.target.value, 10) })}
             />
             <span className="control-value">{device.state?.brightness ?? 0}%</span>
           </div>

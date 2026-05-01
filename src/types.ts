@@ -57,3 +57,14 @@ export type RoomInvite = {
   accepted_at?: string | null;
   created_at: string;
 };
+
+export interface ActivityLog {
+  id: string;
+  created_at: string;
+  device_id?: string;
+  room_id?: string;
+  action: string;
+  new_value: string | null;
+  actor_type: 'user' | 'automation' | 'system';
+  user_id?: string;
+}
