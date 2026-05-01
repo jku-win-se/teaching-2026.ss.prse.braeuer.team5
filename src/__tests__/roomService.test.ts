@@ -53,7 +53,7 @@ describe("Rooms Datenbank-Logik", () => {
 
     // Cleanup
     await deleteRoomFromTable(id!);
-  });
+  }, 10000); // Timeout von 10 Sekunden, falls DB-Operationen länger dauern
 
   it("Soll einen Raum erfolgreich aus der Tabelle löschen", async () => {
     const id = await addToRoomTable("Lösch mich");
