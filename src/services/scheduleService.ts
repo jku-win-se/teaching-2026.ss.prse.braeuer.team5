@@ -2,6 +2,24 @@ import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
 import { eventBus } from "./eventEmitter";
 
+const getLogValueText = (actionValue: any, scheduleName: string): string => {
+  let detail = '';
+  
+  if (actionValue.on !== undefined) {
+    detail = actionValue.on ? 'EIN' : 'AUS';
+  } else if (actionValue.brightness !== undefined) {
+    detail = `${actionValue.brightness}%`;
+  } else if (actionValue.temperature !== undefined) {
+    detail = `${actionValue.temperature}°C`;
+  } else if (actionValue.position !== undefined) {
+    detail = `Position ${actionValue.position}%`;
+  } else {
+    detail = JSON.stringify(actionValue);
+  }
+
+  return `Automatisch ${detail} durch "${scheduleName}"`;
+};
+
 export const scheduleService = {
   async fetchAllSchedules() {
     if (!supabase) return [];
@@ -11,6 +29,8 @@ export const scheduleService = {
         *,
         devices (
           name,
+          type,
+          room_id,
           rooms (name)
         )
       `)
@@ -71,7 +91,6 @@ export const scheduleService = {
     return data;
   },
 
-  // Zeitplan löschen
   async deleteSchedule(id: string) {
     if (!supabase) return;
     const { error } = await supabase
@@ -86,11 +105,11 @@ export const scheduleService = {
     if (!supabase) return;
     const now = new Date();
     const currentTime = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', hour12: false });
-    const currentDay = now.getDay(); 
+    const currentDay = now.getDay();
 
     const { data: activeSchedules, error } = await supabase
       .from('schedules')
-      .select('*, devices(id, name, room_id)')
+      .select('*, devices(id, name, type, room_id)')
       .eq('is_active', true)
       .eq('time', `${currentTime}:00`);
 
@@ -107,24 +126,26 @@ export const scheduleService = {
 
         if (deviceError) continue;
 
+        const logText = getLogValueText(schedule.action_value, schedule.name);
+
         await logAction({
           room_id: schedule.room_id,
           device_id: schedule.device_id,
           action: "Zeitplan ausgeführt",
-          new_value: `Automatisch ${schedule.action_value.on ? 'EIN' : 'AUS'} durch "${schedule.name}"`,
+          new_value: logText,
           actor_type: 'automation',
           user_id: null
         });
 
         if (eventBus) {
-            await eventBus.emitChange({
-                room_id: schedule.room_id,
-                device_id: schedule.device_id,
-                action: "Zeitplan ausgeführt",
-                new_value: `Automatisch ${schedule.action_value.on ? 'EIN' : 'AUS'} durch "${schedule.name}"`,
-                actor_type: 'autmation',
-                user_id: undefined
-            });
+          await eventBus.emitChange({
+            room_id: schedule.room_id,
+            device_id: schedule.device_id,
+            action: "Zeitplan ausgeführt",
+            new_value: logText,
+            actor_type: 'automation', 
+            user_id: undefined
+          });
         }
       }
     }

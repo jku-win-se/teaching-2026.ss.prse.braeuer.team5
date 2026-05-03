@@ -1,159 +1,151 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useSchedules } from '../hooks/useSchedules';
 import { scheduleService } from '../services/scheduleService';
-import { supabase } from '../config/supabaseClient';
 import { LucidePencil, LucideTrash2, LucidePlus } from 'lucide-react';
 import './Schedules.css';
 
 const DAYS_SHORT = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
-export const Schedules: React.FC = () => {
-  const [schedules, setSchedules] = useState<any[]>([]);
-  const [devices, setDevices] = useState<any[]>([]);
-  const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState<string | null>(null);
+const ScheduleList = React.memo(({ schedules, onEdit, onDelete, onToggle }: any) => {
+  return (
+    <div className="schedules-grid">
+      {schedules.map((s: any) => (
+        <div key={s.id} className="schedule-item-card">
+          <div className="schedule-content">
+            <div className="schedule-title-row">
+              <span className="schedule-name">{s.name}</span>
+              <span className="badge-room">{s.devices?.rooms?.name}</span>
+            </div>
+            <div className="schedule-subtext">
+              {s.time.substring(0, 5)} • {s.devices?.name} 
+              <span className="action-preview">
+                {' '}({
+                  s.action_value.on !== undefined ? (s.action_value.on ? 'An' : 'Aus') : 
+                  s.action_value.brightness !== undefined ? `${s.action_value.brightness}%` :
+                  s.action_value.temperature !== undefined ? `${s.action_value.temperature}°C` :
+                  s.action_value.position !== undefined ? `Pos: ${s.action_value.position}%` : 'Aktiv'
+                })
+              </span>
+            </div>
+            <div className="schedule-days-row">
+              {DAYS_SHORT.map((d, i) => {
+                const jsDayIndex = (i + 1) % 7;
+                return (
+                  <span key={i} className={`day-chip ${s.days.includes(jsDayIndex) ? 'active' : ''}`}>
+                    {d.substring(0, 1)}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+          <div className="schedule-actions">
+            <button className="action-btn edit-btn" onClick={() => onEdit(s)}><LucidePencil size={18} /></button>
+            <button className="action-btn delete-btn" onClick={() => onDelete(s.id)}><LucideTrash2 size={18} /></button>
+            <label className="switch">
+              <input type="checkbox" checked={s.is_active} onChange={() => onToggle(s)} />
+              <span className="slider round"></span>
+            </label>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+});
 
-  const [formData, setFormData] = useState({
-    name: '',
-    room_id: '',
-    device_id: '',
-    time: '08:00',
-    days: [] as number[],
-    on: true
+export const Schedules: React.FC = () => {
+  const { schedules, devices, loading, refresh } = useSchedules();
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  
+  const [formData, setFormData] = useState({ 
+    name: '', 
+    room_id: '', 
+    device_id: '', 
+    time: '08:00', 
+    days: [] as number[], 
+    action_value: { on: true } as any 
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const groupedDevices = useMemo(() => {
+    return devices.reduce((acc: any, device: any) => {
+      const roomName = device.rooms?.name || 'Unbekannter Raum';
+      if (!acc[roomName]) acc[roomName] = [];
+      acc[roomName].push(device);
+      return acc;
+    }, {});
+  }, [devices]);
 
-  const loadData = async () => {
-    if (!supabase) return;
-    setLoading(true);
-    try {
-      const sData = await scheduleService.fetchAllSchedules();
-      setSchedules(sData);
+  const deviceType = useMemo(() => {
+    if (!formData.device_id) return '';
+    const dev = devices.find(d => d.id === formData.device_id);
+    const rawType = dev?.type?.trim() || '';
+    return rawType;
+  }, [formData.device_id, devices]);
 
-      const { data: dData } = await supabase
-        .from('devices')
-        .select(`id, name, room_id, rooms (name)`);
-      setDevices(dData || []);
-    } catch (error) {
-      console.error("Fehler beim Laden der Daten:", error);
-    } finally {
-      setLoading(false);
+  const handleDeviceChange = (deviceId: string) => {
+    const dev = devices.find(d => d.id === deviceId);
+    const type = dev?.type?.trim() || '';
+    
+    let initialAction: any = { on: true }; 
+
+    if (type === 'Dimmer') {
+      initialAction = { brightness: 80 };
+    } else if (type === 'Thermostat') {
+      initialAction = { temperature: 21.0 };
+    } else if (type === 'Jalousie') {
+      initialAction = { position: 0 };
     }
-  };
 
-  const groupedDevices = devices.reduce((acc: any, device: any) => {
-    const roomName = device.rooms?.name || 'Unbekannter Raum';
-    if (!acc[roomName]) acc[roomName] = [];
-    acc[roomName].push(device);
-    return acc;
-  }, {});
-
-  const openEditModal = (s: any) => {
-    setEditingId(s.id);
-    setFormData({
-      name: s.name,
-      room_id: s.room_id,
-      device_id: s.device_id,
-      time: s.time.substring(0, 5),
-      days: s.days,
-      on: s.action_value.on
-    });
-    setShowModal(true);
+    setFormData(prev => ({
+      ...prev,
+      device_id: deviceId,
+      room_id: dev?.room_id || '',
+      action_value: initialAction
+    }));
   };
 
   const handleSave = async () => {
-    if (!formData.device_id || !formData.name) {
-      alert("Bitte Name und Gerät angeben");
-      return;
+    if (editingId) {
+      await scheduleService.updateSchedule(editingId, formData);
+    } else {
+      await scheduleService.createSchedule(formData);
     }
-
-    try {
-      const payload = { ...formData, action_value: { on: formData.on } };
-      if (editingId) {
-        await scheduleService.updateSchedule(editingId, payload);
-      } else {
-        await scheduleService.createSchedule(payload);
-      }
-      
-      setShowModal(false);
-      setEditingId(null);
-      setFormData({ name: '', room_id: '', device_id: '', time: '08:00', days: [], on: true });
-      loadData();
-    } catch (err) {
-      console.error("Fehler beim Speichern:", err);
-      alert("Fehler beim Speichern");
-    }
+    setShowModal(false);
+    refresh();
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Diesen Zeitplan wirklich löschen?")) return;
-    try {
-      await scheduleService.deleteSchedule(id);
-      loadData();
-    } catch (err) {
-      alert("Fehler beim Löschen");
-    }
-  };
-
-  if (loading) return <div className="loading">Lade Zeitpläne...</div>;
+  if (loading) return <div className="loading">Lade...</div>;
 
   return (
     <div className="schedules-container">
       <div className="schedules-header">
         <h1>Zeitpläne</h1>
-        <button className="add-btn" onClick={() => { setEditingId(null); setShowModal(true); }}>
+        <button className="add-btn" onClick={() => { 
+          setEditingId(null); 
+          setFormData({ name: '', room_id: '', device_id: '', time: '08:00', days: [], action_value: { on: true } }); 
+          setShowModal(true); 
+        }}>
           <LucidePlus size={18} /> Neuer Zeitplan
         </button>
       </div>
 
-      <div className="schedules-grid">
-        {schedules.map(s => (
-          <div key={s.id} className="schedule-item-card">
-            <div className="schedule-content">
-              <div className="schedule-title-row">
-                <span className="schedule-name">{s.name}</span>
-                <span className="badge-room">{s.devices?.rooms?.name}</span>
-              </div>
-              <div className="schedule-subtext">
-                {s.time.substring(0, 5)} • {s.devices?.name} ({s.action_value.on ? 'An' : 'Aus'})
-              </div>
-              <div className="schedule-days-row">
-                {DAYS_SHORT.map((d, i) => {
-                  const jsDayIndex = (i + 1) % 7;
-                  return (
-                    <span key={i} className={`day-chip ${s.days.includes(jsDayIndex) ? 'active' : ''}`}>
-                      {d.substring(0, 1)}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="schedule-actions">
-              <button className="action-btn edit-btn" onClick={() => openEditModal(s)}>
-                <LucidePencil size={18} />
-              </button>
-              <button className="action-btn delete-btn" onClick={() => handleDelete(s.id)}>
-                <LucideTrash2 size={18} />
-              </button>
-              <div className="action-divider"></div>
-              <div className="toggle-wrapper">
-                <label className="switch">
-                  <input 
-                    type="checkbox" 
-                    checked={s.is_active} 
-                    onChange={() => scheduleService.toggleSchedule(s.id, !s.is_active).then(loadData)} 
-                  />
-                  <span className="slider round"></span>
-                </label>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <ScheduleList 
+        schedules={schedules} 
+        onEdit={(s: any) => { 
+          setEditingId(s.id); 
+          setFormData({
+            name: s.name,
+            room_id: s.room_id,
+            device_id: s.device_id,
+            time: s.time.substring(0, 5),
+            days: s.days,
+            action_value: s.action_value
+          }); 
+          setShowModal(true); 
+        }}
+        onDelete={async (id: string) => { if(window.confirm("Löschen?")) { await scheduleService.deleteSchedule(id); refresh(); } }}
+        onToggle={(s: any) => scheduleService.toggleSchedule(s.id, !s.is_active).then(refresh)}
+      />
 
       {showModal && (
         <div className="modal-backdrop">
@@ -165,22 +157,16 @@ export const Schedules: React.FC = () => {
                 <label>Bezeichnung</label>
                 <input 
                   type="text" 
-                  placeholder="z.B. Kaffeemaschine morgens"
                   value={formData.name} 
+                  placeholder="Name des Zeitplans"
                   onChange={e => setFormData({...formData, name: e.target.value})} 
                 />
               </div>
               
               <div className="form-group">
                 <label>Gerät</label>
-                <select 
-                  value={formData.device_id} 
-                  onChange={e => {
-                    const dev = devices.find(d => d.id === e.target.value);
-                    setFormData({...formData, device_id: e.target.value, room_id: dev?.room_id || ''});
-                  }}
-                >
-                  <option value="">Wählen...</option>
+                <select value={formData.device_id} onChange={e => handleDeviceChange(e.target.value)}>
+                  <option value="">Gerät auswählen...</option>
                   {Object.keys(groupedDevices).map(roomName => (
                     <optgroup key={roomName} label={roomName}>
                       {groupedDevices[roomName].map((d: any) => (
@@ -194,35 +180,67 @@ export const Schedules: React.FC = () => {
               <div className="form-row-half">
                 <div className="form-group">
                   <label>Uhrzeit</label>
-                  <input 
-                    type="time" 
-                    value={formData.time} 
-                    onChange={e => setFormData({...formData, time: e.target.value})} 
-                  />
+                  <input type="time" value={formData.time} onChange={e => setFormData({...formData, time: e.target.value})} />
                 </div>
+                
                 <div className="form-group">
                   <label>Aktion</label>
-                  <select 
-                    value={String(formData.on)} 
-                    onChange={e => setFormData({...formData, on: e.target.value === 'true'})}
-                  >
-                    <option value="true">Einschalten</option>
-                    <option value="false">Ausschalten</option>
-                  </select>
+                  
+
+{deviceType === 'Thermostat' && (
+  <div className="input-with-unit">
+    <input 
+      type="number" step="0.5" 
+      value={formData.action_value.temperature ?? 21} 
+      onChange={e => setFormData({...formData, action_value: { temperature: parseFloat(e.target.value) }})}
+    />
+    <span className="unit-label">°C</span>
+  </div>
+)}
+
+{deviceType === 'Dimmer' && (
+  <div className="input-with-unit">
+    <input 
+      type="number" min="0" max="100" 
+      value={formData.action_value.brightness ?? 80} 
+      onChange={e => setFormData({...formData, action_value: { brightness: parseInt(e.target.value) }})}
+    />
+    <span className="unit-label">%</span>
+  </div>
+)}
+
+                  {deviceType === 'Jalousie' && (
+                    <select 
+                      value={formData.action_value.position ?? 0} 
+                      onChange={e => setFormData({...formData, action_value: { position: parseInt(e.target.value) }})}
+                    >
+                      <option value="0">Zu</option>
+                      <option value="100">Auf</option>
+                    </select>
+                  )}
+
+                  {(deviceType === 'Schalter' || (!['Thermostat', 'Dimmer', 'Jalousie'].includes(deviceType))) && (
+                    <select 
+                      value={formData.action_value.on ? 'true' : 'false'} 
+                      onChange={e => setFormData({...formData, action_value: { on: e.target.value === 'true' }})}
+                    >
+                      <option value="true">Einschalten</option>
+                      <option value="false">Ausschalten</option>
+                    </select>
+                  )}
                 </div>
               </div>
 
               <div className="form-group">
                 <label>Wochentage</label>
-                <div className="day-picker">
+                <div className="days-selection">
                   {DAYS_SHORT.map((d, i) => {
                     const jsDayIndex = (i + 1) % 7;
                     const isSelected = formData.days.includes(jsDayIndex);
                     return (
                       <button 
-                        key={i} 
-                        type="button"
-                        className={isSelected ? 'active' : ''}
+                        key={i} type="button"
+                        className={`day-selection-btn ${isSelected ? 'active' : ''}`}
                         onClick={() => {
                           const newDays = isSelected 
                             ? formData.days.filter(day => day !== jsDayIndex) 
