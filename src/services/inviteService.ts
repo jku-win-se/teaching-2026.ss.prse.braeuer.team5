@@ -5,6 +5,27 @@ import { eventBus } from "./eventEmitter";
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const inviteFunctionBaseUrl = `${supabaseUrl}/functions/v1/room-invites`;
 
+async function fetchRoomRole(roomId: string): Promise<string | null> {
+  if (!supabase) return null;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data } = await supabase
+    .from('room_permissions')
+    .select('role')
+    .eq('room_id', roomId)
+    .eq('user_id', user.id)
+    .single();
+
+  return data?.role || null;
+}
+
+async function getDetailedActorType(roomId?: string): Promise<string> {
+  if (!roomId) return 'user';
+  const role = await fetchRoomRole(roomId);
+  return role ? `user (${role})` : 'user';
+}
+
 async function getCurrentUserId(): Promise<string | null> {
   return (await supabase?.auth.getUser())?.data?.user?.id ?? null;
 }
@@ -58,13 +79,15 @@ export async function fetchRoomInvites(roomId: string): Promise<RoomInvite[]> {
 
 export async function createRoomInvite(roomId: string, email: string) {
   const userId = await getCurrentUserId();
+  const actorType = await getDetailedActorType(roomId);
+  
   const result = await invokeInviteFunction(`/rooms/${roomId}/invites`, "POST", { email });
   
   await eventBus.emitChange({
     room_id: roomId,
     action: "Invite Created",
     new_value: `Einladung gesendet an: ${email}`,
-    actor_type: 'user',
+    actor_type: actorType, // NEU
     user_id: userId || undefined
   });
   
@@ -73,18 +96,20 @@ export async function createRoomInvite(roomId: string, email: string) {
 
 export async function removeRoomMember(roomId: string, memberUserId: string) {
   const userId = await getCurrentUserId();
+  const actorType = await getDetailedActorType(roomId);
 
   await eventBus.emitChange({
     room_id: roomId,
     action: "Member Removed",
     new_value: `Mitglied (ID: ${memberUserId}) entfernt`,
-    actor_type: 'user',
+    actor_type: actorType, // NEU
     user_id: userId || undefined
   });
 
   const result = await invokeInviteFunction(`/rooms/${roomId}/members/${memberUserId}`, "DELETE");
   
-  return result;}
+  return result;
+}
 
 export async function resendRoomInvite(inviteId: string) {
   const userId = await getCurrentUserId();
@@ -97,7 +122,8 @@ export async function resendRoomInvite(inviteId: string) {
     user_id: userId || undefined
   });
   
-  return result;}
+  return result;
+}
 
 export async function deleteRoomInvite(inviteId: string) {
   const userId = await getCurrentUserId();
@@ -125,4 +151,5 @@ export async function respondToRoomInvite(inviteId: string, action: "accept" | "
     user_id: userId || undefined
   });
   
-  return result;}
+  return result;
+}

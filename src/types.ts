@@ -65,6 +65,6 @@ export interface ActivityLog {
   room_id?: string;
   action: string;
   new_value: string | null;
-  actor_type: 'user' | 'automation' | 'system';
+  actor_type: 'user' | 'automation' | 'system' | string;
   user_id?: string;
 }
