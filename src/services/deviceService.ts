@@ -2,11 +2,11 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "../config/supabaseClient";
 import type { Device, DeviceType, DeviceState } from "../types";
 import { fetchRoomRole } from "./roomService";
+import { eventBus } from "./eventEmitter";
 
 async function getCurrentUserId(): Promise<string | null> {
   return (await supabase?.auth.getUser())?.data?.user?.id ?? null;
 }
-
 
 async function requireOwnerForRoom(roomId: string, actionLabel: string): Promise<boolean> {
   const userId = await getCurrentUserId();
@@ -74,9 +74,45 @@ export async function addDeviceToRoom(
     return null;
   }
 
+  const userId = await getCurrentUserId();
+
   const canAdd = await requireOwnerForRoom(roomId, "Geraete hinzufuegen");
   if (!canAdd) {
     return null;
+  }
+
+  // default values
+  let finalState = initialState;
+
+  if (!finalState || Object.keys(finalState).length === 0) {
+    switch (type) {
+      case "Dimmer":
+        finalState = { 
+          on: true,
+          brightness: 50
+        };
+        break;
+      case "Schalter":
+        finalState = { 
+          on: false
+        };
+        break;
+      case "Thermostat":
+        finalState = { 
+          temperature: 21
+        };
+        break;
+      case "Jalousie":
+        finalState = { 
+          position: 'geschlossen'
+        };
+        break;
+      case "Sensor":
+        finalState = { value: 0 };
+        break;
+      default:
+        finalState = {};
+    }
   }
 
   const { data, error } = await supabase
@@ -86,7 +122,7 @@ export async function addDeviceToRoom(
       name,
       type,
       energy_consumption: energy_consumption ?? null,
-      state: initialState ?? {},
+      state: finalState,
     })
     .select()
     .single();
@@ -95,6 +131,17 @@ export async function addDeviceToRoom(
     console.error("Error adding device:", error);
     alert("Fehler beim Erstellen des Geräts: " + error.message);
     return null;
+  }
+
+  // LOGGING FÜR FR-08
+  if (data) {
+    await eventBus.emitChange({
+      device_id: data.id,
+      action: "Device Created",
+      new_value: `Typ: ${type}, Initial-State: ${JSON.stringify(finalState)}`,
+      actor_type: 'user',
+      user_id: userId || undefined
+    });
   }
 
   return data;
@@ -106,6 +153,8 @@ export async function deleteDevice(deviceId: string): Promise<boolean> {
     return false;
   }
 
+  const userId = await getCurrentUserId();
+
   const roomId = await fetchDeviceRoomId(deviceId);
   if (!roomId) {
     return false;
@@ -115,6 +164,14 @@ export async function deleteDevice(deviceId: string): Promise<boolean> {
   if (!canDelete) {
     return false;
   }
+
+  await eventBus.emitChange({
+    device_id: deviceId,
+    action: "Device Deleted",
+    new_value: "Gerät aus System entfernt",
+    actor_type: 'user',
+    user_id: userId || undefined,
+  });
 
   const { error } = await supabase
     .from("devices")
@@ -139,6 +196,8 @@ export async function updateDevice(
     return false;
   }
 
+  const userId = await getCurrentUserId();
+
   const { error } = await supabase
     .from("devices")
     .update(updates)
@@ -149,6 +208,14 @@ export async function updateDevice(
     alert("Fehler beim Aktualisieren: " + error.message);
     return false;
   }
+
+  await eventBus.emitChange({
+    device_id: deviceId,
+    action: "Device Updated",
+    new_value: JSON.stringify(updates),
+    actor_type: 'user',
+    user_id: userId || undefined,
+  });
 
   return true;
 }
@@ -161,6 +228,8 @@ export async function updateDeviceName(
     console.error("Supabase client not initialized");
     return false;
   }
+
+  const userId = await getCurrentUserId();
 
   const roomId = await fetchDeviceRoomId(deviceId);
   if (!roomId) {
@@ -183,15 +252,28 @@ export async function updateDeviceName(
     return false;
   }
 
+  await eventBus.emitChange({
+    device_id: deviceId,
+    action: "Name Changed",
+    new_value: `Neuer Name: ${name}`,
+    actor_type: 'user',
+    user_id: userId || undefined,
+  });
+
   return true;
 }
 
-//FR-06
-export const updateDeviceState = async (deviceId: string, newState: DeviceState) => {
+// FR-06 & Integration FR-08 (Logging)
+export const updateDeviceState = async (
+  deviceId: string, 
+  newState: DeviceState
+) => {
   if (!supabase) {
     console.error("Supabase client not initialized");
-    return false;
+    return null;
   }
+
+  const userId = await getCurrentUserId();
 
   const { data, error } = await supabase
     .from('devices')
@@ -203,5 +285,16 @@ export const updateDeviceState = async (deviceId: string, newState: DeviceState)
     console.error("Fehler beim Update des Zustands:", error);
     return null;
   }
+
+  if (data) {
+    await eventBus.emitChange({
+      device_id: deviceId,
+      action: "State Change",
+      new_value: JSON.stringify(newState),
+      actor_type: 'user',
+      user_id: userId || undefined,
+    });
+  }
+
   return data[0];
 };

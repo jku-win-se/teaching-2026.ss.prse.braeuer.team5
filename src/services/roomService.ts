@@ -1,6 +1,11 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "../config/supabaseClient";
 import type { Device, Room, RoomMembership, RoomRole } from "../types";
+import { eventBus } from "./eventEmitter";
+
+async function getCurrentUserId(): Promise<string | null> {
+  return (await supabase?.auth.getUser())?.data?.user?.id ?? null;
+}
 
 async function fetchOwnRoomMemberships(): Promise<RoomMembership[]> {
   if (!supabase) return [];
@@ -74,10 +79,20 @@ export async function deleteRoomFromTable(roomId: string) : Promise<boolean> {
     return false;
   }
 
+  const userId = await getCurrentUserId();
+
   const canDelete = await requireOwnerRole(roomId, "Raeume loeschen");
   if (!canDelete) {
     return false;
   }
+
+  await eventBus.emitChange({
+    room_id: roomId,
+    action: "Room Deleted",
+    new_value: `Raum wurde entfernt`,
+    actor_type: 'user',
+    user_id: userId || undefined 
+  });
 
   const { error } = await supabase
     .from("rooms")
@@ -97,6 +112,8 @@ export async function updateRoomInTable(roomId: string, newName: string) : Promi
     console.error("Supabase client not initialized");
     return false;
   }
+  
+  const userId = await getCurrentUserId();
 
   const canUpdate = await requireOwnerRole(roomId, "Raeume bearbeiten");
   if (!canUpdate) {
@@ -113,12 +130,22 @@ export async function updateRoomInTable(roomId: string, newName: string) : Promi
     return false;
   }
 
+  await eventBus.emitChange({
+    room_id: roomId,
+    action: "Room Updated",
+    new_value: `Raumname geändert zu ${newName}`,
+    actor_type: 'user',
+    user_id: userId || undefined 
+  });
+
   return true;
 }
 
 // 1. In der addToRoomTable Funktion geben wir die ID zurück
 export async function addToRoomTable(roomName: string) : Promise<string | null> {
   if (!supabase) return null;
+
+  const userId = await getCurrentUserId();
 
   const { data, error } = await supabase.rpc("create_room_with_member", {
       room_name: roomName,
@@ -127,6 +154,16 @@ export async function addToRoomTable(roomName: string) : Promise<string | null> 
   if (error) {
     alert("Fehler beim Erstellen: " + error.message);
     return null;
+  }
+
+  if (data) {
+    await eventBus.emitChange({
+      room_id: data,
+      action: "Room Created",
+      new_value: `Raum: ${roomName}`,
+      actor_type: 'user',
+      user_id: userId || undefined
+    });
   }
   
   return data; // Hier kommt die echte UUID von Supabase zurück!

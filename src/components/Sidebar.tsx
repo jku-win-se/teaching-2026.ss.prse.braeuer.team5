@@ -55,6 +55,9 @@ export function Sidebar() {
         <NavLink to="/simulator" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Simulator
         </NavLink>
+        <NavLink to="/logs" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
+          Aktivitäten
+        </NavLink>
       </nav>
 
       <div className={styles.footer}>

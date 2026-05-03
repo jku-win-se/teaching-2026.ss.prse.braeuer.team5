@@ -8,6 +8,7 @@ import Notifications from "./pages/Notifications";
 import Simulator from "./pages/Simulator";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import ActivityLogPage from "./pages/ActivityLog";
 import { useAuth } from "./hooks/useAuth";
 import type { JSX } from "react/jsx-dev-runtime";
 
@@ -39,6 +40,7 @@ export default function App(): JSX.Element {
                   <Route path="/room/:id" element={<Devices />} />
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/simulator" element={<Simulator />} />
+                  <Route path="/logs" element={<ActivityLogPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </main>
