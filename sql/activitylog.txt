@@ -31,3 +31,13 @@ CREATE POLICY "Users can insert logs"
 ON activity_logs FOR INSERT 
 TO authenticated 
 WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+
+-- addition for FR-09
+ALTER TABLE activity_logs DROP CONSTRAINT IF EXISTS activity_logs_actor_type_check;
+ALTER TABLE activity_logs ADD CONSTRAINT activity_logs_actor_type_check 
+CHECK (actor_type IN ('user', 'automation', 'system'));
+
+CREATE POLICY "System/Automation can insert logs" 
+ON activity_logs FOR INSERT 
+TO anon, authenticated
+WITH CHECK (actor_type IN ('automation', 'system'));
