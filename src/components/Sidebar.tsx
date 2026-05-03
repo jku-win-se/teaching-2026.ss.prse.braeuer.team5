@@ -52,6 +52,11 @@ export function Sidebar() {
           Einladungen
           {pendingInviteCount > 0 ? <span className={styles.inviteCount}>{pendingInviteCount}</span> : null}
         </NavLink>
+        
+        <NavLink to="/schedules" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
+          Zeitpläne
+        </NavLink>
+
         <NavLink to="/simulator" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Simulator
         </NavLink>
