@@ -1,7 +1,6 @@
 .schedules-container {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 1.5rem;
+  padding-bottom: 0px;
 }
 
 .schedules-header {
@@ -17,7 +16,7 @@
 }
 
 .add-btn {
-  background-color: var(--background-sidebar1-mix-1);
+  background-color: var(--primary);
   color: var(--text-color-2);
   border: none;
   padding: 10px 18px;

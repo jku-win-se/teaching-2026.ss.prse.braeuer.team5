@@ -1,7 +1,7 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "../config/supabaseClient";
 import type { Device, Room, RoomMembership, RoomRole } from "../types";
-import { eventBus } from "./eventEmitter";
+import { eventBus } from "../customEvents/eventEmitter";
 
 async function getCurrentUserId(): Promise<string | null> {
   return (await supabase?.auth.getUser())?.data?.user?.id ?? null;

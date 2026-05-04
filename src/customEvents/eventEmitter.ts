@@ -1,4 +1,4 @@
-import { logAction } from './logService';
+import { logAction } from '../services/logService';
 import { type ActivityLog } from '../types';
 
 type EventPayload = Omit<ActivityLog, 'id' | 'created_at'>;

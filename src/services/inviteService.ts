@@ -1,6 +1,6 @@
 import { supabase } from "../config/supabaseClient";
 import type { RoomInvite, RoomMember } from "../types";
-import { eventBus } from "./eventEmitter";
+import { eventBus } from "../customEvents/eventEmitter";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const inviteFunctionBaseUrl = `${supabaseUrl}/functions/v1/room-invites`;
