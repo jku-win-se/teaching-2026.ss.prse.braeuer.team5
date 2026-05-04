@@ -94,3 +94,27 @@ export interface Rule {
   last_triggered_at?: string | null;
   cool_down_ms: number;
 }
+
+export interface Schedule {
+  id: string;
+  name: string;
+  room_id: string;
+  device_id: string;
+  time: string;
+  days: number[];
+  action_value: DeviceState;
+  is_active: boolean;
+  created_at?: string;
+  devices?: {
+    name: string;
+    type: DeviceType;
+    room_id: string;
+    rooms?: { name: string };
+  };
+}
+
+export interface Conflict {
+  type: 'rule-rule' | 'schedule-schedule' | 'rule-schedule';
+  message: string;
+  conflictingItemName: string;
+}

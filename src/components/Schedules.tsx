@@ -1,9 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useSchedules } from '../hooks/useSchedules';
+import { useRules } from '../hooks/useRules';
 import { scheduleService } from '../services/scheduleService';
+import { detectScheduleConflicts } from '../services/conflictService';
 import { LucidePencil, LucideTrash2, LucidePlus } from 'lucide-react';
+import type { Conflict } from '../types';
 import { DeleteModal } from './modals/DeleteModal';
 import './Schedules.css';
+import './Rules.css';
 
 const DAYS_SHORT = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
@@ -94,9 +98,11 @@ const ScheduleList = React.memo(
 
 export const Schedules: React.FC = () => {
   const { schedules, devices, loading, refresh } = useSchedules();
+  const { rules } = useRules();
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [conflicts, setConflicts] = useState<Conflict[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const [formData, setFormData] = useState({
@@ -149,12 +155,23 @@ export const Schedules: React.FC = () => {
   };
 
   const handleSave = async () => {
+    if (conflicts.length === 0) {
+      const found = detectScheduleConflicts(
+        { id: editingId ?? undefined, ...formData },
+        schedules,
+        rules
+      );
+      if (found.length > 0) {
+        setConflicts(found);
+        return;
+      }
+    }
+    setConflicts([]);
     if (editingId) {
       await scheduleService.updateSchedule(editingId, formData);
     } else {
       await scheduleService.createSchedule(formData);
     }
-
     setShowModal(false);
     refresh();
   };
@@ -179,6 +196,7 @@ export const Schedules: React.FC = () => {
               days: [],
               action_value: { on: true },
             });
+            setConflicts([]);
             setShowModal(true);
           }}
         >
@@ -198,6 +216,7 @@ export const Schedules: React.FC = () => {
             days: s.days,
             action_value: s.action_value,
           });
+          setConflicts([]);
           setShowModal(true);
         }}
         onDelete={(id: string) => {
@@ -431,6 +450,15 @@ export const Schedules: React.FC = () => {
 
             </div>
 
+            {conflicts.length > 0 && (
+              <div className="conflict-warning">
+                <p className="conflict-warning-title">Konflikt erkannt</p>
+                <ul className="conflict-warning-list">
+                  {conflicts.map((c, i) => <li key={i}>{c.message}</li>)}
+                </ul>
+              </div>
+            )}
+
             <div className="modal-footer">
               <button
                 className="btn-flat"
@@ -443,7 +471,7 @@ export const Schedules: React.FC = () => {
                 className="btn-primary"
                 onClick={handleSave}
               >
-                Speichern
+                {conflicts.length > 0 ? 'Trotzdem speichern' : 'Speichern'}
               </button>
             </div>
 
