@@ -4,35 +4,6 @@
 ALTER TABLE public.rules
   ADD COLUMN IF NOT EXISTS room_id           UUID        REFERENCES public.rooms(id) ON DELETE CASCADE,
   ADD COLUMN IF NOT EXISTS created_at        TIMESTAMPTZ DEFAULT now(),
-  ADD COLUMN IF NOT EXISTS cooldown_minutes  INTEGER     NOT NULL DEFAULT 5,
+  ADD COLUMN IF NOT EXISTS cool_down_ms  INTEGER     NOT NULL DEFAULT 5,
   ADD COLUMN IF NOT EXISTS last_triggered_at TIMESTAMPTZ DEFAULT NULL;
 
-CREATE INDEX IF NOT EXISTS rules_is_active_idx ON public.rules (is_active);
-
-ALTER TABLE public.rules ENABLE ROW LEVEL SECURITY;
-
--- Alle Raum-Mitglieder können lesen
-CREATE POLICY "rules_select_member" ON public.rules FOR SELECT
-  USING (EXISTS (
-    SELECT 1 FROM public.room_members rm
-    WHERE rm.room_id = rules.room_id AND rm.user_id = auth.uid()
-  ));
-
--- Nur Owner dürfen anlegen, ändern, löschen
-CREATE POLICY "rules_insert_owner" ON public.rules FOR INSERT
-  WITH CHECK (EXISTS (
-    SELECT 1 FROM public.room_members rm
-    WHERE rm.room_id = rules.room_id AND rm.user_id = auth.uid() AND rm.role = 'owner'
-  ));
-
-CREATE POLICY "rules_update_owner" ON public.rules FOR UPDATE
-  USING (EXISTS (
-    SELECT 1 FROM public.room_members rm
-    WHERE rm.room_id = rules.room_id AND rm.user_id = auth.uid() AND rm.role = 'owner'
-  ));
-
-CREATE POLICY "rules_delete_owner" ON public.rules FOR DELETE
-  USING (EXISTS (
-    SELECT 1 FROM public.room_members rm
-    WHERE rm.room_id = rules.room_id AND rm.user_id = auth.uid() AND rm.role = 'owner'
-  ));
