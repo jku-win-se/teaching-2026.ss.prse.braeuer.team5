@@ -22,9 +22,9 @@ BEGIN
   INSERT INTO energy_logs (device_id, consumption_watt)
   SELECT id, energy_consumption
   FROM devices
-  WHERE energy_consumption IS NOT NULL;
+  WHERE energy_consumption IS NOT NULL
+  AND (state::text = '"on"' OR state::text = 'on' OR state::text = 'true');
 END;
 $$ LANGUAGE plpgsql;
 
--- every hour
-SELECT cron.schedule('log-energy-hourly', '0 * * * *', 'SELECT log_device_energy()');
+SELECT cron.schedule('log-energy-30min', '*/30 * * * *', 'SELECT log_device_energy()');

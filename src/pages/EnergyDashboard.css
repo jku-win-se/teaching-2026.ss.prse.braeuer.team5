@@ -154,3 +154,49 @@
   border-radius: 6px; 
   font-size: 12px; 
 }
+
+.ed-filter-select {
+  display: inline-block;
+  position: relative;
+}
+
+.ed-styled-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--card-bg, #ffffff); 
+  border: 1px solid var(--border-color, #ddd);
+  color: var(--text-main, #000);
+  
+  border-radius: 8px;
+  padding: 6px 32px 6px 12px;
+  font-family: inherit; 
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.ed-styled-select:hover {
+  border-color: var(--accent-color, #3b82f6);
+}
+
+.ed-styled-select:focus {
+  border-color: var(--accent-color, #3b82f6);
+  box-shadow: 0 0 0 2px var(--accent-light, rgba(59, 130, 246, 0.1));
+}
+
+.ed-styled-select optgroup {
+  font-weight: 700;
+  color: var(--text-main, #000);
+  background: var(--card-bg, #fff);
+  padding: 8px 0;
+}
+
+.ed-styled-select option {
+  padding: 6px 15px;
+  background: var(--card-bg, #fff);
+  color: var(--text-main, #333);
+  font-weight: 400;
+}
