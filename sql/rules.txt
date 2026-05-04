@@ -1,0 +1,9 @@
+-- Migration: rules-Tabelle erweitern (Issue #34, FR-10 Regel-Engine)
+-- Bestehende Tabelle hat bereits: id, device_id, name, condition, action, is_active
+
+ALTER TABLE public.rules
+  ADD COLUMN IF NOT EXISTS room_id           UUID        REFERENCES public.rooms(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS created_at        TIMESTAMPTZ DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS cool_down_ms  INTEGER     NOT NULL DEFAULT 5,
+  ADD COLUMN IF NOT EXISTS last_triggered_at TIMESTAMPTZ DEFAULT NULL;
+

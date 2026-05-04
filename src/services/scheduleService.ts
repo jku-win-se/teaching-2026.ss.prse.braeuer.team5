@@ -1,6 +1,6 @@
 import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
-import { eventBus } from "./eventEmitter";
+import { eventBus } from "../customEvents/eventEmitter";
 
 const getLogValueText = (actionValue: any, scheduleName: string): string => {
   let detail = '';
