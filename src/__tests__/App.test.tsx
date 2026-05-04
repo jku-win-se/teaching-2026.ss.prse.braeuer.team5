@@ -4,7 +4,6 @@ import type { Session } from '@supabase/supabase-js'
 import { render, screen, waitFor } from '@testing-library/react'
 import { BrowserRouter, MemoryRouter } from 'react-router-dom'
 import '@testing-library/jest-dom'
-import App from '../App'
 import { supabase } from '../config/supabaseClient'
 
 vi.mock('../services/inviteService', () => ({
@@ -13,6 +12,47 @@ vi.mock('../services/inviteService', () => ({
   fetchRoomMembers: vi.fn(),
   createRoomInvite: vi.fn(),
   removeRoomMember: vi.fn(),
+}))
+
+// Mock heavy route/page imports so App tests focus on routing/auth shell behavior.
+vi.mock('../components/Sidebar', () => ({
+  Sidebar: () => <nav>Sidebar</nav>,
+}))
+vi.mock('../components/RuleActionOverlay', () => ({
+  RuleActionOverlay: () => <div data-testid="rule-overlay" />,
+}))
+vi.mock('../pages/Dashboard', () => ({
+  default: () => <h1>Dashboard</h1>,
+}))
+vi.mock('../pages/Rooms', () => ({
+  default: () => <h1>Rooms</h1>,
+}))
+vi.mock('../pages/Devices', () => ({
+  default: () => <h1>Devices</h1>,
+}))
+vi.mock('../pages/Notifications', () => ({
+  default: () => <h1>Einladungen</h1>,
+}))
+vi.mock('../pages/Simulator', () => ({
+  default: () => <h1>Simulator</h1>,
+}))
+vi.mock('../pages/Register', () => ({
+  default: () => <h1>Register</h1>,
+}))
+vi.mock('../pages/Login', () => ({
+  default: () => <h1>Login</h1>,
+}))
+vi.mock('../pages/ActivityLog', () => ({
+  default: () => <h1>Activity Log</h1>,
+}))
+vi.mock('../pages/SchedulesPage', () => ({
+  default: () => <h1>Schedules</h1>,
+}))
+vi.mock('../pages/RulesPage', () => ({
+  default: () => <h1>Rules</h1>,
+}))
+vi.mock('../pages/EnergyDashboard', () => ({
+  default: () => <h1>Energy Dashboard</h1>,
 }))
 
 // Mock the supabase client
@@ -39,6 +79,8 @@ vi.mock('../config/supabaseClient', () => ({
     }),
   },
 }))
+
+import App from '../App'
 
 describe('App', () => {
   beforeEach(() => {
