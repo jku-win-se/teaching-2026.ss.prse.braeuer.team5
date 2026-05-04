@@ -3,6 +3,7 @@ import { useRules } from '../hooks/useRules';
 import { ruleService } from '../services/ruleService';
 import { LucidePencil, LucideTrash2, LucidePlus, LucideZap } from 'lucide-react';
 import type { TriggerOperator, DeviceState } from '../types';
+import { DeleteModal } from './modals/DeleteModal';
 import './Schedules.css';
 import './Rules.css';
 
@@ -128,6 +129,7 @@ export const Rules: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [formData, setFormData] = useState<ReturnType<typeof emptyForm>>(emptyForm());
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const groupedDevices = useMemo(() => {
     return devices.reduce((acc: any, device: any) => {
@@ -242,11 +244,9 @@ export const Rules: React.FC = () => {
           setSaveError(null);
           setShowModal(true);
         }}
-        onDelete={async (id: string) => {
-          if (window.confirm('Regel löschen?')) {
-            await ruleService.deleteRule(id);
-            refresh();
-          }
+        onDelete={(id: string) => {
+          const r = rules.find((r: any) => r.id === id);
+          setDeleteTarget({ id, name: r?.name ?? 'Regel' });
         }}
 
         onToggle={(r: any) => {
@@ -258,6 +258,20 @@ export const Rules: React.FC = () => {
             });
         }}
 
+      />
+
+      <DeleteModal
+        itemName={deleteTarget?.name ?? null}
+        itemType="Regel"
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (deleteTarget) {
+            await ruleService.deleteRule(deleteTarget.id);
+            setDeleteTarget(null);
+            refresh();
+          }
+        }}
       />
 
       {showModal && (

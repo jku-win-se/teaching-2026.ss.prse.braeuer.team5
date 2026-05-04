@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useSchedules } from '../hooks/useSchedules';
 import { scheduleService } from '../services/scheduleService';
 import { LucidePencil, LucideTrash2, LucidePlus } from 'lucide-react';
+import { DeleteModal } from './modals/DeleteModal';
 import './Schedules.css';
 
 const DAYS_SHORT = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -96,6 +97,7 @@ export const Schedules: React.FC = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -198,17 +200,29 @@ export const Schedules: React.FC = () => {
           });
           setShowModal(true);
         }}
-        onDelete={async (id: string) => {
-          if (window.confirm('Löschen?')) {
-            await scheduleService.deleteSchedule(id);
-            refresh();
-          }
+        onDelete={(id: string) => {
+          const s = schedules.find((s: any) => s.id === id);
+          setDeleteTarget({ id, name: s?.name ?? 'Zeitplan' });
         }}
         onToggle={(s: any) =>
           scheduleService
             .toggleSchedule(s.id, !s.is_active)
             .then(refresh)
         }
+      />
+
+      <DeleteModal
+        itemName={deleteTarget?.name ?? null}
+        itemType="Zeitplan"
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (deleteTarget) {
+            await scheduleService.deleteSchedule(deleteTarget.id);
+            setDeleteTarget(null);
+            refresh();
+          }
+        }}
       />
 
       {showModal && (

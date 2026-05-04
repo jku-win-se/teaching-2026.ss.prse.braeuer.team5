@@ -187,7 +187,26 @@ input:checked + .slider:before {
   border-radius: 16px;
   width: 100%;
   max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+@media (max-width: 560px) {
+  .modal-box {
+    padding: 16px;
+    border-radius: 12px;
+    max-height: 95vh;
+    margin: 0 12px;
+  }
 }
 
 .days-selection {
