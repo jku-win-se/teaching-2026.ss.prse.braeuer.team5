@@ -91,6 +91,6 @@ export interface Rule {
   condition: RuleCondition;
   action: RuleAction;
   is_active: boolean;
-  cooldown_minutes?: number;
   last_triggered_at?: string | null;
+  cool_down_ms: number;
 }

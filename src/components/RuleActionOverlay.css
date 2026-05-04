@@ -1,0 +1,48 @@
+.rule-overlay-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  animation: slideInUp 0.3s ease-out;
+}
+
+.rule-overlay-card {
+  background: white;
+  border-left: 4px solid var(--background-sidebar1-mix-1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 15px;
+  border-radius: 15px;
+  min-width: 500px;
+}
+
+.rule-overlay-card button {
+    background-color: var(--background-sidebar1-mix-1);
+}
+
+.rule-overlay-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.close-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+@keyframes slideInUp {
+  from { 
+    transform: translate(-50%, 100%); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translate(-50%, 0); 
+    opacity: 1; 
+  }
+}

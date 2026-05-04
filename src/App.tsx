@@ -13,8 +13,8 @@ import SchedulesPage from "./pages/SchedulesPage";
 import RulesPage from "./pages/RulesPage";
 import { useAuth } from "./hooks/useAuth";
 import type { JSX } from "react/jsx-dev-runtime";
-import { AutomationManager } from './components/AutomationManager';
-import { RuleToast } from './components/RuleToast';
+import { RuleActionOverlay } from "./components/RuleActionOverlay";
+
 
 export default function App(): JSX.Element {
   const { session, loading } = useAuth();
@@ -24,6 +24,7 @@ export default function App(): JSX.Element {
   }
 
   return (
+    <>
     <Routes>
       {!session ? (
         <>
@@ -36,8 +37,6 @@ export default function App(): JSX.Element {
           path="*"
           element={
             <div className="app-shell">
-              <AutomationManager />
-              <RuleToast />
 
               <Sidebar />
               <main className="app-main">
@@ -58,5 +57,8 @@ export default function App(): JSX.Element {
         />
       )}
     </Routes>
+
+    <RuleActionOverlay/>
+    </>
   );
 }

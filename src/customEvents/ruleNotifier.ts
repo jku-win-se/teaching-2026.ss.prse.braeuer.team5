@@ -5,6 +5,8 @@ class RuleNotifier {
 
   subscribe(fn: RuleListener): () => void {
     this.listeners.push(fn);
+    
+    //Gibt unsubscribe-Funktion zurück, um den Listener zu entfernen
     return () => {
       this.listeners = this.listeners.filter((l) => l !== fn);
     };

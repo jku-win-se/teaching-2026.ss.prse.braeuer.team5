@@ -3,6 +3,7 @@ import { supabase } from "../config/supabaseClient";
 import type { Device, DeviceType, DeviceState } from "../types";
 import { fetchRoomRole } from "./roomService";
 import { eventBus } from "../customEvents/eventEmitter";
+import { ruleService } from "./ruleService";
 
 async function getCurrentUserId(): Promise<string | null> {
   return (await supabase?.auth.getUser())?.data?.user?.id ?? null;
@@ -187,39 +188,6 @@ export async function deleteDevice(deviceId: string): Promise<boolean> {
   return true;
 }
 
-export async function updateDevice(
-  deviceId: string,
-  updates: Partial<Device>
-): Promise<boolean> {
-  if (!supabase) {
-    console.error("Supabase client not initialized");
-    return false;
-  }
-
-  const userId = await getCurrentUserId();
-
-  const { error } = await supabase
-    .from("devices")
-    .update(updates)
-    .eq("id", deviceId);
-
-  if (error) {
-    console.error("Error updating device:", error);
-    alert("Fehler beim Aktualisieren: " + error.message);
-    return false;
-  }
-
-  await eventBus.emitChange({
-    device_id: deviceId,
-    action: "Device Updated",
-    new_value: JSON.stringify(updates),
-    actor_type: 'user',
-    user_id: userId || undefined,
-  });
-
-  return true;
-}
-
 export async function updateDeviceName(
   deviceId: string,
   name: string
@@ -263,7 +231,6 @@ export async function updateDeviceName(
   return true;
 }
 
-// FR-06 & Integration FR-08 (Logging)
 export const updateDeviceState = async (
   deviceId: string, 
   newState: DeviceState
@@ -296,5 +263,13 @@ export const updateDeviceState = async (
     });
   }
 
+
+  // Triggern der Regelprüfung nach Zustandänderung
+  if(data) {
+    ruleService.checkAndExecuteRulesForDevice(deviceId);
+  }
+
   return data[0];
 };
+
+

@@ -63,7 +63,7 @@ export function useDevices(roomId: string | undefined) {
     );
     const device = devices.find((d) => d.id === deviceId);
     if (device) {
-      await updateDeviceState(deviceId, { ...device.state, on: newOn });
+      await changeDeviceState(deviceId, { ...device.state, on: newOn });
     }
   };
 

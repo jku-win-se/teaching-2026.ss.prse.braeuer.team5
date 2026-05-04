@@ -5,7 +5,7 @@ type EventPayload = Omit<ActivityLog, 'id' | 'created_at'>;
 
 class AppEventEmitter {
   async emitChange(payload: EventPayload) {
-    console.log(`[EventBus] Verarbeite: ${payload.action}`);
+    //console.log(`[EventBus] Verarbeite: ${payload.action}`);
     
     try {
       await logAction({
@@ -16,7 +16,7 @@ class AppEventEmitter {
         actor_type: payload.actor_type,
         user_id: payload.user_id || null
       });
-      console.log("[EventBus] Log erfolgreich geschrieben");
+      //console.log("[EventBus] Log erfolgreich geschrieben");
     } catch (err) {
       console.error("[EventBus] Fehler beim Loggen:", err);
     }

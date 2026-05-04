@@ -2,7 +2,7 @@ import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
 import { eventBus } from "../customEvents/eventEmitter";
 import { ruleNotifier } from "../customEvents/ruleNotifier";
-import type { RuleCondition, DeviceState } from "../types";
+import type { RuleCondition, DeviceState, Rule } from "../types";
 
 const getActionText = (state: DeviceState, ruleName: string): string => {
   let detail = '';
@@ -34,13 +34,25 @@ export function evaluateCondition(cond: RuleCondition, state: DeviceState): bool
   }
 }
 
-function cooldownElapsed(lastTriggeredAt: string | null | undefined, cooldownMinutes: number): boolean {
+function cooldownElapsed(lastTriggeredAt: string | null | undefined, cooldownMs: number): boolean {
   if (!lastTriggeredAt) return true;
-  const elapsed = (Date.now() - new Date(lastTriggeredAt).getTime()) / 60_000;
-  return elapsed >= cooldownMinutes;
+  const elapsed = (Date.now() - new Date(lastTriggeredAt).getTime());
+  return elapsed >= cooldownMs;
 }
 
 export const ruleService = {
+
+  async getRulesForDevice(deviceId: string): Promise<Rule[] | []> {
+    if (!supabase) return [];
+    const { data, error } = await supabase
+      .from('rules')
+      .select('*')
+      .eq('device_id', deviceId);
+    if (error) throw error;
+    return data as Rule[] || [];
+  },
+
+
   async fetchAllRules() {
     if (!supabase) return [];
     const { data, error } = await supabase
@@ -62,8 +74,8 @@ export const ruleService = {
         condition: payload.condition,
         action: payload.action,
         is_active: true,
-        cooldown_minutes: payload.cooldown_minutes ?? 1,
         last_triggered_at: null,
+        cool_down_ms: 500,
       }])
       .select();
     if (error) throw error;
@@ -80,7 +92,6 @@ export const ruleService = {
         device_id: payload.device_id,
         condition: payload.condition,
         action: payload.action,
-        cooldown_minutes: payload.cooldown_minutes ?? 1,
       })
       .eq('id', id)
       .select();
@@ -106,20 +117,24 @@ export const ruleService = {
     if (error) throw error;
   },
 
-  async checkAndExecuteRules() {
+  async checkAndExecuteRulesForDevice(deviceId: string) {
     if (!supabase) return;
 
     const { data: activeRules, error } = await supabase
       .from('rules')
       .select('*')
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .eq('device_id', deviceId);
 
     if (error || !activeRules || activeRules.length === 0) return;
 
     for (const rule of activeRules) {
       try {
-        const cooldown = rule.cooldown_minutes ?? 1;
-        if (!cooldownElapsed(rule.last_triggered_at, cooldown)) continue;
+        
+        if(!cooldownElapsed(rule.last_triggered_at, rule.cool_down_ms)) {
+          console.log(`[RuleEngine] Regel "${rule.name}" wird übersprungen (Cooldown)`);
+          continue;
+        }
 
         const { data: triggerDevice } = await supabase
           .from('devices')
@@ -148,7 +163,7 @@ export const ruleService = {
           .from('rules')
           .update({ last_triggered_at: new Date().toISOString() })
           .eq('id', rule.id);
-
+        
         const roomId: string = rule.room_id ?? triggerDevice.room_id;
         const logText = getActionText(rule.action.state, rule.name);
 

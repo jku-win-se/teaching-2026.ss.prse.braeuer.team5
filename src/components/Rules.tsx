@@ -118,8 +118,7 @@ const emptyForm = () => ({
   action: {
     device_id: '',
     state: { on: false } as DeviceState,
-  },
-  cooldown_minutes: 1,
+  }
 });
 
 export const Rules: React.FC = () => {
@@ -239,7 +238,6 @@ export const Rules: React.FC = () => {
             device_id: r.device_id,
             condition: r.condition,
             action: r.action,
-            cooldown_minutes: r.cooldown_minutes ?? 1,
           });
           setSaveError(null);
           setShowModal(true);
@@ -473,20 +471,6 @@ export const Rules: React.FC = () => {
                   )}
                 </div>
               )}
-
-
-              <div className="form-group">
-                <label>Abklingzeit (Minuten)</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={formData.cooldown_minutes}
-                  onChange={(e) =>
-                    setFormData({ ...formData, cooldown_minutes: parseInt(e.target.value) || 1 })
-                  }
-                />
-              </div>
-
             </div>
 
             {saveError && <p className="form-error">{saveError}</p>}
