@@ -23,7 +23,7 @@ BEGIN
   SELECT id, energy_consumption
   FROM devices
   WHERE energy_consumption IS NOT NULL
-  AND (state::text = '"on"' OR state::text = 'on' OR state::text = 'true');
+    AND (state->>'on')::boolean = true;
 END;
 $$ LANGUAGE plpgsql;
 
