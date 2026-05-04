@@ -47,6 +47,10 @@ vi.mock("../customEvents/eventEmitter", () => ({
   eventBus: { emitChange: vi.fn().mockResolvedValue(undefined) },
 }));
 
+vi.mock("../customEvents/ruleNotifier", () => ({
+  ruleNotifier: { emit: vi.fn() },
+}));
+
 
 describe("evaluateCondition", () => {
   const state: DeviceState = { on: true, brightness: 75, temperature: 22.5 };

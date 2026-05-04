@@ -1,6 +1,7 @@
 import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
 import { eventBus } from "../customEvents/eventEmitter";
+import { ruleNotifier } from "../customEvents/ruleNotifier";
 import type { RuleCondition, DeviceState } from "../types";
 
 const getActionText = (state: DeviceState, ruleName: string): string => {
@@ -171,6 +172,7 @@ export const ruleService = {
           });
         }
 
+        ruleNotifier.emit(rule.name);
       } catch (err) {
         console.error(`[RuleEngine] Unerwarteter Fehler bei Regel "${rule.name}":`, err);
       }
