@@ -68,3 +68,29 @@ export interface ActivityLog {
   actor_type: 'user' | 'automation' | 'system' | string;
   user_id?: string;
 }
+
+export type TriggerOperator = '==' | '!=' | '>' | '>=' | '<' | '<=';
+
+export interface RuleCondition {
+  field: keyof DeviceState;
+  operator: TriggerOperator;
+  value: boolean | number | string;
+}
+
+export interface RuleAction {
+  device_id: string;
+  state: DeviceState;
+}
+
+export interface Rule {
+  id: string;
+  created_at?: string;
+  room_id?: string;
+  device_id: string;
+  name: string;
+  condition: RuleCondition;
+  action: RuleAction;
+  is_active: boolean;
+  cooldown_minutes?: number;
+  last_triggered_at?: string | null;
+}

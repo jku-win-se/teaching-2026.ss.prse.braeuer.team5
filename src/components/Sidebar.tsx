@@ -57,6 +57,10 @@ export function Sidebar() {
           Zeitpläne
         </NavLink>
 
+        <NavLink to="/rules" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
+          Regeln
+        </NavLink>
+
         <NavLink to="/simulator" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Simulator
         </NavLink>

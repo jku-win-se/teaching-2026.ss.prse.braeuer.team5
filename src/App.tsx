@@ -10,6 +10,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import ActivityLogPage from "./pages/ActivityLog";
 import SchedulesPage from "./pages/SchedulesPage";
+import RulesPage from "./pages/RulesPage";
 import { useAuth } from "./hooks/useAuth";
 import type { JSX } from "react/jsx-dev-runtime";
 import { AutomationManager } from './components/AutomationManager';
@@ -34,8 +35,8 @@ export default function App(): JSX.Element {
           path="*"
           element={
             <div className="app-shell">
-              <AutomationManager /> 
-              
+              <AutomationManager />
+
               <Sidebar />
               <main className="app-main">
                 <Routes>
@@ -46,6 +47,7 @@ export default function App(): JSX.Element {
                   <Route path="/simulator" element={<Simulator />} />
                   <Route path="/logs" element={<ActivityLogPage />} />
                   <Route path="/schedules" element={<SchedulesPage />} />
+                  <Route path="/rules" element={<RulesPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </main>
