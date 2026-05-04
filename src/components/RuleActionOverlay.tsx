@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ruleNotifier } from '../customEvents/ruleNotifier';
 import { LucideZap, LucideX } from 'lucide-react';
 import './RuleActionOverlay.css';
@@ -6,18 +6,28 @@ import './RuleActionOverlay.css';
 export const RuleActionOverlay: React.FC = () => {
   const [triggeredRule, setTriggeredRule] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Wir abonnieren den Service
-    const unsubscribe = ruleNotifier.subscribe((ruleName) => {
-      setTriggeredRule(ruleName);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-      // Optional: Overlay nach 5 Sekunden automatisch ausblenden
-      setTimeout(() => setTriggeredRule(null), 5000);
-    });
+    useEffect(() => {
+        const unsubscribe = ruleNotifier.subscribe((ruleName) => {
+            setTriggeredRule(ruleName);
 
-    // Cleanup beim Unmount (WICHTIG!)
-    return () => unsubscribe();
-  }, []);
+            // 1. alten Timer stoppen
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+
+            // 2. neuen Timer starten
+            timeoutRef.current = setTimeout(() => {
+                setTriggeredRule(null);
+            }, 5000);
+        });
+
+        return () => {
+            unsubscribe();
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, []);
 
   if (!triggeredRule) return null;
 

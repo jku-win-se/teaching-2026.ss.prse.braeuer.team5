@@ -122,7 +122,7 @@ const emptyForm = () => ({
 });
 
 export const Rules: React.FC = () => {
-  const { rules, devices, loading, refresh } = useRules();
+  const { rules, devices, loading, refresh, toggleRuleLocal } = useRules();
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -248,9 +248,16 @@ export const Rules: React.FC = () => {
             refresh();
           }
         }}
-        onToggle={(r: any) =>
-          ruleService.toggleRule(r.id, !r.is_active).then(refresh)
-        }
+
+        onToggle={(r: any) => {
+            const newValue = !r.is_active;
+
+            ruleService.toggleRule(r.id, newValue).then(() => {
+            // Lokal State updaten statt neu laden
+              toggleRuleLocal(r.id, newValue);
+            });
+        }}
+
       />
 
       {showModal && (

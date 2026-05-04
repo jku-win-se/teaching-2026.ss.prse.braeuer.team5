@@ -132,7 +132,7 @@ export const ruleService = {
       try {
         
         if(!cooldownElapsed(rule.last_triggered_at, rule.cool_down_ms)) {
-          console.log(`[RuleEngine] Regel "${rule.name}" wird übersprungen (Cooldown)`);
+          //console.log(`[RuleEngine] Regel "${rule.name}" wird übersprungen (Cooldown)`);
           continue;
         }
 
@@ -146,8 +146,11 @@ export const ruleService = {
 
         const conditionMet = evaluateCondition(rule.condition, triggerDevice.state ?? {});
         if (!conditionMet) continue;
+        
+        //Faster UI Feedback durch sofortiges Emitten vor der Ausführung
+        ruleNotifier.emit(rule.name);
 
-        console.log(`[RuleEngine] Regel "${rule.name}" wird ausgeführt...`);
+        //console.log(`[RuleEngine] Regel "${rule.name}" wird ausgeführt...`);
 
         const { error: deviceError } = await supabase
           .from('devices')
@@ -187,7 +190,7 @@ export const ruleService = {
           });
         }
 
-        ruleNotifier.emit(rule.name);
+        
       } catch (err) {
         console.error(`[RuleEngine] Unerwarteter Fehler bei Regel "${rule.name}":`, err);
       }

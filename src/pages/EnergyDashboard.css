@@ -1,0 +1,202 @@
+.energy-dashboard-root {
+  padding: 24px;
+  background-color: var(--bg-color, #f8fafc);
+  min-height: 100vh;
+}
+
+.ed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.ed-range-picker {
+  display: flex;
+  gap: 8px;
+  background: var(--secondary-bg, #f1f5f9);
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.ed-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: var(--text-muted, #64748b);
+}
+
+.ed-button:hover {
+  background: var(--hover-bg, #e2e8f0);
+  color: var(--text-main, #1e293b);
+}
+
+.ed-button.active {
+  background: var(--primary-color, #4451a6); 
+  color: white;
+  box-shadow: 0 2px 4px rgba(68, 81, 166, 0.3);
+}
+
+.ed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 24px;
+}
+
+.ed-card {
+  background: var(--card-bg, white);
+  border-radius: 12px;
+  padding: 24px 24px 24px 24px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  box-shadow: var(--shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+  display: flex;
+  flex-direction: column;
+}
+
+.ed-full-width { grid-column: 1 / -1; }
+
+.ed-card h3 {
+  margin: 0 0 15px 0;
+  padding-bottom: 12px;
+  padding-top: 12px;
+  border-bottom: 1px solid var(--divider-color, #f1f5f9);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-main, #1e293b);
+  font-size: 1.2rem;
+}
+
+.ed-chart-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 220px;
+  padding: 20px 10px 0 10px;
+}
+
+.ed-chart-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.ed-bar-container {
+  width: 40px;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  background: var(--secondary-bg, #f1f5f9);
+  border-radius: 6px;
+  overflow: visible;
+}
+
+.ed-bar {
+  width: 100%;
+  background: linear-gradient(to top, var(--primary-color, #3b82f6), #60a5fa);
+  border-radius: 4px;
+  transition: height 0.5s ease-out;
+  position: relative;
+}
+
+.ed-bar-tooltip {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: bold;
+  background: var(--text-main, #1e293b);
+  color: white;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.ed-bar-label {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+  font-weight: 500;
+}
+
+.ed-room-item { margin-bottom: 20px; }
+.ed-room-info { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.ed-progress-bar { height: 8px; background: var(--secondary-bg, #f1f5f9); border-radius: 4px; }
+.ed-progress-fill { height: 100%; background: var(--primary-color, #3b82f6); border-radius: 4px; }
+
+.ed-device-table { width: 100%; border-collapse: collapse; }
+
+.ed-device-table th { 
+  text-align: left; 
+  padding: 2px 8px;
+  border-bottom: 2px solid var(--divider-color, #f1f5f9); 
+  color: var(--text-muted, #64748b);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.ed-device-table td { 
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--divider-color, #f1f5f9);
+  font-size: 0.95rem;
+}
+
+.ed-room-tag { 
+  background: var(--tag-bg, #eff6ff); 
+  color: var(--primary-color, #3b82f6); 
+  padding: 2px 8px; 
+  border-radius: 6px; 
+  font-size: 12px; 
+}
+
+.ed-filter-select {
+  display: inline-block;
+  position: relative;
+}
+
+.ed-styled-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--card-bg, #ffffff); 
+  border: 1px solid var(--border-color, #ddd);
+  color: var(--text-main, #000);
+  
+  border-radius: 8px;
+  padding: 6px 32px 6px 12px;
+  font-family: inherit; 
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.ed-styled-select:hover {
+  border-color: var(--accent-color, #3b82f6);
+}
+
+.ed-styled-select:focus {
+  border-color: var(--accent-color, #3b82f6);
+  box-shadow: 0 0 0 2px var(--accent-light, rgba(59, 130, 246, 0.1));
+}
+
+.ed-styled-select optgroup {
+  font-weight: 700;
+  color: var(--text-main, #000);
+  background: var(--card-bg, #fff);
+  padding: 8px 0;
+}
+
+.ed-styled-select option {
+  padding: 6px 15px;
+  background: var(--card-bg, #fff);
+  color: var(--text-main, #333);
+  font-weight: 400;
+}

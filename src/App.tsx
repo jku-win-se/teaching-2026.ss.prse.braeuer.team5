@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import ActivityLogPage from "./pages/ActivityLog";
 import SchedulesPage from "./pages/SchedulesPage";
 import RulesPage from "./pages/RulesPage";
+import EnergyDashboard from "./pages/EnergyDashboard";
 import { useAuth } from "./hooks/useAuth";
 import type { JSX } from "react/jsx-dev-runtime";
 import { RuleActionOverlay } from "./components/RuleActionOverlay";
@@ -49,6 +50,7 @@ export default function App(): JSX.Element {
                   <Route path="/logs" element={<ActivityLogPage />} />
                   <Route path="/schedules" element={<SchedulesPage />} />
                   <Route path="/rules" element={<RulesPage />} />
+                  <Route path="/energy" element={<EnergyDashboard />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </main>
