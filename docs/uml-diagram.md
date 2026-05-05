@@ -20,6 +20,10 @@ graph TD
         Devices["Devices /room/:id (useDevices · useRoomRole)"]
         Notifications["Notifications /notifications"]
         Simulator["Simulator /simulator"]
+        ActivityLog["ActivityLog /logs"]
+        SchedulesPage["SchedulesPage /schedules"]
+        RulesPage["RulesPage /rules"]
+        EnergyDashboard["EnergyDashboard /energy"]
         DeviceTypeSidebar["DeviceTypeSidebar (Drawer)"]
         DeviceCard["DeviceCard"]
         ToggleSwitch["ToggleSwitch"]
@@ -27,6 +31,11 @@ graph TD
         DeleteModalDevices["DeleteModal (Geraet loeschen)"]
         DeleteModalRooms["DeleteModal (Raum loeschen)"]
         RoomMembers["RoomMembers (Mitglieder · Einladungen)"]
+        Schedules["Schedules"]
+        Rules["Rules"]
+        RuleList["RuleList"]
+        RuleFormModal["RuleFormModal (Modal)"]
+        RuleActionOverlay["RuleActionOverlay (Overlay)"]
     end
 
     main --> App
@@ -39,6 +48,10 @@ graph TD
     Sidebar --> Devices
     Sidebar --> Notifications
     Sidebar --> Simulator
+    Sidebar --> ActivityLog
+    Sidebar --> SchedulesPage
+    Sidebar --> RulesPage
+    Sidebar --> EnergyDashboard
 
     Rooms --> RoomRow
     Rooms --> DeleteModalRooms
@@ -49,6 +62,12 @@ graph TD
     Devices --> DeleteModalDevices
     Devices --> RoomMembers
     DeviceCard --> ToggleSwitch
+
+    SchedulesPage --> Schedules
+    RulesPage --> Rules
+    Rules --> RuleList
+    Rules --> RuleFormModal
+    Rules --> RuleActionOverlay
 ```
 
 ---
@@ -60,8 +79,9 @@ graph LR
     subgraph Frontend["Frontend"]
         pages["Pages & Components\n(React)"]
         hooks["Hooks"]
-        services["Services"]
-        supabase["Supabase Client\n(Auth · DB)"]
+        intSvc["Interne Services\n(pure Logik · kein Netzwerk)"]
+        extSvc["Externe Services\n(Supabase · Edge Functions)"]
+        supabaseClient["Supabase Client\n(Auth · DB)"]
     end
 
     subgraph Backend["Backend (Supabase)"]
@@ -70,31 +90,18 @@ graph LR
     end
 
     pages -->|"nutzen"| hooks
-    hooks -->|"rufen auf"| services
-    services -->|"Auth · Rooms · Devices"| supabase
-    services -->|"Einladungen · Mitglieder"| edgeFn
-    supabase <-->|"REST"| db
+    hooks -->|"rufen auf"| intSvc
+    hooks -->|"rufen auf"| extSvc
+    extSvc -->|"DB-Zugriff"| supabaseClient
+    extSvc -->|"Einladungen · Mitglieder"| edgeFn
+    supabaseClient <-->|"REST"| db
     edgeFn -->|"service role"| db
 ```
 
 ---
 
-## 3. Routing
 
-```mermaid
-graph LR
-    root["/"] --> Dashboard
-    rooms["/rooms"] --> Rooms
-    roomId["/room/:id"] --> Devices
-    notifications["/notifications"] --> Notifications
-    sim["/simulator"] --> Simulator
-    login["/login"] --> Login
-    register["/register"] --> Register
-```
----
-
-
-## 4. Datenbankschema (Supabase)
+## 3. Datenbankschema (Supabase)
 
 ```mermaid
 erDiagram
@@ -115,27 +122,33 @@ erDiagram
         uuid room_id FK
         text name
         text type
-        int energy_consumption
         jsonb state
+        int energy_consumption
     }
 
     RULES {
         uuid id PK
         uuid device_id FK
+        uuid room_id FK
         text name
         jsonb condition
         jsonb action
         boolean is_active
+        timestamptz created_at
+        timestamptz last_triggered_at
+        int cool_down_ms
     }
 
     SCHEDULES {
         uuid id PK
+        timestamptz created_at
+        uuid room_id FK
         uuid device_id FK
         text name
-        timestamptz time
-        jsonb action
+        time time
+        array days
+        jsonb action_value
         boolean is_active
-        timestamptz created_at
     }
 
     ROOM_INVITES {
@@ -150,21 +163,45 @@ erDiagram
         timestamptz created_at
     }
 
+    ACTIVITY_LOGS {
+        uuid id PK
+        timestamptz created_at
+        uuid device_id FK
+        uuid room_id FK
+        uuid user_id FK
+        text actor_type
+        text action
+        text new_value
+    }
+
+    ENERGY_LOGS {
+        uuid id PK
+        timestamptz created_at
+        uuid device_id FK
+        int consumption_watt
+    }
+
     AUTH_USERS {
         uuid id PK
     }
 
     AUTH_USERS ||--|{ ROOM_MEMBERS : "has"
     AUTH_USERS ||--|{ ROOM_INVITES : "sends"
+    AUTH_USERS ||--o{ ACTIVITY_LOGS : "triggers"
     ROOMS ||--|{ ROOM_MEMBERS : "has"
     ROOMS ||--|{ DEVICES : "contains"
     ROOMS ||--|{ ROOM_INVITES : "has"
-    DEVICES ||--|{ RULES : "has"
+    ROOMS ||--o{ RULES : "has"
+    ROOMS ||--|{ SCHEDULES : "has"
+    ROOMS ||--o{ ACTIVITY_LOGS : "logs"
+    DEVICES ||--o{ RULES : "has"
     DEVICES ||--|{ SCHEDULES : "has"
+    DEVICES ||--o{ ACTIVITY_LOGS : "logs"
+    DEVICES ||--|{ ENERGY_LOGS : "logs"
 ```
 ---
 
-## 5. Data Model
+## 4. Data Model
 
 ```mermaid
 classDiagram
@@ -231,14 +268,84 @@ classDiagram
         +String created_at
     }
 
+    class ActivityLog {
+        +String id
+        +String created_at
+        +String? device_id
+        +String? room_id
+        +String? user_id
+        +String actor_type
+        +String action
+        +String? new_value
+    }
+
+    class TriggerOperator {
+        <<enumeration>>
+        ==
+        !=
+        gt
+        gte
+        lt
+        lte
+    }
+
+    class RuleCondition {
+        +String field
+        +TriggerOperator operator
+        +Boolean|Number|String value
+    }
+
+    class RuleAction {
+        +String device_id
+        +DeviceState state
+    }
+
+    class Rule {
+        +String id
+        +String? created_at
+        +String? room_id
+        +String device_id
+        +String name
+        +RuleCondition condition
+        +RuleAction action
+        +Boolean is_active
+        +String? last_triggered_at
+        +Number cool_down_ms
+    }
+
+    class Schedule {
+        +String id
+        +String name
+        +String room_id
+        +String device_id
+        +String time
+        +Number[] days
+        +DeviceState action_value
+        +Boolean is_active
+        +String? created_at
+    }
+
+    class Conflict {
+        +String type
+        +String message
+        +String conflictingItemName
+    }
+
     Room "1" --> "0..*" Device : contains
     Room "1" --> "0..*" RoomMembership : has
     Room "1" --> "0..*" RoomInvite : has
+    Room "1" --> "0..*" Rule : has
+    Room "1" --> "0..*" Schedule : has
     RoomMembership --> RoomRole : role
     RoomMember --> RoomRole : role
     Room --> RoomRole : role
     Device --> DeviceType : type
     Device --> DeviceState : state
+    Rule --> RuleCondition : condition
+    Rule --> RuleAction : action
+    RuleAction --> DeviceState : state
+    RuleCondition --> TriggerOperator : operator
+    Schedule --> DeviceState : action_value
 ```
 
 
