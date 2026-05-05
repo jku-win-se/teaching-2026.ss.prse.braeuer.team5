@@ -2,7 +2,15 @@ import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
 import { eventBus } from "../customEvents/eventEmitter";
 import { ruleNotifier } from "../customEvents/ruleNotifier";
-import type { RuleCondition, DeviceState, Rule } from "../types";
+import type { RuleCondition, DeviceState, Rule, RuleAction } from "../types";
+
+type RulePayload = {
+  name: string;
+  room_id?: string;
+  device_id: string;
+  condition: { field: string; operator: string; value: boolean | number | string };
+  action: RuleAction;
+};
 
 const getActionText = (state: DeviceState, ruleName: string): string => {
   let detail = '';
@@ -21,7 +29,7 @@ const getActionText = (state: DeviceState, ruleName: string): string => {
 };
 
 export function evaluateCondition(cond: RuleCondition, state: DeviceState): boolean {
-  const current = (state as any)[cond.field];
+  const current = state[cond.field];
   if (current === undefined) return false;
   switch (cond.operator) {
     case '==': return current == cond.value;
@@ -63,7 +71,7 @@ export const ruleService = {
     return data || [];
   },
 
-  async createRule(payload: any) {
+  async createRule(payload: RulePayload) {
     if (!supabase) return null;
     const { data, error } = await supabase
       .from('rules')
@@ -82,7 +90,7 @@ export const ruleService = {
     return data;
   },
 
-  async updateRule(id: string, payload: any) {
+  async updateRule(id: string, payload: RulePayload) {
     if (!supabase) return null;
     const { data, error } = await supabase
       .from('rules')
@@ -176,7 +184,7 @@ export const ruleService = {
           action: 'Regel ausgeführt',
           new_value: logText,
           actor_type: 'automation',
-          user_id: null,
+          user_id: undefined,
         });
 
         if (eventBus) {

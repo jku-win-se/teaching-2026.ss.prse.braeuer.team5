@@ -1,7 +1,7 @@
 import { supabase } from '../config/supabaseClient';
 import { type ActivityLog } from '../types';
 
-export async function logAction(payload: any) {
+export async function logAction(payload: Omit<ActivityLog, 'id' | 'created_at'>) {
   if (!supabase) return;
   
   const { error } = await supabase

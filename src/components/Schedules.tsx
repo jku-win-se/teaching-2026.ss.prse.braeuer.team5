@@ -1,24 +1,31 @@
 import React, { useState, useMemo } from 'react';
-import { useSchedules } from '../hooks/useSchedules';
+import { useSchedules, type ScheduleDevice } from '../hooks/useSchedules';
 import { useRules } from '../hooks/useRules';
 import { scheduleService } from '../services/scheduleService';
 import { detectScheduleConflicts } from '../services/conflictService';
 import { LucidePencil, LucideTrash2, LucidePlus } from 'lucide-react';
-import type { Conflict } from '../types';
+import type { Conflict, Schedule, DeviceState } from '../types';
 import { DeleteModal } from './modals/DeleteModal';
 import './Schedules.css';
 import './Rules.css';
 
 const DAYS_SHORT = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
+interface ScheduleListProps {
+  schedules: Schedule[];
+  onEdit: (s: Schedule) => void;
+  onDelete: (id: string) => void;
+  onToggle: (s: Schedule) => void;
+}
+
 const ScheduleList = React.memo(
-  ({ schedules, onEdit, onDelete, onToggle }: any) => {
+  ({ schedules, onEdit, onDelete, onToggle }: ScheduleListProps) => {
     return (
       <div className="schedules-grid">
-        {schedules.map((s: any) => (
+        {schedules.map((s) => (
           <div key={s.id} className="schedule-item-card">
             <div className="schedule-content">
-              
+
               <div className="schedule-title-row">
                 <span className="schedule-name">{s.name}</span>
                 <span className="badge-room">
@@ -111,11 +118,11 @@ export const Schedules: React.FC = () => {
     device_id: '',
     time: '08:00',
     days: [] as number[],
-    action_value: { on: true } as any,
+    action_value: { on: true } as DeviceState,
   });
 
   const groupedDevices = useMemo(() => {
-    return devices.reduce((acc: any, device: any) => {
+    return devices.reduce((acc: Record<string, ScheduleDevice[]>, device) => {
       const roomName = device.rooms?.name || 'Unbekannter Raum';
 
       if (!acc[roomName]) acc[roomName] = [];
@@ -136,7 +143,7 @@ export const Schedules: React.FC = () => {
     const dev = devices.find((d) => d.id === deviceId);
     const type = dev?.type?.trim() || '';
 
-    let initialAction: any = { on: true };
+    let initialAction: DeviceState = { on: true };
 
     if (type === 'Dimmer') {
       initialAction = { brightness: 80 };
@@ -180,7 +187,7 @@ export const Schedules: React.FC = () => {
 
   return (
     <div className="schedules-container">
-      
+
       <div className="schedules-header">
         <h1>Zeitpläne</h1>
 
@@ -206,7 +213,7 @@ export const Schedules: React.FC = () => {
 
       <ScheduleList
         schedules={schedules}
-        onEdit={(s: any) => {
+        onEdit={(s: Schedule) => {
           setEditingId(s.id);
           setFormData({
             name: s.name,
@@ -220,10 +227,10 @@ export const Schedules: React.FC = () => {
           setShowModal(true);
         }}
         onDelete={(id: string) => {
-          const s = schedules.find((s: any) => s.id === id);
+          const s = schedules.find((s) => s.id === id);
           setDeleteTarget({ id, name: s?.name ?? 'Zeitplan' });
         }}
-        onToggle={(s: any) =>
+        onToggle={(s: Schedule) =>
           scheduleService
             .toggleSchedule(s.id, !s.is_active)
             .then(refresh)
@@ -247,13 +254,13 @@ export const Schedules: React.FC = () => {
       {showModal && (
         <div className="modal-backdrop">
           <div className="modal-box">
-            
+
             <h2>
               {editingId ? 'Zeitplan bearbeiten' : 'Neuer Zeitplan'}
             </h2>
 
             <div className="modal-body">
-              
+
               <div className="form-group">
                 <label>Bezeichnung</label>
                 <input
@@ -281,7 +288,7 @@ export const Schedules: React.FC = () => {
 
                   {Object.keys(groupedDevices).map((roomName) => (
                     <optgroup key={roomName} label={roomName}>
-                      {groupedDevices[roomName].map((d: any) => (
+                      {groupedDevices[roomName].map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.name}
                         </option>
@@ -292,7 +299,7 @@ export const Schedules: React.FC = () => {
               </div>
 
               <div className="form-row-half">
-                
+
                 <div className="form-group">
                   <label>Uhrzeit</label>
                   <input

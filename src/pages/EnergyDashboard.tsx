@@ -24,7 +24,7 @@ const EnergyDashboard: React.FC = () => {
 
   const displayData = getDisplayData();
   
-  const dataValues = displayData.map((d: any) => d.value);
+  const dataValues = displayData.map((d) => d.value);
   const maxValueInData = Math.max(...dataValues, 0);
   const dynamicMax = maxValueInData > 0 ? maxValueInData * 1.2 : 100;
 
@@ -93,7 +93,7 @@ const EnergyDashboard: React.FC = () => {
         <section className="ed-card">
           <h3>Verbrauch nach Raum</h3>
           <div className="ed-room-list">
-            {Object.entries(byRoom || {}).map(([name, watt]: [string, any]) => (
+            {Object.entries(byRoom || {}).map(([name, watt]: [string, number]) => (
               <div key={name} className="ed-room-item">
                 <div className="ed-room-info">
                   <span>{name}</span>
@@ -115,7 +115,7 @@ const EnergyDashboard: React.FC = () => {
             {filter.id && <span className="ed-filter-tag"> - {filter.id}</span>}
           </h3>
           <div className="ed-chart-area">
-            {displayData.map((entry: any, i: number) => {
+            {displayData.map((entry, i) => {
               const height = maxValueInData > 0 ? (entry.value / dynamicMax) * 100 : 0;
 
               return (

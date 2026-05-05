@@ -15,7 +15,7 @@ export interface DeviceState {
   brightness?: number;
   temperature?: number;
   value?: string | number;
-  position?: 'offen' | 'geschlossen' | 'stop';
+  position?: number | 'offen' | 'geschlossen' | 'stop';
 }
 
 export type Device = {
@@ -117,4 +117,13 @@ export interface Conflict {
   type: 'rule-rule' | 'schedule-schedule' | 'rule-schedule';
   message: string;
   conflictingItemName: string;
+}
+
+export interface EnergyLog {
+  created_at: string;
+  consumption_watt?: number;
+  devices?: {
+    name: string;
+    rooms?: { name: string };
+  };
 }
