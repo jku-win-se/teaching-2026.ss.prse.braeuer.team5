@@ -1,8 +1,9 @@
 import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
 import { eventBus } from "../customEvents/eventEmitter";
+import type { DeviceState, Schedule } from "../types";
 
-const getLogValueText = (actionValue: any, scheduleName: string): string => {
+const getLogValueText = (actionValue: DeviceState, scheduleName: string): string => {
   let detail = '';
   
   if (actionValue.on !== undefined) {
@@ -40,7 +41,7 @@ export const scheduleService = {
     return data || [];
   },
 
-  async createSchedule(payload: any) {
+  async createSchedule(payload: Pick<Schedule, 'name' | 'room_id' | 'device_id' | 'time' | 'days' | 'action_value'>) {
     if (!supabase) return null;
     const formattedTime = payload.time.length === 5 ? `${payload.time}:00` : payload.time;
 
@@ -70,7 +71,7 @@ export const scheduleService = {
     if (error) throw error;
   },
 
-  async updateSchedule(id: string, payload: any) {
+  async updateSchedule(id: string, payload: Pick<Schedule, 'name' | 'room_id' | 'device_id' | 'time' | 'days' | 'action_value'>) {
     if (!supabase) return null;
     const formattedTime = payload.time.length === 5 ? `${payload.time}:00` : payload.time;
 
@@ -134,7 +135,7 @@ export const scheduleService = {
           action: "Zeitplan ausgeführt",
           new_value: logText,
           actor_type: 'automation',
-          user_id: null
+          user_id: undefined
         });
 
         if (eventBus) {

@@ -1,9 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../config/supabaseClient';
+import type { Device, EnergyLog } from '../types';
+
+type DeviceWithRoom = Device & { rooms?: { id: string; name: string } };
 
 export const useEnergyData = (range: 'day' | 'week' = 'day') => {
-  const [devices, setDevices] = useState<any[]>([]);
-  const [history, setHistory] = useState<any[]>([]);
+  const [devices, setDevices] = useState<DeviceWithRoom[]>([]);
+  const [history, setHistory] = useState<EnergyLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,7 +17,7 @@ export const useEnergyData = (range: 'day' | 'week' = 'day') => {
         const { data: devData } = await supabase
           .from('devices')
           .select('*, rooms(id, name)');
-        
+
         const startTime = new Date();
         if (range === 'day') {
           startTime.setHours(startTime.getHours() - 24);
@@ -33,8 +36,8 @@ export const useEnergyData = (range: 'day' | 'week' = 'day') => {
           `)
           .gt('created_at', startTime.toISOString());
 
-        setDevices(devData || []);
-        setHistory(histData || []);
+        setDevices((devData ?? []) as DeviceWithRoom[]);
+        setHistory((histData ?? []) as EnergyLog[]);
       } catch (e) {
         console.error("Fehler beim Laden:", e);
       } finally {
@@ -45,16 +48,15 @@ export const useEnergyData = (range: 'day' | 'week' = 'day') => {
   }, [range]);
 
   const stats = useMemo(() => {
-    const checkIsActive = (d: any) => {
+    const checkIsActive = (d: DeviceWithRoom): boolean => {
       if (!d.state) return false;
-      if (typeof d.state === 'object') return d.state.on === true;
-      return d.state === 'on' || d.state === true;
+      return d.state.on === true;
     };
 
-    const totalLive = devices.reduce((sum, d) => 
+    const totalLive = devices.reduce((sum, d) =>
       sum + (checkIsActive(d) ? (Number(d.energy_consumption) || 0) : 0), 0);
 
-    const byRoom = devices.reduce((acc: any, d) => {
+    const byRoom = devices.reduce((acc: Record<string, number>, d) => {
       const rName = d.rooms?.name;
       if (rName) {
         acc[rName] = (acc[rName] || 0) + (Number(d.energy_consumption) || 0);
@@ -62,14 +64,19 @@ export const useEnergyData = (range: 'day' | 'week' = 'day') => {
       return acc;
     }, {});
 
-    const labels = range === 'day' 
-      ? ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'] 
+    const labels = range === 'day'
+      ? ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00']
       : ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
-    const aggregated = {
+    type Slot = { label: string; sum: number; count: number };
+    const aggregated: {
+      total: Slot[];
+      rooms: Record<string, Slot[]>;
+      devices: Record<string, Slot[]>;
+    } = {
       total: labels.map(l => ({ label: l, sum: 0, count: 0 })),
-      rooms: {} as Record<string, any[]>,
-      devices: {} as Record<string, any[]>
+      rooms: {},
+      devices: {}
     };
 
     history.forEach(log => {
@@ -79,14 +86,14 @@ export const useEnergyData = (range: 'day' | 'week' = 'day') => {
       if (range === 'day') {
         idx = Math.floor(date.getHours() / 4);
       } else {
-        idx = (date.getDay() + 6) % 7; 
+        idx = (date.getDay() + 6) % 7;
       }
 
       if (idx !== -1 && idx < labels.length && log.devices?.rooms?.name) {
         const val = Number(log.consumption_watt || 0);
         const rName = log.devices.rooms.name;
         const dName = log.devices.name;
-        
+
         aggregated.total[idx].sum += val;
         aggregated.total[idx].count++;
 
@@ -104,9 +111,8 @@ export const useEnergyData = (range: 'day' | 'week' = 'day') => {
       }
     });
 
-    const MESSUNGEN_PRO_STUNDE = 2; 
-
-    const finalize = (slots: any[]) => slots.map(s => ({
+    const MESSUNGEN_PRO_STUNDE = 2;
+    const finalize = (slots: Slot[]) => slots.map(s => ({
       label: s.label,
       value: s.count > 0 ? Math.round(s.sum / MESSUNGEN_PRO_STUNDE) : 0
     }));
@@ -121,10 +127,10 @@ export const useEnergyData = (range: 'day' | 'week' = 'day') => {
       deviceCharts: Object.fromEntries(
         Object.entries(aggregated.devices).map(([k, v]) => [k, finalize(v)])
       ),
-      byDevice: devices.map(d => ({ 
-        ...d, 
+      byDevice: devices.map(d => ({
+        ...d,
         isActive: checkIsActive(d),
-        consumption: Number(d.energy_consumption) || 0 
+        consumption: Number(d.energy_consumption) || 0
       }))
     };
   }, [devices, history, range]);

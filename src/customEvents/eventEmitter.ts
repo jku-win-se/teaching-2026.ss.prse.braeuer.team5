@@ -14,7 +14,7 @@ class AppEventEmitter {
         action: payload.action,
         new_value: payload.new_value,
         actor_type: payload.actor_type,
-        user_id: payload.user_id || null
+        user_id: payload.user_id || undefined
       });
       //console.log("[EventBus] Log erfolgreich geschrieben");
     } catch (err) {

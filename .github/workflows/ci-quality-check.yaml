@@ -24,11 +24,14 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Run ESLint
+      - name: Generate ESLint Reports
         run: |
           mkdir -p reports
           npx eslint . --format json --output-file reports/eslint-report.json || true
           npx eslint . --format html --output-file reports/eslint-report.html || true
+
+      - name: Run ESLint
+        run: npx eslint .
 
 
       - name: Debug Environment
