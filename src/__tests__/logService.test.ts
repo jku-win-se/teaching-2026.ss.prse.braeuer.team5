@@ -54,9 +54,9 @@ describe('logService', () => {
 
   it('logAction fuegt Payload ein', async () => {
     ;(mockInsert as Mock).mockResolvedValueOnce({ error: null })
-    await logAction({ action: 'Test' })
+    await logAction({ action: 'Test', new_value: null, actor_type: 'user' })
     expect(mockFrom).toHaveBeenCalledWith('activity_logs')
-    expect(mockInsert).toHaveBeenCalledWith([{ action: 'Test' }])
+    expect(mockInsert).toHaveBeenCalledWith([{ action: 'Test', new_value: null, actor_type: 'user' }])
   })
 
   it('logAction loggt Fehler in console.error', async () => {
@@ -65,7 +65,7 @@ describe('logService', () => {
       error: { message: 'insert failed' },
     })
 
-    await logAction({ action: 'Kaputt' })
+    await logAction({ action: 'Kaputt', new_value: null, actor_type: 'user' })
 
     expect(consoleSpy).toHaveBeenCalled()
     consoleSpy.mockRestore()

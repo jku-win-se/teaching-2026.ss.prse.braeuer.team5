@@ -189,8 +189,9 @@ describe('scheduleService', () => {
     mockSupabaseRef.current = null
 
     await expect(scheduleService.fetchAllSchedules()).resolves.toEqual([])
-    await expect(scheduleService.createSchedule({ time: '10:00' })).resolves.toBeNull()
-    await expect(scheduleService.updateSchedule('x', { time: '10:00' })).resolves.toBeNull()
+    const minPayload = { name: '', room_id: '', device_id: '', time: '10:00', days: [], action_value: {} }
+    await expect(scheduleService.createSchedule(minPayload)).resolves.toBeNull()
+    await expect(scheduleService.updateSchedule('x', minPayload)).resolves.toBeNull()
     await expect(scheduleService.toggleSchedule('x', true)).resolves.toBeUndefined()
     await expect(scheduleService.deleteSchedule('x')).resolves.toBeUndefined()
     await expect(scheduleService.checkAndExecuteSchedules()).resolves.toBeUndefined()
