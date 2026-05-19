@@ -279,6 +279,11 @@ input:checked + .slider:before {
   cursor: pointer;
 }
 
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .btn-flat {
   background: transparent;
   border: none;

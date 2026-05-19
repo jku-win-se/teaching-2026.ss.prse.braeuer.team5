@@ -324,8 +324,8 @@ export const RuleFormModal: React.FC<RuleFormModalProps> = ({
           <button className="btn-flat" onClick={onClose}>
             Abbrechen
           </button>
-          <button className="btn-primary" onClick={onSave}>
-            {conflicts.length > 0 ? 'Trotzdem speichern' : 'Speichern'}
+          <button className="btn-primary" onClick={onSave} disabled={conflicts.length > 0}>
+            Speichern
           </button>
         </div>
       </div>
