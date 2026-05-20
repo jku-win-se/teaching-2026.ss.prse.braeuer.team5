@@ -31,13 +31,13 @@ const makeSchedule = (overrides: Partial<Schedule> = {}): Schedule => ({
 
 describe('detectRuleConflicts', () => {
   it('gibt keinen Konflikt zurück wenn keine bestehenden Regeln vorhanden', () => {
-    const candidate = { action: { device_id: 'device-target', state: { on: false } } };
+    const candidate = makeRule({ id: 'rule-candidate', action: { device_id: 'device-target', state: { on: false } } });
     expect(detectRuleConflicts(candidate, [], [])).toEqual([]);
   });
 
   it('erkennt Regel-Regel-Konflikt bei gleichem Zielgerät und widersprüchlichem on-Wert', () => {
     const existing = makeRule({ id: 'rule-1', action: { device_id: 'device-target', state: { on: true } } });
-    const candidate = { action: { device_id: 'device-target', state: { on: false } } };
+    const candidate = makeRule({ id: 'rule-candidate', action: { device_id: 'device-target', state: { on: false } } });
     const result = detectRuleConflicts(candidate, [existing], []);
     expect(result).toHaveLength(1);
     expect(result[0].type).toBe('rule-rule');
@@ -46,31 +46,31 @@ describe('detectRuleConflicts', () => {
 
   it('gibt keinen Konflikt zurück wenn Zielgerät unterschiedlich', () => {
     const existing = makeRule({ action: { device_id: 'device-other', state: { on: true } } });
-    const candidate = { action: { device_id: 'device-target', state: { on: false } } };
+    const candidate = makeRule({ id: 'rule-candidate', action: { device_id: 'device-target', state: { on: false } } });
     expect(detectRuleConflicts(candidate, [existing], [])).toEqual([]);
   });
 
   it('gibt keinen Konflikt zurück wenn beide Regeln denselben Zustand setzen', () => {
     const existing = makeRule({ action: { device_id: 'device-target', state: { on: true } } });
-    const candidate = { action: { device_id: 'device-target', state: { on: true } } };
+    const candidate = makeRule({ id: 'rule-candidate', action: { device_id: 'device-target', state: { on: true } } });
     expect(detectRuleConflicts(candidate, [existing], [])).toEqual([]);
   });
 
   it('ignoriert inaktive Regeln', () => {
     const existing = makeRule({ is_active: false, action: { device_id: 'device-target', state: { on: true } } });
-    const candidate = { action: { device_id: 'device-target', state: { on: false } } };
+    const candidate = makeRule({ id: 'rule-candidate', action: { device_id: 'device-target', state: { on: false } } });
     expect(detectRuleConflicts(candidate, [existing], [])).toEqual([]);
   });
 
   it('ignoriert die eigene Regel beim Bearbeiten (selbe id)', () => {
     const existing = makeRule({ id: 'rule-edit', action: { device_id: 'device-target', state: { on: true } } });
-    const candidate = { id: 'rule-edit', action: { device_id: 'device-target', state: { on: false } } };
+    const candidate = makeRule({ id: 'rule-edit', action: { device_id: 'device-target', state: { on: false } } });
     expect(detectRuleConflicts(candidate, [existing], [])).toEqual([]);
   });
 
   it('erkennt Regel-Zeitplan-Konflikt bei gleichem Zielgerät und widersprüchlichem Zustand', () => {
     const schedule = makeSchedule({ device_id: 'device-target', action_value: { on: true } });
-    const candidate = { action: { device_id: 'device-target', state: { on: false } } };
+    const candidate = makeRule({ id: 'rule-candidate', action: { device_id: 'device-target', state: { on: false } } });
     const result = detectRuleConflicts(candidate, [], [schedule]);
     expect(result).toHaveLength(1);
     expect(result[0].type).toBe('rule-schedule');
@@ -79,19 +79,19 @@ describe('detectRuleConflicts', () => {
 
   it('ignoriert inaktive Zeitpläne bei Regel-Zeitplan-Prüfung', () => {
     const schedule = makeSchedule({ is_active: false, action_value: { on: true } });
-    const candidate = { action: { device_id: 'device-target', state: { on: false } } };
+    const candidate = makeRule({ id: 'rule-candidate', action: { device_id: 'device-target', state: { on: false } } });
     expect(detectRuleConflicts(candidate, [], [schedule])).toEqual([]);
   });
 
   it('gibt keinen Konflikt zurück wenn kein Zielgerät gesetzt', () => {
     const existing = makeRule();
-    const candidate = { action: { device_id: '', state: { on: false } } };
+    const candidate = makeRule({ id: 'rule-candidate', action: { device_id: '', state: { on: false } } });
     expect(detectRuleConflicts(candidate, [existing], [])).toEqual([]);
   });
 
   it('erkennt Konflikt bei numerischem Feld (temperature)', () => {
     const existing = makeRule({ action: { device_id: 'device-target', state: { temperature: 20 } } });
-    const candidate = { action: { device_id: 'device-target', state: { temperature: 25 } } };
+    const candidate = makeRule({ id: 'rule-candidate', action: { device_id: 'device-target', state: { temperature: 25 } } });
     const result = detectRuleConflicts(candidate, [existing], []);
     expect(result).toHaveLength(1);
     expect(result[0].type).toBe('rule-rule');

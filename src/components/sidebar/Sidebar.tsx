@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { supabase } from "../config/supabaseClient";
-import { fetchPendingRoomInvites } from "../services/inviteService";
+import { supabase } from "../../config/supabaseClient";
+import { fetchPendingRoomInvites } from "../../services/inviteService";
 import styles from "./Sidebar.module.css";
 
 export function Sidebar() {
@@ -52,9 +52,7 @@ export function Sidebar() {
           Einladungen
           {pendingInviteCount > 0 ? <span className={styles.inviteCount}>{pendingInviteCount}</span> : null}
         </NavLink>
-        <NavLink to="/energy" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
-          Energie
-        </NavLink>
+    
         <NavLink to="/schedules" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Zeitpläne
         </NavLink>

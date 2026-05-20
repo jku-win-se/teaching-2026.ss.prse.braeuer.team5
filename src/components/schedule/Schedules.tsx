@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { useSchedules, type ScheduleDevice } from '../hooks/useSchedules';
-import { useRules } from '../hooks/useRules';
-import { scheduleService } from '../services/scheduleService';
-import { detectScheduleConflicts } from '../services/conflictService';
+import { useSchedules, type ScheduleDevice } from '../../hooks/useSchedules';
+import { useRules } from '../../hooks/useRules';
+import { useRooms } from '../../hooks/useRooms';
+import { scheduleService } from '../../services/scheduleService';
+import { detectScheduleConflicts } from '../../services/conflictService';
 import { LucidePencil, LucideTrash2, LucidePlus } from 'lucide-react';
-import type { Conflict, Schedule, DeviceState } from '../types';
-import { DeleteModal } from './modals/DeleteModal';
+import type { Conflict, Schedule, DeviceState } from '../../types';
+import { DeleteModal } from '../modals/DeleteModal';
 import './Schedules.css';
-import './Rules.css';
 
 const DAYS_SHORT = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
@@ -16,10 +16,11 @@ interface ScheduleListProps {
   onEdit: (s: Schedule) => void;
   onDelete: (id: string) => void;
   onToggle: (s: Schedule) => void;
+  canManage: (s: Schedule) => boolean;
 }
 
 const ScheduleList = React.memo(
-  ({ schedules, onEdit, onDelete, onToggle }: ScheduleListProps) => {
+  ({ schedules, onEdit, onDelete, onToggle, canManage }: ScheduleListProps) => {
     return (
       <div className="schedules-grid">
         {schedules.map((s) => (
@@ -30,6 +31,9 @@ const ScheduleList = React.memo(
                 <span className="schedule-name">{s.name}</span>
                 <span className="badge-room">
                   {s.devices?.rooms?.name}
+                </span>
+                <span className={`room-rule-badge ${canManage(s) ? 'owner' : 'member'}`}>
+                  {canManage(s) ? 'Eigentümer' : 'Mitglied'}
                 </span>
               </div>
 
@@ -73,19 +77,23 @@ const ScheduleList = React.memo(
             </div>
 
             <div className="schedule-actions">
-              <button
-                className="action-btn edit-btn"
-                onClick={() => onEdit(s)}
-              >
-                <LucidePencil size={18} />
-              </button>
+              {canManage(s) && (
+                <>
+                  <button
+                    className="action-btn edit-btn"
+                    onClick={() => onEdit(s)}
+                  >
+                    <LucidePencil size={18} />
+                  </button>
 
-              <button
-                className="action-btn delete-btn"
-                onClick={() => onDelete(s.id)}
-              >
-                <LucideTrash2 size={18} />
-              </button>
+                  <button
+                    className="action-btn delete-btn"
+                    onClick={() => onDelete(s.id)}
+                  >
+                    <LucideTrash2 size={18} />
+                  </button>
+                </>
+              )}
 
               <label className="switch">
                 <input
@@ -106,6 +114,13 @@ const ScheduleList = React.memo(
 export const Schedules: React.FC = () => {
   const { schedules, devices, loading, refresh } = useSchedules();
   const { rules } = useRules();
+  const { rooms } = useRooms();
+  const ownerRoomIds = useMemo(
+    () => new Set(rooms.filter((r) => r.role === 'owner').map((r) => r.id)),
+    [rooms]
+  );
+  const canManageSchedule = (s: Schedule) => ownerRoomIds.has(s.room_id);
+  const canAddSchedules = ownerRoomIds.size > 0;
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -122,15 +137,15 @@ export const Schedules: React.FC = () => {
   });
 
   const groupedDevices = useMemo(() => {
-    return devices.reduce((acc: Record<string, ScheduleDevice[]>, device) => {
-      const roomName = device.rooms?.name || 'Unbekannter Raum';
-
-      if (!acc[roomName]) acc[roomName] = [];
-
-      acc[roomName].push(device);
-      return acc;
-    }, {});
-  }, [devices]);
+    return devices
+      .filter((d) => ownerRoomIds.has(d.room_id))
+      .reduce((acc: Record<string, ScheduleDevice[]>, device) => {
+        const roomName = device.rooms?.name || 'Unbekannter Raum';
+        if (!acc[roomName]) acc[roomName] = [];
+        acc[roomName].push(device);
+        return acc;
+      }, {});
+  }, [devices, ownerRoomIds]);
 
   const deviceType = useMemo(() => {
     if (!formData.device_id) return '';
@@ -191,28 +206,31 @@ export const Schedules: React.FC = () => {
       <div className="schedules-header">
         <h1>Zeitpläne</h1>
 
-        <button
-          className="add-btn"
-          onClick={() => {
-            setEditingId(null);
-            setFormData({
-              name: '',
-              room_id: '',
-              device_id: '',
-              time: '08:00',
-              days: [],
-              action_value: { on: true },
-            });
-            setConflicts([]);
-            setShowModal(true);
-          }}
-        >
-          <LucidePlus size={18} /> Neuer Zeitplan
-        </button>
+        {canAddSchedules && (
+          <button
+            className="add-btn"
+            onClick={() => {
+              setEditingId(null);
+              setFormData({
+                name: '',
+                room_id: '',
+                device_id: '',
+                time: '08:00',
+                days: [],
+                action_value: { on: true },
+              });
+              setConflicts([]);
+              setShowModal(true);
+            }}
+          >
+            <LucidePlus size={18} /> Neuer Zeitplan
+          </button>
+        )}
       </div>
 
       <ScheduleList
         schedules={schedules}
+        canManage={canManageSchedule}
         onEdit={(s: Schedule) => {
           setEditingId(s.id);
           setFormData({

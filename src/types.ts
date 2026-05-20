@@ -27,6 +27,10 @@ export type Device = {
   state?: DeviceState;
 };
 
+export type DeviceWithRoom = Device & {
+  rooms?: { name: string };
+};
+
 export type Room = {
   id: string;
   name: string;

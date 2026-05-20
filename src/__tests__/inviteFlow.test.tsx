@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
-import { Sidebar } from "../components/Sidebar";
+import { Sidebar } from "../components/sidebar/Sidebar";
 import Notifications from "../pages/Notifications";
 import {
   fetchPendingRoomInvites,

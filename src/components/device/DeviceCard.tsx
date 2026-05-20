@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Edit2, Trash2, Check, X, Sun, Thermometer, Layers, Activity } from "lucide-react";
-import { type Device, type DeviceState } from "../types";
+import { type Device, type DeviceState } from "../../types";
 import { ToggleSwitch } from "./ToggleSwitch";
 import "./DeviceCard.css";
 

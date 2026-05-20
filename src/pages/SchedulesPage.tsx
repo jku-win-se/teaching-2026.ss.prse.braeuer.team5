@@ -1,4 +1,4 @@
-import { Schedules } from '../components/Schedules';
+import { Schedules } from '../components/schedule/Schedules';
 
 export default function SchedulesPage() {
   return (
