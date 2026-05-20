@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ruleNotifier } from '../customEvents/ruleNotifier';
+import { ruleNotifier } from '../../customEvents/ruleNotifier';
 import { LucideZap, LucideX } from 'lucide-react';
 import './RuleActionOverlay.css';
 

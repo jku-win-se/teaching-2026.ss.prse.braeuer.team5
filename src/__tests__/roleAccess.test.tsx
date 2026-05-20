@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { DeviceCard } from "../components/DeviceCard";
-import { DeviceTypeSidebar } from "../components/DeviceTypeSidebar";
+import { DeviceCard } from "../components/device/DeviceCard";
+import { DeviceTypeSidebar } from "../components/device/DeviceTypeSidebar";
 import type { Device } from "../types";
 
 const baseDevice: Device = {
