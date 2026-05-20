@@ -122,7 +122,12 @@ export const Rules: React.FC = () => {
     setSaveError(null);
     if (conflicts.length === 0) {
       const found = detectRuleConflicts(
-        { id: editingId ?? undefined, action: formData.action },
+        {
+          id: editingId ?? undefined,
+          device_id: formData.device_id,
+          condition: formData.condition,
+          action: formData.action,
+        },
         rules,
         schedules,
       );
