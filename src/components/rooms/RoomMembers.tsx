@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import type { RoomInvite, RoomRole, RoomMember } from "../types";
+import type { RoomInvite, RoomRole, RoomMember } from "../../types";
 import {
   createRoomInvite,
   deleteRoomInvite,
@@ -8,7 +8,7 @@ import {
   fetchRoomMembers,
   removeRoomMember,
   resendRoomInvite,
-} from "../services/inviteService";
+} from "../../services/inviteService";
 import "./RoomMembers.css";
 
 type RoomMembersProps = {

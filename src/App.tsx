@@ -1,6 +1,6 @@
 import { Route, Routes, Navigate } from "react-router-dom";
 import "./App.css";
-import { Sidebar } from "./components/Sidebar";
+import { Sidebar } from "./components/sidebar/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Rooms from "./pages/Rooms";
 import Devices from "./pages/Devices";
@@ -11,11 +11,9 @@ import Login from "./pages/Login";
 import ActivityLogPage from "./pages/ActivityLog";
 import SchedulesPage from "./pages/SchedulesPage";
 import RulesPage from "./pages/RulesPage";
-import EnergyDashboard from "./pages/EnergyDashboard";
 import { useAuth } from "./hooks/useAuth";
 import type { JSX } from "react/jsx-dev-runtime";
-import { RuleActionOverlay } from "./components/RuleActionOverlay";
-
+import { RuleActionOverlay } from "./components/rules/RuleActionOverlay";
 
 export default function App(): JSX.Element {
   const { session, loading } = useAuth();
@@ -50,7 +48,6 @@ export default function App(): JSX.Element {
                   <Route path="/logs" element={<ActivityLogPage />} />
                   <Route path="/schedules" element={<SchedulesPage />} />
                   <Route path="/rules" element={<RulesPage />} />
-                  <Route path="/energy" element={<EnergyDashboard />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </main>

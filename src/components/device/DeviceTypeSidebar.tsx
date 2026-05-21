@@ -1,5 +1,5 @@
 import { Power, Sun, Thermometer, Eye, ChevronUp, Plus } from "lucide-react";
-import type { DeviceType } from "../types";
+import type { DeviceType } from "../../types";
 import "./DeviceTypeSidebar.css";
 
 const BAUTEILE = [

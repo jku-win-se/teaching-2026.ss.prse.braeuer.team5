@@ -1,17 +1,18 @@
 import React from 'react';
 import { LucidePencil, LucideTrash2, LucideZap } from 'lucide-react';
 import { FIELD_OPTIONS } from './ruleUtils';
-import type { Rule, Device, DeviceState } from '../../types';
+import type { Rule, DeviceWithRoom, DeviceState } from '../../types';
 
 type RuleListProps = {
   rules: Rule[];
-  devices: Device[];
+  devices: DeviceWithRoom[];
   onEdit: (rule: Rule) => void;
   onDelete: (id: string) => void;
   onToggle: (rule: Rule) => void;
+  canManage: (rule: Rule) => boolean;
 };
 
-const formatConditionSummary = (rule: Rule, devices: Device[]): string => {
+const formatConditionSummary = (rule: Rule, devices: DeviceWithRoom[]): string => {
   const triggerDev = devices.find((d) => d.id === rule.device_id);
   const cond = rule.condition;
   if (!cond || !triggerDev) return '—';
@@ -20,7 +21,7 @@ const formatConditionSummary = (rule: Rule, devices: Device[]): string => {
   return `${triggerDev.name} · ${fieldLabel} ${cond.operator} ${cond.value}`;
 };
 
-const formatActionSummary = (rule: Rule, devices: Device[]): string => {
+const formatActionSummary = (rule: Rule, devices: DeviceWithRoom[]): string => {
   const actionDev = devices.find((d) => d.id === rule.action?.device_id);
   const state: DeviceState = rule.action?.state ?? {};
   if (!actionDev) return '—';
@@ -32,7 +33,7 @@ const formatActionSummary = (rule: Rule, devices: Device[]): string => {
   return `${actionDev.name}: ${stateText}`;
 };
 
-export const RuleList = React.memo(({ rules, devices, onEdit, onDelete, onToggle }: RuleListProps) => {
+export const RuleList = React.memo(({ rules, devices, onEdit, onDelete, onToggle, canManage }: RuleListProps) => {
   if (rules.length === 0) {
     return (
       <div style={{ opacity: 0.5, marginTop: 32, textAlign: 'center' }}>
@@ -49,7 +50,10 @@ export const RuleList = React.memo(({ rules, devices, onEdit, onDelete, onToggle
             <div className="schedule-title-row">
               <span className="schedule-name">{r.name}</span>
               <span className="badge-room">
-                {(devices.find((d) => d.id === r.device_id) as Device & { rooms?: { name: string } })?.rooms?.name}
+                {devices.find((d) => d.id === r.device_id)?.rooms?.name}
+              </span>
+              <span className={`room-rule-badge ${canManage(r) ? 'owner' : 'member'}`}>
+                {canManage(r) ? 'Eigentümer' : 'Mitglied'}
               </span>
             </div>
             <div className="rule-condition-line">
@@ -61,12 +65,16 @@ export const RuleList = React.memo(({ rules, devices, onEdit, onDelete, onToggle
             </div>
           </div>
           <div className="schedule-actions">
-            <button className="action-btn edit-btn" onClick={() => onEdit(r)}>
-              <LucidePencil size={18} />
-            </button>
-            <button className="action-btn delete-btn" onClick={() => onDelete(r.id)}>
-              <LucideTrash2 size={18} />
-            </button>
+            {canManage(r) && (
+              <>
+                <button className="action-btn edit-btn" onClick={() => onEdit(r)}>
+                  <LucidePencil size={18} />
+                </button>
+                <button className="action-btn delete-btn" onClick={() => onDelete(r.id)}>
+                  <LucideTrash2 size={18} />
+                </button>
+              </>
+            )}
             <label className="switch">
               <input
                 type="checkbox"

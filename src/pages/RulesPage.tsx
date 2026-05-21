@@ -1,4 +1,4 @@
-import { Rules } from '../components/Rules';
+import { Rules } from './Rules';
 
 export default function RulesPage() {
   return (

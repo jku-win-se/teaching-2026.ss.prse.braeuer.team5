@@ -1,5 +1,5 @@
 import React from 'react';
-import type { TriggerOperator, Device, Conflict } from '../../types';
+import type { TriggerOperator, DeviceWithRoom, Conflict } from '../../types';
 import {
   type ConditionField,
   type RuleFormData,
@@ -10,7 +10,7 @@ import {
   FIELD_OPTIONS,
 } from './ruleUtils';
 
-type GroupedDevices = Record<string, Device[]>;
+type GroupedDevices = Record<string, DeviceWithRoom[]>;
 
 type RuleFormModalProps = {
   editingId: string | null;
@@ -324,8 +324,8 @@ export const RuleFormModal: React.FC<RuleFormModalProps> = ({
           <button className="btn-flat" onClick={onClose}>
             Abbrechen
           </button>
-          <button className="btn-primary" onClick={onSave}>
-            {conflicts.length > 0 ? 'Trotzdem speichern' : 'Speichern'}
+          <button className="btn-primary" onClick={onSave} disabled={conflicts.length > 0}>
+            Speichern
           </button>
         </div>
       </div>

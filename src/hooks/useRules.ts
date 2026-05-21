@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ruleService } from '../services/ruleService';
 import { supabase } from '../config/supabaseClient';
-import type { Rule, Device } from '../types';
+import type { Rule, DeviceWithRoom } from '../types';
 
 export const useRules = () => {
  const [rules, setRules] = useState<Rule[]>([]);
-  const [devices, setDevices] = useState<Device[]>([]);
+  const [devices, setDevices] = useState<DeviceWithRoom[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
@@ -17,7 +17,7 @@ export const useRules = () => {
         supabase.from('devices').select('id, name, type, room_id, state, rooms(name)'),
       ]);
       setRules(rData);
-      setDevices(dData || []);
+      setDevices((dData as unknown as DeviceWithRoom[]) || []);
     } catch (error) {
       console.error("Fehler beim Laden der Regeln:", error);
     } finally {
@@ -29,7 +29,6 @@ export const useRules = () => {
     loadData();
   }, [loadData]);
 
-  // ✅ NEU: gezieltes Update
   const toggleRuleLocal = useCallback((id: string, isActive: boolean) => {
     setRules(prev =>
       prev.map(r =>

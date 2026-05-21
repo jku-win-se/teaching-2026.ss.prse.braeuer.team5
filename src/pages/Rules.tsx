@@ -1,13 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { useRules } from '../hooks/useRules';
 import { useSchedules } from '../hooks/useSchedules';
+import { useRooms } from '../hooks/useRooms';
 import { ruleService } from '../services/ruleService';
 import { detectRuleConflicts } from '../services/conflictService';
 import { LucidePlus } from 'lucide-react';
-import type { Conflict, Rule } from '../types';
-import { DeleteModal } from './modals/DeleteModal';
-import { RuleList } from './rules/RuleList';
-import { RuleFormModal } from './rules/RuleFormModal';
+import type { Conflict, Rule, DeviceWithRoom } from '../types';
+import { DeleteModal } from '../components/modals/DeleteModal';
+import { RuleList } from '../components/rules/RuleList';
+import { RuleFormModal } from '../components/rules/RuleFormModal';
 import {
   type ConditionField,
   emptyForm,
@@ -17,13 +18,20 @@ import {
   isStringField,
   getDefaultConditionValue,
   getDefaultActionState,
-} from './rules/ruleUtils';
-import './Schedules.css';
+} from '../components/rules/ruleUtils';
+import '../components/schedule/Schedules.css';
 import './Rules.css';
 
 export const Rules: React.FC = () => {
   const { rules, devices, loading, refresh, toggleRuleLocal } = useRules();
   const { schedules } = useSchedules();
+  const { rooms } = useRooms();
+  const ownerRoomIds = useMemo(
+    () => new Set(rooms.filter((r) => r.role === 'owner').map((r) => r.id)),
+    [rooms]
+  );
+  const canManageRule = (rule: Rule) => ownerRoomIds.has(rule.room_id ?? '');
+  const canAddRules = ownerRoomIds.size > 0;
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -33,24 +41,23 @@ export const Rules: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const groupedDevices = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (devices as any[]).reduce((acc: Record<string, any[]>, device) => {
-      const roomName = device.rooms?.name || 'Unbekannter Raum';
-      if (!acc[roomName]) acc[roomName] = [];
-      acc[roomName].push(device);
-      return acc;
-    }, {});
-  }, [devices]);
+    return devices
+      .filter((d) => ownerRoomIds.has(d.room_id))
+      .reduce((acc: Record<string, DeviceWithRoom[]>, device) => {
+        const roomName = device.rooms?.name || 'Unbekannter Raum';
+        if (!acc[roomName]) acc[roomName] = [];
+        acc[roomName].push(device);
+        return acc;
+      }, {});
+  }, [devices, ownerRoomIds]);
 
   const triggerDeviceType = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dev = devices.find((d) => d.id === formData.device_id) as any;
+    const dev = devices.find((d) => d.id === formData.device_id);
     return dev?.type?.trim() || '';
   }, [formData.device_id, devices]);
 
   const actionDeviceType = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dev = devices.find((d) => d.id === formData.action.device_id) as any;
+    const dev = devices.find((d) => d.id === formData.action.device_id);
     return dev?.type?.trim() || '';
   }, [formData.action.device_id, devices]);
 
@@ -77,8 +84,7 @@ export const Rules: React.FC = () => {
   };
 
   const handleTriggerDeviceChange = (deviceId: string) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dev = devices.find((d) => d.id === deviceId) as any;
+    const dev = devices.find((d) => d.id === deviceId);
     const type = dev?.type?.trim() || '';
     const fields = FIELD_OPTIONS[type] ?? [{ field: 'on' as ConditionField, label: 'Ein/Aus' }];
     const firstField = fields[0].field;
@@ -95,8 +101,7 @@ export const Rules: React.FC = () => {
   };
 
   const handleActionDeviceChange = (deviceId: string) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dev = devices.find((d) => d.id === deviceId) as any;
+    const dev = devices.find((d) => d.id === deviceId);
     const type = dev?.type?.trim() || '';
     setFormData((prev) => ({
       ...prev,
@@ -122,7 +127,12 @@ export const Rules: React.FC = () => {
     setSaveError(null);
     if (conflicts.length === 0) {
       const found = detectRuleConflicts(
-        { id: editingId ?? undefined, action: formData.action },
+        {
+          id: editingId ?? undefined,
+          device_id: formData.device_id,
+          condition: formData.condition,
+          action: formData.action,
+        },
         rules,
         schedules,
       );
@@ -151,9 +161,11 @@ export const Rules: React.FC = () => {
     <div className="schedules-container">
       <div className="schedules-header">
         <h1>Regeln</h1>
-        <button className="add-btn" onClick={openNewModal}>
-          <LucidePlus size={18} /> Neue Regel
-        </button>
+        {canAddRules && (
+          <button className="add-btn" onClick={openNewModal}>
+            <LucidePlus size={18} /> Neue Regel
+          </button>
+        )}
       </div>
 
       <RuleList
@@ -168,6 +180,7 @@ export const Rules: React.FC = () => {
           const newValue = !rule.is_active;
           ruleService.toggleRule(rule.id, newValue).then(() => toggleRuleLocal(rule.id, newValue));
         }}
+        canManage={canManageRule}
       />
 
       <DeleteModal

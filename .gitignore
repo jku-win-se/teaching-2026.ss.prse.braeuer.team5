@@ -1,4 +1,5 @@
 node_modules/
+.aidlc-rule-details/
 dist/
 .env
 .env.local
