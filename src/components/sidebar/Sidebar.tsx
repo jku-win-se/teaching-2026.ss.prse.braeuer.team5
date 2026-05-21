@@ -46,7 +46,7 @@ export function Sidebar() {
           Dashboard
         </NavLink>
         <NavLink to="/rooms" className={() => (isRoomsActive ? styles.activeLink : styles.navLink)}>
-          Raeume
+          Räume
         </NavLink>
         <NavLink to="/notifications" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Einladungen
