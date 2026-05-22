@@ -19,6 +19,7 @@ export default defineConfig({
         'src/services/logService.ts',
         'src/services/ruleService.ts',
         'src/services/scheduleService.ts',
+        'src/services/simulationService.ts',
       ],
       exclude: [
         'src/**/*.test.{ts,tsx}',

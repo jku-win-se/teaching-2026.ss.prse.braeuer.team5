@@ -32,6 +32,8 @@ describe("Role-based access UI", () => {
   });
 
   it("shows device add options only for owners", () => {
+    localStorage.setItem("device-sidebar-collapsed", "false");
+
     const { rerender } = render(
       <DeviceTypeSidebar
         onSelectType={vi.fn()}
