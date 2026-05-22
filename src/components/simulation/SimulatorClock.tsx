@@ -1,5 +1,5 @@
-const DAY_NAMES = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
-const DAY_NAMES_FULL = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+const DAY_NAMES = [ "Mo", "Di", "Mi", "Do", "Fr", "Sa", "So" ];
+const DAY_NAMES_FULL = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
 const HOUR_LABELS = [0, 6, 12, 18, 24];
 
 type Props = {

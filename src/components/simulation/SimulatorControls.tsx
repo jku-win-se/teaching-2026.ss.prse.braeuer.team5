@@ -1,11 +1,11 @@
 const DAY_OPTIONS = [
-  { value: 0, label: "Sonntag" },
-  { value: 1, label: "Montag" },
-  { value: 2, label: "Dienstag" },
-  { value: 3, label: "Mittwoch" },
-  { value: 4, label: "Donnerstag" },
-  { value: 5, label: "Freitag" },
-  { value: 6, label: "Samstag" },
+  { value: 0, label: "Montag" },
+  { value: 1, label: "Dienstag" },
+  { value: 2, label: "Mittwoch" },
+  { value: 3, label: "Donnerstag" },
+  { value: 4, label: "Freitag" },
+  { value: 5, label: "Samstag" },
+  { value: 6, label: "Sonntag" },
 ];
 
 const SPEED_OPTIONS = [

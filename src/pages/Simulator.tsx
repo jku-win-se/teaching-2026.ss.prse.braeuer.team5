@@ -16,7 +16,7 @@ function timeToMinutes(time: string): number {
 
 export default function Simulator() {
   const [mode, setMode] = useState<"day" | "week">("day");
-  const [selectedDay, setSelectedDay] = useState<number>(new Date().getDay());
+  const [selectedDay, setSelectedDay] = useState<number>((new Date().getDay() + 6) % 7);
   const [speedStep, setSpeedStep] = useState<number>(5);
 
   const [isRunning, setIsRunning] = useState(false);
@@ -56,6 +56,7 @@ export default function Simulator() {
         setSchedules(sched);
         setDevices(devices);
 
+        // Store initial device states for reset on simulation stop
         const initMap = new Map<string, DeviceState>();
         for (const d of devices) {
           initMap.set(d.id, d.state ?? {});
@@ -82,7 +83,10 @@ export default function Simulator() {
     const currentSelectedDay = selectedDayRef.current;
     const minuteOfDay = nextTick % 1440;
     const dayOffset = Math.floor(nextTick / 1440);
-    const dayNumber = currentMode === "week" ? dayOffset % 7 : currentSelectedDay;
+
+    const dayNumber = currentMode === "week"
+      ? (dayOffset + 1) % 7              // Woche startet bei Mo (1 in JS)
+      : (currentSelectedDay + 1) % 7;    // selectedDay ist EU → JS konvertieren  
 
     const fired: string[] = [];
     for (const s of schedulesRef.current) {
@@ -98,7 +102,6 @@ export default function Simulator() {
         return next;
       });
     }
-
 
     //Highlight devices that changed state
     if (fired.length > 0) {
