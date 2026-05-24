@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabaseClient';
 import { type ActivityLog } from '../types';
+import { csvService } from './csvService';
 
 export async function logAction(payload: Omit<ActivityLog, 'id' | 'created_at'>) {
   if (!supabase) return;
@@ -45,18 +46,12 @@ export const logService = {
 
     if (error) {
       console.error("Fehler beim Laden der Exportdaten:", error.message);
-      alert("Export fehlgeschlagen.");
-      return;
-    }
-
-    if (!logs || logs.length === 0) {
-      alert("Keine Log-Daten zum Exportieren vorhanden.");
       return;
     }
 
     const headers = ["Zeitpunkt", "Objekt-Typ", "Objekt-ID", "Aktion", "Details", "Akteur"];
-
-    const rows = logs.map(log => [
+    
+    const rows = (logs || []).map(log => [
       new Date(log.created_at).toLocaleString('de-DE'),
       log.device_id ? "Gerät" : "System",
       log.device_id ? `"${log.device_id}"` : "",
@@ -65,16 +60,6 @@ export const logService = {
       `"${log.actor_type || ''}"`
     ]);
 
-    const csvContent = [headers.join(";"), ...rows.map(e => e.join(";"))].join("\n");
-    
-    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "aktivitaetslog_export.csv";
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    csvService.exportToCSV(headers, rows, "aktivitaetslog_export");
   }
 };

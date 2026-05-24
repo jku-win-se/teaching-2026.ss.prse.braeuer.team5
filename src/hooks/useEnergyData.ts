@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../config/supabaseClient';
 import type { Device, EnergyLog } from '../types';
+import { csvService } from '../services/csvService';
 
 type DeviceWithRoom = Device & { rooms?: { id: string; name: string } };
 
@@ -147,17 +148,7 @@ const exportEnergyHistoryCSV = () => {
     log.consumption_watt || 0
   ]);
 
-  const csvContent = [headers.join(";"), ...rows.map(e => e.join(";"))].join("\n");
-  
-  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", `energie_historie_${range}.csv`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  csvService.exportToCSV(headers, rows, `energie_historie_${range}`);
 };
 
   return { ...stats, loading, exportEnergyHistoryCSV };
