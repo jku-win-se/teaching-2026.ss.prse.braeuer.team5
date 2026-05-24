@@ -12,3 +12,4 @@ issues/
 .vscode/ 
 supabase/.temp/
 CLAUDE.md
+bin/

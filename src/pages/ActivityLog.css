@@ -66,3 +66,34 @@
     font-weight: 500;
     display: inline-block;
 }
+
+.log-export-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.ed-export-btn {
+  height: 36px; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap; 
+  padding: 0 14px;
+  margin: 0; 
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #ddd);
+  color: var(--text-muted, #666);
+  border-radius: var(--radius-md, 8px);
+  transition: all 0.2s ease;
+}
+
+.ed-export-btn:hover {
+  background-color: var(--ghost-hover, rgba(0, 0, 0, 0.02));
+  border-color: var(--text-muted, #666);
+  color: var(--text-main, #000);
+}

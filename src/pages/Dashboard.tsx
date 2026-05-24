@@ -13,7 +13,8 @@ const EnergyDashboard: React.FC = () => {
     deviceCharts, 
     byDevice, 
     byRoom, 
-    loading 
+    loading,
+    exportEnergyHistoryCSV 
   } = useEnergyData(range);
 
   const getDisplayData = () => {
@@ -23,7 +24,6 @@ const EnergyDashboard: React.FC = () => {
   };
 
   const displayData = getDisplayData();
-  
   const dataValues = displayData.map((d) => d.value);
   const maxValueInData = Math.max(...dataValues, 0);
   const dynamicMax = maxValueInData > 0 ? maxValueInData * 1.2 : 100;
@@ -86,8 +86,13 @@ const EnergyDashboard: React.FC = () => {
               Woche
             </button>
           </div>
+          <button className="ed-button ed-export-btn" onClick={exportEnergyHistoryCSV} title="Historie exportieren">
+            CSV Export
+          </button>
+
         </div>
       </header>
+
 
       <div className="ed-grid">
         <section className="ed-card">

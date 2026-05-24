@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../config/supabaseClient';
 import type { Device, EnergyLog } from '../types';
+import { csvService } from '../services/csvService';
 
 type DeviceWithRoom = Device & { rooms?: { id: string; name: string } };
 
@@ -135,5 +136,20 @@ export const useEnergyData = (range: 'day' | 'week' = 'day') => {
     };
   }, [devices, history, range]);
 
-  return { ...stats, loading };
+const exportEnergyHistoryCSV = () => {
+  if (!history || history.length === 0) return alert("Keine Daten zum Exportieren vorhanden.");
+
+  const headers = ["Zeitstempel", "Gerät", "Raum", "Verbrauch (Watt)"];
+  
+  const rows = history.map(log => [
+    new Date(log.created_at).toLocaleString('de-DE'),
+    `"${log.devices?.name || 'Unbekannt'}"`,
+    `"${log.devices?.rooms?.name || 'Kein Raum'}"`,
+    log.consumption_watt || 0
+  ]);
+
+  csvService.exportToCSV(headers, rows, `energie_historie_${range}`);
+};
+
+  return { ...stats, loading, exportEnergyHistoryCSV };
 };

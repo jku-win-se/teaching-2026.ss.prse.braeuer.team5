@@ -21,6 +21,11 @@ const ActivityLogTable: React.FC = () => {
 
   return (
     <div className="log-container">
+      <div className="ed-card-header-flex">
+      <button className="ed-export-btn" onClick={() => logService.exportToCSV()}>
+          CSV Export
+        </button>
+      </div>
   <table className="log-table">
     <thead>
       <tr>
