@@ -1,0 +1,42 @@
+create table schedules (
+  id uuid default gen_random_uuid() primary key,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  room_id uuid references public.rooms(id) on delete cascade not null,
+  device_id uuid references public.devices(id) on delete cascade not null,
+  name text not null,
+  time time not null,
+  days integer[] not null,
+  action_value jsonb not null default '{"on": true}',
+  is_active boolean default true
+);
+
+alter table schedules enable row level security;
+
+create policy "Schedules viewing"
+on schedules for select
+using (
+  exists (
+    select 1 from room_members
+    where room_members.room_id = schedules.room_id
+    and room_members.user_id = auth.uid()
+  )
+);
+
+create policy "Schedules management"
+on schedules for all
+using (
+  exists (
+    select 1 from room_members
+    where room_members.room_id = schedules.room_id
+    and room_members.user_id = auth.uid()
+    and lower(room_members.role) = 'owner'
+  )
+)
+with check (
+  exists (
+    select 1 from room_members
+    where room_members.room_id = schedules.room_id
+    and room_members.user_id = auth.uid()
+    and lower(room_members.role) = 'owner'
+  )
+);

@@ -1,0 +1,30 @@
+CREATE TABLE IF NOT EXISTS energy_logs (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  device_id uuid REFERENCES devices(id) ON DELETE CASCADE,
+  consumption_watt INT4 NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_energy_logs_device_time ON energy_logs (device_id, created_at);
+
+ALTER TABLE energy_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can read energy logs" 
+ON energy_logs FOR SELECT 
+TO authenticated 
+USING (true);
+
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+CREATE OR REPLACE FUNCTION log_device_energy()
+RETURNS void AS $$
+BEGIN
+  INSERT INTO energy_logs (device_id, consumption_watt)
+  SELECT id, energy_consumption
+  FROM devices
+  WHERE energy_consumption IS NOT NULL
+    AND (state->>'on')::boolean = true;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT cron.schedule('log-energy-30min', '*/30 * * * *', 'SELECT log_device_energy()');

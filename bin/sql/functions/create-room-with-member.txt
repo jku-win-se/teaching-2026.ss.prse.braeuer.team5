@@ -1,0 +1,21 @@
+--SQL-Files are in Supabase
+create or replace function create_room_with_member(room_name text)
+returns uuid
+language plpgsql
+security definer -- Läuft mit Admin-Rechten, um RLS zu umgehen
+as $$
+declare
+  new_room_id uuid;
+begin
+  -- 1. Raum erstellen
+  insert into public.rooms (name)
+  values (room_name)
+  returning id into new_room_id;
+
+  -- 2. Ersteller automatisch als Mitglied (owner) hinzufügen
+  insert into public.room_members (user_id, room_id, role)
+  values (auth.uid(), new_room_id, 'owner');
+
+  return new_room_id;
+end;
+$$;
