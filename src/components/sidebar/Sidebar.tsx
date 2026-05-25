@@ -75,6 +75,9 @@ export function Sidebar() {
         <NavLink to="/logs" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Aktivitäten
         </NavLink>
+        <NavLink to="/mqtt" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
+          MQTT
+        </NavLink>
       </nav>
 
       <div className={styles.footer}>
