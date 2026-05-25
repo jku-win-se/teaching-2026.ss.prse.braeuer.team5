@@ -117,6 +117,21 @@ export interface Schedule {
   };
 }
 
+export interface SceneDeviceEntry {
+  device_id: string;
+  target_state: DeviceState;
+}
+
+export interface Scene {
+  id: string;
+  room_id: string;
+  name: string;
+  description?: string;
+  device_states: SceneDeviceEntry[];
+  created_at?: string;
+  rooms?: { name: string };
+}
+
 export interface Conflict {
   type: 'rule-rule' | 'schedule-schedule' | 'rule-schedule';
   message: string;
