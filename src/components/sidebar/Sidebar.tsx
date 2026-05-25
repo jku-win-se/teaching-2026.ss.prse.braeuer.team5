@@ -61,6 +61,10 @@ export function Sidebar() {
           Szenen
         </NavLink>
 
+        <NavLink to="/vacation" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
+          Urlaubsmodus
+        </NavLink>
+
         <NavLink to="/rules" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Regeln
         </NavLink>
