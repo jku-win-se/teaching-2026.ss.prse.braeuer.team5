@@ -61,10 +61,6 @@ export function Sidebar() {
           Szenen
         </NavLink>
 
-        <NavLink to="/settings" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
-          Einstellungen
-        </NavLink>
-
         <NavLink to="/rules" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Regeln
         </NavLink>
@@ -74,6 +70,10 @@ export function Sidebar() {
         </NavLink>
         <NavLink to="/logs" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
           Aktivitäten
+        </NavLink>
+
+        <NavLink to="/settings" className={({ isActive }) => (isActive ? styles.activeLink : styles.navLink)}>
+          Einstellungen
         </NavLink>
       </nav>
 

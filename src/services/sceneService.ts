@@ -1,6 +1,5 @@
 import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
-import { eventBus } from "../customEvents/eventEmitter";
 import type { Scene, SceneDeviceEntry } from "../types";
 
 export const sceneService = {
@@ -87,7 +86,6 @@ export const sceneService = {
     const primaryRoomId = roomIds[0] ?? scene.room_id ?? undefined;
 
     await logAction({ room_id: primaryRoomId, action: "Szene aktiviert", new_value: logText, actor_type: "user", user_id: userId });
-    if (eventBus) await eventBus.emitChange({ room_id: primaryRoomId, action: "Szene aktiviert", new_value: logText, actor_type: "user", user_id: userId });
 
     return { ok: errors.length === 0, errors };
   },

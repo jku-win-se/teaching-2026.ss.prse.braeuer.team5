@@ -20,7 +20,7 @@ import { RuleActionOverlay } from "./components/rules/RuleActionOverlay";
 
 export default function App(): JSX.Element {
   const { session, loading } = useAuth();
-  useAutomation();
+  useAutomation(session);
 
   if (loading) {
     return <div className="loading-screen">Lade App...</div>;

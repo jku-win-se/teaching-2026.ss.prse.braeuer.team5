@@ -82,6 +82,8 @@ vi.mock('../config/supabaseClient', () => ({
       update: vi.fn().mockReturnThis(),
       delete: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
       single: vi.fn().mockReturnThis(),
       then: vi.fn().mockImplementation((callback) => 
         Promise.resolve(callback({ data: [], error: null }))

@@ -1,25 +1,18 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Mock } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { scheduleService } from '../services/scheduleService'
 
-type QueryMock = Mock<(arg1?: unknown, arg2?: unknown) => unknown>
-
-type QueryChain = {
-  select: QueryMock
-  order: QueryMock
-  insert: QueryMock
-  update: QueryMock
-  delete: QueryMock
-  eq: QueryMock
-  lte: QueryMock
-  gte: QueryMock
-  lt: QueryMock
-}
-
-const { mockFrom, mockLogAction, mockEmitChange, mockSupabaseRef } = vi.hoisted(() => ({
+const {
+  mockFrom,
+  mockLogAction,
+  mockSupabaseRef,
+  mockVacationModeService,
+} = vi.hoisted(() => ({
   mockFrom: vi.fn(),
   mockLogAction: vi.fn(),
-  mockEmitChange: vi.fn(),
   mockSupabaseRef: { current: null as unknown },
+  mockVacationModeService: {
+    getActiveVacationRoomIds: vi.fn().mockResolvedValue(new Set<string>()),
+  },
 }))
 
 vi.mock('../config/supabaseClient', () => ({
@@ -29,59 +22,91 @@ vi.mock('../config/supabaseClient', () => ({
 }))
 
 vi.mock('../services/vacationModeService', () => ({
-  vacationModeService: {
-    getActiveVacationRoomIds: vi.fn().mockResolvedValue(new Set()),
-  },
+  vacationModeService: mockVacationModeService,
 }))
 
 vi.mock('../services/logService', () => ({
   logAction: mockLogAction,
 }))
 
-vi.mock('../customEvents/eventEmitter', () => ({
-  eventBus: {
-    emitChange: mockEmitChange,
-  },
-}))
+type MockFn = ReturnType<typeof vi.fn>
 
-import { scheduleService } from '../services/scheduleService'
+type ScheduleQuery = {
+  select: MockFn
+  order: MockFn
+  insert: MockFn
+  update: MockFn
+  delete: MockFn
+}
 
-function createChain(): QueryChain {
-  const chain = {
-    select: vi.fn(() => chain) as QueryMock,
-    order: vi.fn(() => chain) as QueryMock,
-    insert: vi.fn(() => chain) as QueryMock,
-    update: vi.fn(() => chain) as QueryMock,
-    delete: vi.fn(() => chain) as QueryMock,
-    eq: vi.fn(() => chain) as QueryMock,
-    lte: vi.fn(() => chain) as QueryMock,
-    gte: vi.fn(() => chain) as QueryMock,
-    lt: vi.fn(() => chain) as QueryMock,
+type DeviceQuery = {
+  select: MockFn
+  update: MockFn
+}
+
+function createSchedulesQuery(): ScheduleQuery {
+  const orderMock = vi.fn(() => Promise.resolve({ data: [], error: null }));
+  const eqMock = vi.fn(() => Promise.resolve({ data: [], error: null }));
+
+  const queryInstance = {
+    select: vi.fn(() => ({
+      order: orderMock,
+      eq: eqMock,
+    })),
+    order: orderMock,
+    insert: vi.fn(() => ({
+      select: vi.fn(() => Promise.resolve({ data: [], error: null })),
+    })),
+    update: vi.fn(() => ({
+      eq: vi.fn(() => Promise.resolve({ error: null })),
+    })),
+    delete: vi.fn(() => ({
+      eq: vi.fn(() => Promise.resolve({ error: null })),
+    })),
+  };
+
+  return queryInstance;
+}
+
+function createDevicesQuery(): DeviceQuery {
+  return {
+    select: vi.fn(() => Promise.resolve({ data: [], error: null })),
+    update: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        select: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      })),
+    })),
   }
-  return chain
 }
 
 describe('scheduleService', () => {
-  let schedulesQuery: QueryChain
-  let devicesQuery: QueryChain
+  let schedulesQuery: ScheduleQuery
+  let devicesQuery: DeviceQuery
 
   beforeEach(() => {
     vi.clearAllMocks()
-    schedulesQuery = createChain()
-    devicesQuery = createChain()
+    schedulesQuery = createSchedulesQuery()
+    devicesQuery = createDevicesQuery()
+
     mockFrom.mockImplementation((table: string) =>
       table === 'schedules' ? schedulesQuery : devicesQuery
     )
+
     mockSupabaseRef.current = { from: mockFrom }
     mockLogAction.mockResolvedValue(undefined)
-    mockEmitChange.mockResolvedValue(undefined)
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   it('fetchAllSchedules liefert Daten', async () => {
     const rows = [{ id: 's1' }]
     schedulesQuery.order.mockResolvedValueOnce({ data: rows, error: null })
 
-    await expect(scheduleService.fetchAllSchedules()).resolves.toEqual(rows)
+    await expect(scheduleService.fetchAllSchedules()).resolves.toEqual([
+      { id: 's1', action_value: { on: false } },
+    ])
     expect(schedulesQuery.order).toHaveBeenCalledWith('time', { ascending: true })
   })
 
@@ -90,12 +115,15 @@ describe('scheduleService', () => {
       data: null,
       error: new Error('kaputt'),
     })
+
     await expect(scheduleService.fetchAllSchedules()).rejects.toThrow()
   })
 
   it('createSchedule formatiert HH:mm auf HH:mm:00', async () => {
     const created = [{ id: 's1' }]
-    schedulesQuery.select.mockResolvedValueOnce({ data: created, error: null })
+    schedulesQuery.insert.mockReturnValueOnce({
+      select: vi.fn(() => Promise.resolve({ data: created, error: null })),
+    })
 
     const payload = {
       name: 'Morgen',
@@ -105,19 +133,24 @@ describe('scheduleService', () => {
       days: [1, 2],
       action_value: { on: true },
     }
+
     const result = await scheduleService.createSchedule(payload)
 
     expect(schedulesQuery.insert).toHaveBeenCalledWith([
       expect.objectContaining({
         time: '08:30:00',
-        is_active: true,
+        action_value: { on: true },
       }),
     ])
     expect(result).toEqual(created)
   })
 
   it('updateSchedule behaelt volle Zeit inkl. Sekunden', async () => {
-    schedulesQuery.select.mockResolvedValueOnce({ data: [{ id: 'x' }], error: null })
+    schedulesQuery.update.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        select: vi.fn(() => Promise.resolve({ data: [{ id: 'x' }], error: null })),
+      })),
+    })
 
     await scheduleService.updateSchedule('s1', {
       name: 'Abend',
@@ -131,22 +164,83 @@ describe('scheduleService', () => {
     expect(schedulesQuery.update).toHaveBeenCalledWith(
       expect.objectContaining({
         time: '21:45:00',
+        action_value: expect.objectContaining({
+          brightness: 60,
+          on: true,
+        }),
+      })
+    )
+  })
+
+  it('createSchedule speichert on bei nicht-Schalter-Geraeten', async () => {
+    schedulesQuery.insert.mockReturnValueOnce({
+      select: vi.fn(() => Promise.resolve({ data: [{ id: 's1' }], error: null })),
+    })
+
+    await scheduleService.createSchedule({
+      name: 'Thermostat',
+      room_id: 'r1',
+      device_id: 'd1',
+      time: '08:30',
+      days: [1],
+      action_value: { temperature: 22.5 },
+    })
+
+    expect(schedulesQuery.insert).toHaveBeenCalledWith([
+      expect.objectContaining({
+        action_value: expect.objectContaining({
+          temperature: 22.5,
+          on: true,
+        }),
+      }),
+    ])
+  })
+
+  it('updateSchedule speichert on bei Dimmer-Action-Values', async () => {
+    schedulesQuery.update.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        select: vi.fn(() => Promise.resolve({ data: [{ id: 'x' }], error: null })),
+      })),
+    })
+
+    await scheduleService.updateSchedule('s1', {
+      name: 'Dimmer',
+      room_id: 'r1',
+      device_id: 'd1',
+      time: '21:45:00',
+      days: [1],
+      action_value: { brightness: 60 },
+    })
+
+    expect(schedulesQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action_value: expect.objectContaining({
+          brightness: 60,
+          on: true,
+        }),
       })
     )
   })
 
   it('toggleSchedule wirft bei Fehler', async () => {
-    schedulesQuery.eq.mockResolvedValueOnce({ error: new Error('update failed') })
+    schedulesQuery.update.mockReturnValueOnce({
+      eq: vi.fn(() => Promise.resolve({ error: new Error('update failed') })),
+    })
+
     await expect(scheduleService.toggleSchedule('s1', true)).rejects.toThrow()
   })
 
   it('deleteSchedule wirft bei Fehler', async () => {
-    schedulesQuery.eq.mockResolvedValueOnce({ error: new Error('delete failed') })
+    schedulesQuery.delete.mockReturnValueOnce({
+      eq: vi.fn(() => Promise.resolve({ error: new Error('delete failed') })),
+    })
+
     await expect(scheduleService.deleteSchedule('s1')).rejects.toThrow()
   })
 
   it('checkAndExecuteSchedules fuehrt passende Zeitplaene aus', async () => {
-    vi.spyOn(Date.prototype, 'toLocaleTimeString').mockReturnValue('10:15')
+    vi.spyOn(Date.prototype, 'getHours').mockReturnValue(10)
+    vi.spyOn(Date.prototype, 'getMinutes').mockReturnValue(15)
     vi.spyOn(Date.prototype, 'getDay').mockReturnValue(2)
 
     const activeSchedule = {
@@ -155,14 +249,26 @@ describe('scheduleService', () => {
       room_id: 'room-1',
       device_id: 'dev-1',
       days: [2, 3],
+      time: '10:15:00',
       action_value: { on: true },
-      devices: { id: 'dev-1', name: 'Lampe', type: 'Schalter', room_id: 'room-1' },
+      devices: { id: 'dev-1', name: 'Lampe', type: 'Schalter', room_id: 'room-1', state: { on: false } },
     }
 
-    schedulesQuery.eq
-      .mockImplementationOnce(() => schedulesQuery)
-      .mockResolvedValueOnce({ data: [activeSchedule], error: null })
-    devicesQuery.eq.mockResolvedValueOnce({ error: null })
+    schedulesQuery.select.mockReturnValueOnce({
+      order: schedulesQuery.order,
+      eq: vi.fn().mockImplementation((column, value) => {
+        if (column === 'is_active' && value === true) {
+          return Promise.resolve({ data: [activeSchedule], error: null });
+        }
+        return Promise.resolve({ data: [], error: null });
+      })
+    })
+
+    devicesQuery.update.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        select: vi.fn(() => Promise.resolve({ data: [{ id: 'dev-1' }], error: null })),
+      })),
+    })
 
     await scheduleService.checkAndExecuteSchedules()
 
@@ -171,11 +277,44 @@ describe('scheduleService', () => {
         action: 'Zeitplan ausgeführt',
       })
     )
-    expect(mockEmitChange).toHaveBeenCalled()
+  })
+
+  it('checkAndExecuteSchedules ueberspringt Zeitplaene im Urlaubsmodus', async () => {
+    vi.spyOn(Date.prototype, 'getHours').mockReturnValue(10)
+    vi.spyOn(Date.prototype, 'getMinutes').mockReturnValue(15)
+    vi.spyOn(Date.prototype, 'getDay').mockReturnValue(2)
+    mockVacationModeService.getActiveVacationRoomIds.mockResolvedValueOnce(new Set(['room-1']))
+
+    const activeSchedule = {
+      id: 's1',
+      name: 'Morgenroutine',
+      room_id: 'room-1',
+      device_id: 'dev-1',
+      days: [2],
+      time: '10:15:00',
+      action_value: { on: true },
+      devices: { id: 'dev-1', name: 'Lampe', type: 'Schalter', room_id: 'room-1', state: { on: false } },
+    }
+
+    schedulesQuery.select.mockReturnValueOnce({
+      order: schedulesQuery.order,
+      eq: vi.fn().mockImplementation((column, value) => {
+        if (column === 'is_active' && value === true) {
+          return Promise.resolve({ data: [activeSchedule], error: null });
+        }
+        return Promise.resolve({ data: [], error: null });
+      })
+    })
+
+    await scheduleService.checkAndExecuteSchedules()
+
+    expect(devicesQuery.update).not.toHaveBeenCalled()
+    expect(mockLogAction).not.toHaveBeenCalled()
   })
 
   it('checkAndExecuteSchedules ueberspringt falschen Wochentag', async () => {
-    vi.spyOn(Date.prototype, 'toLocaleTimeString').mockReturnValue('10:15')
+    vi.spyOn(Date.prototype, 'getHours').mockReturnValue(10)
+    vi.spyOn(Date.prototype, 'getMinutes').mockReturnValue(15)
     vi.spyOn(Date.prototype, 'getDay').mockReturnValue(5)
 
     const activeSchedule = {
@@ -184,12 +323,20 @@ describe('scheduleService', () => {
       room_id: 'room-1',
       device_id: 'dev-2',
       days: [2],
+      time: '10:15:00',
       action_value: { on: false },
+      devices: { id: 'dev-2', name: 'Lampe', type: 'Schalter', room_id: 'room-1', state: { on: false } },
     }
 
-    schedulesQuery.eq
-      .mockImplementationOnce(() => schedulesQuery)
-      .mockResolvedValueOnce({ data: [activeSchedule], error: null })
+    schedulesQuery.select.mockReturnValueOnce({
+      order: schedulesQuery.order,
+      eq: vi.fn().mockImplementation((column, value) => {
+        if (column === 'is_active' && value === true) {
+          return Promise.resolve({ data: [activeSchedule], error: null });
+        }
+        return Promise.resolve({ data: [], error: null });
+      })
+    })
 
     await scheduleService.checkAndExecuteSchedules()
 
@@ -201,7 +348,16 @@ describe('scheduleService', () => {
     mockSupabaseRef.current = null
 
     await expect(scheduleService.fetchAllSchedules()).resolves.toEqual([])
-    const minPayload = { name: '', room_id: '', device_id: '', time: '10:00', days: [], action_value: {} }
+
+    const minPayload = {
+      name: '',
+      room_id: '',
+      device_id: '',
+      time: '10:00',
+      days: [],
+      action_value: {},
+    }
+
     await expect(scheduleService.createSchedule(minPayload)).resolves.toBeNull()
     await expect(scheduleService.updateSchedule('x', minPayload)).resolves.toBeNull()
     await expect(scheduleService.toggleSchedule('x', true)).resolves.toBeUndefined()

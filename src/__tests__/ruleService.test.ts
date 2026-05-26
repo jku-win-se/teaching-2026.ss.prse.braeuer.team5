@@ -60,10 +60,6 @@ vi.mock("../services/logService", () => ({
   logAction: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("../customEvents/eventEmitter", () => ({
-  eventBus: { emitChange: vi.fn().mockResolvedValue(undefined) },
-}));
-
 vi.mock("../customEvents/ruleNotifier", () => ({
   ruleNotifier: { emit: vi.fn() },
 }));

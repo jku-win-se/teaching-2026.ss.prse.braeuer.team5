@@ -1,7 +1,7 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "../config/supabaseClient";
+import { logAction } from "./logService";
 import type { Device, Room, RoomMembership, RoomRole } from "../types";
-import { eventBus } from "../customEvents/eventEmitter";
 
 async function getCurrentUserId(): Promise<string | null> {
   return (await supabase?.auth.getUser())?.data?.user?.id ?? null;
@@ -86,12 +86,12 @@ export async function deleteRoomFromTable(roomId: string) : Promise<boolean> {
     return false;
   }
 
-  await eventBus.emitChange({
+  await logAction({
     room_id: roomId,
     action: "Room Deleted",
     new_value: `Raum wurde entfernt`,
     actor_type: 'user',
-    user_id: userId || undefined 
+    user_id: userId || undefined,
   });
 
   const { error } = await supabase
@@ -130,12 +130,12 @@ export async function updateRoomInTable(roomId: string, newName: string) : Promi
     return false;
   }
 
-  await eventBus.emitChange({
+  await logAction({
     room_id: roomId,
     action: "Room Updated",
     new_value: `Raumname geändert zu ${newName}`,
     actor_type: 'user',
-    user_id: userId || undefined 
+    user_id: userId || undefined,
   });
 
   return true;
@@ -157,12 +157,12 @@ export async function addToRoomTable(roomName: string) : Promise<string | null> 
   }
 
   if (data) {
-    await eventBus.emitChange({
+    await logAction({
       room_id: data,
       action: "Room Created",
       new_value: `Raum: ${roomName}`,
       actor_type: 'user',
-      user_id: userId || undefined
+      user_id: userId || undefined,
     });
   }
   

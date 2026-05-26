@@ -1,6 +1,5 @@
 import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
-import { eventBus } from "../customEvents/eventEmitter";
 import { ruleNotifier } from "../customEvents/ruleNotifier";
 import type { RuleCondition, DeviceState, Rule, RuleAction } from "../types";
 
@@ -140,7 +139,6 @@ export const ruleService = {
       try {
         
         if(!cooldownElapsed(rule.last_triggered_at, rule.cool_down_ms)) {
-          //console.log(`[RuleEngine] Regel "${rule.name}" wird übersprungen (Cooldown)`);
           continue;
         }
 
@@ -155,10 +153,7 @@ export const ruleService = {
         const conditionMet = evaluateCondition(rule.condition, triggerDevice.state ?? {});
         if (!conditionMet) continue;
         
-        //Faster UI Feedback durch sofortiges Emitten vor der Ausführung
         ruleNotifier.emit(rule.name);
-
-        //console.log(`[RuleEngine] Regel "${rule.name}" wird ausgeführt...`);
 
         const { error: deviceError } = await supabase
           .from('devices')
@@ -187,18 +182,6 @@ export const ruleService = {
           user_id: undefined,
         });
 
-        if (eventBus) {
-          await eventBus.emitChange({
-            room_id: roomId,
-            device_id: rule.action.device_id,
-            action: 'Regel ausgeführt',
-            new_value: logText,
-            actor_type: 'automation',
-            user_id: undefined,
-          });
-        }
-
-        
       } catch (err) {
         console.error(`[RuleEngine] Unerwarteter Fehler bei Regel "${rule.name}":`, err);
       }

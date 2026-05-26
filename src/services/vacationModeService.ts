@@ -1,6 +1,5 @@
 import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
-import { eventBus } from "../customEvents/eventEmitter";
 import { sceneService } from "./sceneService";
 import type { VacationMode, Scene } from "../types";
 
@@ -129,15 +128,6 @@ export const vacationModeService = {
       for (const roomId of roomIds) {
         await logAction({
           room_id: roomId,
-          action: "Urlaubsmodus ausgeführt",
-          new_value: logText,
-          actor_type: "automation",
-          user_id: undefined,
-        });
-      }
-
-      if (eventBus) {
-        await eventBus.emitChange({
           action: "Urlaubsmodus ausgeführt",
           new_value: logText,
           actor_type: "automation",

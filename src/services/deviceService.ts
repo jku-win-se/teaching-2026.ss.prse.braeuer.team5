@@ -1,8 +1,8 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "../config/supabaseClient";
+import { logAction } from "./logService";
 import type { Device, DeviceType, DeviceState } from "../types";
 import { fetchRoomRole } from "./roomService";
-import { eventBus } from "../customEvents/eventEmitter";
 import { ruleService } from "./ruleService";
 
 async function getCurrentUserId(): Promise<string | null> {
@@ -136,12 +136,12 @@ export async function addDeviceToRoom(
 
   // LOGGING FÜR FR-08
   if (data) {
-    await eventBus.emitChange({
+    await logAction({
       device_id: data.id,
       action: "Device Created",
       new_value: `Typ: ${type}, Initial-State: ${JSON.stringify(finalState)}`,
       actor_type: 'user',
-      user_id: userId || undefined
+      user_id: userId || undefined,
     });
   }
 
@@ -166,7 +166,7 @@ export async function deleteDevice(deviceId: string): Promise<boolean> {
     return false;
   }
 
-  await eventBus.emitChange({
+  await logAction({
     device_id: deviceId,
     action: "Device Deleted",
     new_value: "Gerät aus System entfernt",
@@ -220,7 +220,7 @@ export async function updateDeviceName(
     return false;
   }
 
-  await eventBus.emitChange({
+  await logAction({
     device_id: deviceId,
     action: "Name Changed",
     new_value: `Neuer Name: ${name}`,
@@ -254,7 +254,7 @@ export const updateDeviceState = async (
   }
 
   if (data) {
-    await eventBus.emitChange({
+    await logAction({
       device_id: deviceId,
       action: "State Change",
       new_value: JSON.stringify(newState),
