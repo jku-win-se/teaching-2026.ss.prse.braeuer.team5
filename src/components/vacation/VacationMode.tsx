@@ -38,7 +38,7 @@ const EMPTY_FORM = {
   daily_time: "18:00",
 };
 
-export const VacationMode: React.FC = () => {
+export const VacationMode: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const { modes, scenes, loading, refresh } = useVacationMode();
   const { rooms } = useRooms();
 
@@ -112,7 +112,7 @@ export const VacationMode: React.FC = () => {
   return (
     <div className="vacation-container">
       <div className="vacation-header">
-        <h1>Urlaubsmodus</h1>
+        {!embedded && <h1>Urlaubsmodus</h1>}
         {canAdd && (
           <button className="add-btn" onClick={openCreate}>
             <LucidePlus size={18} /> Neuer Urlaubsmodus

@@ -58,8 +58,8 @@ vi.mock('../pages/RulesPage', () => ({
 vi.mock('../pages/ScenesPage', () => ({
   default: () => <h1>Scenes</h1>,
 }))
-vi.mock('../pages/VacationModePage', () => ({
-  default: () => <h1>Vacation</h1>,
+vi.mock('../pages/SettingsPage', () => ({
+  default: () => <h1>Settings</h1>,
 }))
 vi.mock('../pages/EnergyDashboard', () => ({
   default: () => <h1>Energy Dashboard</h1>,

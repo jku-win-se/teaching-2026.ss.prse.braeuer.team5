@@ -12,7 +12,7 @@ import ActivityLogPage from "./pages/ActivityLog";
 import SchedulesPage from "./pages/SchedulesPage";
 import RulesPage from "./pages/RulesPage";
 import ScenesPage from "./pages/ScenesPage";
-import VacationModePage from "./pages/VacationModePage";
+import SettingsPage from "./pages/SettingsPage";
 import { useAuth } from "./hooks/useAuth";
 import { useAutomation } from "./hooks/useAutomation";
 import type { JSX } from "react/jsx-dev-runtime";
@@ -53,7 +53,8 @@ export default function App(): JSX.Element {
                   <Route path="/schedules" element={<SchedulesPage />} />
                   <Route path="/rules" element={<RulesPage />} />
                   <Route path="/scenes" element={<ScenesPage />} />
-                  <Route path="/vacation" element={<VacationModePage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/vacation" element={<Navigate to="/settings" replace />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </main>
