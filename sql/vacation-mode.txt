@@ -1,0 +1,56 @@
+-- Vacation Mode (FR-21)
+CREATE TABLE vacation_mode (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  room_id UUID NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+  scene_id UUID REFERENCES scenes(id) ON DELETE SET NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  daily_time TIME NOT NULL DEFAULT '18:00',
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE vacation_mode ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "room members can view vacation_mode"
+  ON vacation_mode FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = vacation_mode.room_id
+        AND room_members.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "owners can insert vacation_mode"
+  ON vacation_mode FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = vacation_mode.room_id
+        AND room_members.user_id = auth.uid()
+        AND room_members.role = 'owner'
+    )
+  );
+
+CREATE POLICY "owners can update vacation_mode"
+  ON vacation_mode FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = vacation_mode.room_id
+        AND room_members.user_id = auth.uid()
+        AND room_members.role = 'owner'
+    )
+  );
+
+CREATE POLICY "owners can delete vacation_mode"
+  ON vacation_mode FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = vacation_mode.room_id
+        AND room_members.user_id = auth.uid()
+        AND room_members.role = 'owner'
+    )
+  );

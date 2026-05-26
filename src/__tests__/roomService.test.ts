@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { mockSupabaseRef, mockEmitChange } = vi.hoisted(() => ({
+const { mockSupabaseRef, mockLogAction } = vi.hoisted(() => ({
   mockSupabaseRef: { current: null as unknown },
-  mockEmitChange: vi.fn(),
+  mockLogAction: vi.fn(),
 }))
 
 vi.mock('../config/supabaseClient', () => ({
@@ -11,10 +11,8 @@ vi.mock('../config/supabaseClient', () => ({
   },
 }))
 
-vi.mock('../customEvents/eventEmitter', () => ({
-  eventBus: {
-    emitChange: mockEmitChange,
-  },
+vi.mock('../services/logService', () => ({
+  logAction: mockLogAction,
 }))
 
 import { addToRoomTable, deleteRoomFromTable, updateRoomInTable } from '../services/roomService'
@@ -22,14 +20,6 @@ import { addToRoomTable, deleteRoomFromTable, updateRoomInTable } from '../servi
 type RoomMembershipRow = { room_id: string; role: string; user_id: string }
 
 function createQueryChain(data: RoomMembershipRow[] = []) {
-  // Ein flexibler Ketten-Mock, der sowohl direkt als auch verschachtelt funktioniert
-  const standardMock = () => ({
-    eq: vi.fn(() => Promise.resolve({ data: [{ id: 'room-1' }], error: null })),
-    select: vi.fn(() => ({
-      eq: vi.fn(() => Promise.resolve({ data: [{ id: 'room-1' }], error: null }))
-    }))
-  });
-
   return {
     select: vi.fn(() => ({
       eq: vi.fn(() => Promise.resolve({
@@ -67,18 +57,24 @@ describe('roomService', () => {
       rpc: vi.fn().mockResolvedValue({ data: 'room-123', error: null }),
     }
 
-    mockEmitChange.mockResolvedValue(undefined)
+    mockLogAction.mockResolvedValue(undefined)
   })
 
-  it('Soll einen Raum erstellen und die ID zurückgeben', async () => {
-    const newId = await addToRoomTable('Test-Raum')
+  it("Soll einen Raum erstellen und die ID zurückgeben", async () => {
+    const testName = "Test-Raum-" + Date.now();
+    
+    // 1. Erstellen
+    const newId = await addToRoomTable(testName);
+    
+    expect(newId).not.toBeNull();
+    expect(typeof newId).toBe("string");
 
     expect(newId).toBe('room-123')
-    expect(mockEmitChange).toHaveBeenCalledWith(
+    expect(mockLogAction).toHaveBeenCalledWith(
       expect.objectContaining({
         room_id: 'room-123',
         action: 'Room Created',
-        new_value: 'Raum: Test-Raum',
+        new_value: expect.stringContaining('Raum: Test-Raum'),
       })
     )
   })
@@ -87,7 +83,7 @@ describe('roomService', () => {
     const success = await updateRoomInTable('room-1', 'Neuer Name')
 
     expect(success).toBe(true)
-    expect(mockEmitChange).toHaveBeenCalledWith(
+    expect(mockLogAction).toHaveBeenCalledWith(
       expect.objectContaining({
         room_id: 'room-1',
         action: 'Room Updated',
@@ -100,7 +96,7 @@ describe('roomService', () => {
     const success = await deleteRoomFromTable('room-1')
 
     expect(success).toBe(true)
-    expect(mockEmitChange).toHaveBeenCalledWith(
+    expect(mockLogAction).toHaveBeenCalledWith(
       expect.objectContaining({
         room_id: 'room-1',
         action: 'Room Deleted',

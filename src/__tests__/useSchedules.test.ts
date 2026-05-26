@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import type { Mock } from 'vitest'
+import { scheduleService } from '../services/scheduleService'
+import { useSchedules } from '../hooks/useSchedules'
 
 vi.mock('../services/scheduleService', () => ({
   scheduleService: {
@@ -19,9 +21,6 @@ vi.mock('../config/supabaseClient', () => ({
     return mockSupabaseRef.current as { from: typeof mockFrom } | null
   },
 }))
-
-import { scheduleService } from '../services/scheduleService'
-import { useSchedules } from '../hooks/useSchedules'
 
 const mockFetchAllSchedules = vi.mocked(scheduleService.fetchAllSchedules)
 

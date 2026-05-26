@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { type Device, type DeviceType, type DeviceState } from "../types";
 import { fetchDevices, addDeviceToRoom, deleteDevice, updateDeviceName, updateDeviceState } from "../services/deviceService";
+import { supabase } from "../config/supabaseClient";
 
 export function useDevices(roomId: string | undefined) {
   const [devices, setDevices] = useState<Device[]>([]);
@@ -14,19 +15,30 @@ export function useDevices(roomId: string | undefined) {
     const loadDevices = async () => {
       setLoading(true);
       const loadedDevices = await fetchDevices(roomId);
-
-      if (isCancelled) {
-        return;
-      }
-
+      if (isCancelled) return;
       setDevices(loadedDevices);
       setLoading(false);
     };
 
     void loadDevices();
 
+    // Realtime: externe Zustandsänderungen (z.B. Szenen-Aktivierung) sofort anzeigen
+    const channel = supabase
+      ?.channel(`devices_room_${roomId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "devices", filter: `room_id=eq.${roomId}` },
+        (payload) => {
+          setDevices((current) =>
+            current.map((d) => d.id === payload.new.id ? { ...d, ...(payload.new as Device) } : d)
+          );
+        }
+      )
+      .subscribe();
+
     return () => {
       isCancelled = true;
+      if (channel) supabase?.removeChannel(channel);
     };
   }, [roomId]);
 

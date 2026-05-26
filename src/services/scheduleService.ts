@@ -1,7 +1,6 @@
 import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
-import { eventBus } from "../customEvents/eventEmitter";
-//import { vacationModeService } from "./vacationModeService";
+import { vacationModeService } from "./vacationModeService";
 import type { DeviceState, Schedule } from "../types";
 
 const getLogValueText = (actionValue: DeviceState, scheduleName: string): string => {
@@ -133,15 +132,15 @@ export const scheduleService = {
   async checkAndExecuteSchedules() {
     if (!supabase) return;
     const now = new Date();
-    
+
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
-    const currentLocalTime = `${hours}:${minutes}`; 
-    
-    const currentDayNum = now.getDay(); 
-    const currentDayStr = String(currentDayNum); 
+    const currentLocalTime = `${hours}:${minutes}`;
 
-    // const vacationRooms = await vacationModeService.getActiveVacationRoomIds();
+    const currentDayNum = now.getDay();
+    const currentDayStr = String(currentDayNum);
+
+    const vacationRooms = await vacationModeService.getActiveVacationRoomIds();
 
     const { data: activeSchedules, error } = await supabase
       .from('schedules')
@@ -156,8 +155,7 @@ export const scheduleService = {
     if (!activeSchedules || activeSchedules.length === 0) return;
 
     for (const schedule of activeSchedules) {
-      // Urlaubsmodus aktiv für diesen Raum → Schedule überspringen
-      // if (vacationRooms.has(schedule.room_id)) continue;
+      if (vacationRooms.has(schedule.room_id)) continue;
 
       const scheduleTimeShort = schedule.time ? schedule.time.substring(0, 5) : '';
 
@@ -172,7 +170,7 @@ export const scheduleService = {
         const currentDeviceState = (rawDevice.state as DeviceState) || {};
         const deviceType = String(rawDevice.type || '').toLowerCase();
         const normalizedActionValue = normalizeActionValue(schedule.action_value);
-        
+
         const targetState: DeviceState = {
           ...currentDeviceState,
           ...normalizedActionValue
@@ -180,15 +178,15 @@ export const scheduleService = {
 
         if (deviceType.includes('thermostat') && normalizedActionValue.temperature !== undefined) {
           targetState.on = true;
-        } 
+        }
         else if (deviceType.includes('dimmer') && normalizedActionValue.brightness !== undefined) {
           targetState.on = true;
-        } 
+        }
         else if (deviceType.includes('jalousie') && normalizedActionValue.position !== undefined) {
-          targetState.on = true; 
+          targetState.on = true;
         }
         else if (deviceType.includes('sensor') && normalizedActionValue.value !== undefined) {
-          targetState.on = true; 
+          targetState.on = true;
         }
 
         const { error: deviceError } = await supabase
@@ -211,17 +209,6 @@ export const scheduleService = {
           actor_type: 'automation',
           user_id: undefined
         });
-
-        if (eventBus) {
-          await eventBus.emitChange({
-            room_id: schedule.room_id,
-            device_id: schedule.device_id,
-            action: "Zeitplan ausgeführt",
-            new_value: logText,
-            actor_type: 'automation', 
-            user_id: undefined
-          });
-        }
       }
     }
   }

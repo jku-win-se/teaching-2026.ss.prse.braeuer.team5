@@ -117,6 +117,35 @@ export interface Schedule {
   };
 }
 
+export interface SceneDeviceEntry {
+  device_id: string;
+  target_state: DeviceState;
+}
+
+export interface Scene {
+  id: string;
+  room_id?: string | null;
+  name: string;
+  description?: string;
+  device_states: SceneDeviceEntry[];
+  created_at?: string;
+  rooms?: { name: string };
+  scene_rooms?: { room_id: string; rooms?: { name: string } }[];
+}
+
+export interface VacationMode {
+  id: string;
+  name: string;
+  scene_id: string | null;
+  start_date: string;
+  end_date: string;
+  daily_time: string;
+  is_active: boolean;
+  created_at?: string;
+  rooms?: { id: string; name: string }[];
+  scenes?: { name: string } | null;
+}
+
 export interface Conflict {
   type: 'rule-rule' | 'schedule-schedule' | 'rule-schedule';
   message: string;

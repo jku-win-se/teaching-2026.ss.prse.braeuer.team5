@@ -157,7 +157,7 @@ Beim Erstellen wird ein Name und eine optionale Beschreibung vergeben. Anschlie�
 #### Urlaubsmodus
 Benutzer können einen Urlaubsmodus aktivieren, der automatisch einen definierten Zeitplan für einen festgelegten Zeitraum anwendet. ([FR-21](#fr-21))
 
-Im Urlaubsmodus werden aktuelle Zeitpläne aufgrund einer Abwesenheit überschrieben. Bei der Erstellung wird der betroffene Raum vergeben, eine optionale Szene, die den gewünschten Stand eventuell bereits abdeckt, der Zeitraum der Abwesenheit und eine Aktivierungszeit.
+Der Urlaubsmodus kann unter den Einstellungen gefunden werden. Aktuelle Zeitpläne werden aufgrund einer Abwesenheit überschrieben. Bei der Erstellung wird der betroffene Raum vergeben, eine optionale Szene, die den gewünschten Stand eventuell bereits abdeckt, der Zeitraum der Abwesenheit und eine Aktivierungszeit.
 ![Urlaub](image-26.png)
 
 Dieser kann anschließend wieder bearbeitet, gelöscht oder deaktiviert werden.
@@ -184,6 +184,7 @@ Im Simulator können entweder einzelne Wochentage oder eine gesamte Woche simuli
 #### IoT-Integration
 Eine optionale Integrationsschicht für physische IoT-Protokolle, zum Beispiel MQTT, wird unterstützt. ([FR-18](#fr-18))
 
+Diese ist unter den Einstellungen zu finden.
 ![MQTT](image-28.png)
 
 ## Referenz auf die funktionalen Anforderungen

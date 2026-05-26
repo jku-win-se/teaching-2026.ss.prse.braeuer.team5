@@ -1,10 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { scheduleService } from '../services/scheduleService'
 
-const { mockFrom, mockLogAction, mockEmitChange, mockSupabaseRef } = vi.hoisted(() => ({
+const {
+  mockFrom,
+  mockLogAction,
+  mockSupabaseRef,
+  mockVacationModeService,
+} = vi.hoisted(() => ({
   mockFrom: vi.fn(),
   mockLogAction: vi.fn(),
-  mockEmitChange: vi.fn(),
   mockSupabaseRef: { current: null as unknown },
+  mockVacationModeService: {
+    getActiveVacationRoomIds: vi.fn().mockResolvedValue(new Set<string>()),
+  },
 }))
 
 vi.mock('../config/supabaseClient', () => ({
@@ -13,17 +21,13 @@ vi.mock('../config/supabaseClient', () => ({
   },
 }))
 
+vi.mock('../services/vacationModeService', () => ({
+  vacationModeService: mockVacationModeService,
+}))
+
 vi.mock('../services/logService', () => ({
   logAction: mockLogAction,
 }))
-
-vi.mock('../customEvents/eventEmitter', () => ({
-  eventBus: {
-    emitChange: mockEmitChange,
-  },
-}))
-
-import { scheduleService } from '../services/scheduleService'
 
 type MockFn = ReturnType<typeof vi.fn>
 
@@ -90,7 +94,6 @@ describe('scheduleService', () => {
 
     mockSupabaseRef.current = { from: mockFrom }
     mockLogAction.mockResolvedValue(undefined)
-    mockEmitChange.mockResolvedValue(undefined)
   })
 
   afterEach(() => {
@@ -274,7 +277,39 @@ describe('scheduleService', () => {
         action: 'Zeitplan ausgeführt',
       })
     )
-    expect(mockEmitChange).toHaveBeenCalled()
+  })
+
+  it('checkAndExecuteSchedules ueberspringt Zeitplaene im Urlaubsmodus', async () => {
+    vi.spyOn(Date.prototype, 'getHours').mockReturnValue(10)
+    vi.spyOn(Date.prototype, 'getMinutes').mockReturnValue(15)
+    vi.spyOn(Date.prototype, 'getDay').mockReturnValue(2)
+    mockVacationModeService.getActiveVacationRoomIds.mockResolvedValueOnce(new Set(['room-1']))
+
+    const activeSchedule = {
+      id: 's1',
+      name: 'Morgenroutine',
+      room_id: 'room-1',
+      device_id: 'dev-1',
+      days: [2],
+      time: '10:15:00',
+      action_value: { on: true },
+      devices: { id: 'dev-1', name: 'Lampe', type: 'Schalter', room_id: 'room-1', state: { on: false } },
+    }
+
+    schedulesQuery.select.mockReturnValueOnce({
+      order: schedulesQuery.order,
+      eq: vi.fn().mockImplementation((column, value) => {
+        if (column === 'is_active' && value === true) {
+          return Promise.resolve({ data: [activeSchedule], error: null });
+        }
+        return Promise.resolve({ data: [], error: null });
+      })
+    })
+
+    await scheduleService.checkAndExecuteSchedules()
+
+    expect(devicesQuery.update).not.toHaveBeenCalled()
+    expect(mockLogAction).not.toHaveBeenCalled()
   })
 
   it('checkAndExecuteSchedules ueberspringt falschen Wochentag', async () => {

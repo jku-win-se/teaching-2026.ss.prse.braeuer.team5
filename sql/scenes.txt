@@ -1,0 +1,58 @@
+-- Scenes (FR-17)
+CREATE TABLE scenes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  room_id UUID NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  description TEXT,
+  device_states JSONB NOT NULL DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE scenes ENABLE ROW LEVEL SECURITY;
+
+-- All room members can view scenes
+CREATE POLICY "room members can view scenes"
+  ON scenes FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = scenes.room_id
+        AND room_members.user_id = auth.uid()
+    )
+  );
+
+-- Only owners can insert
+CREATE POLICY "owners can insert scenes"
+  ON scenes FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = scenes.room_id
+        AND room_members.user_id = auth.uid()
+        AND room_members.role = 'owner'
+    )
+  );
+
+-- Only owners can update
+CREATE POLICY "owners can update scenes"
+  ON scenes FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = scenes.room_id
+        AND room_members.user_id = auth.uid()
+        AND room_members.role = 'owner'
+    )
+  );
+
+-- Only owners can delete
+CREATE POLICY "owners can delete scenes"
+  ON scenes FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = scenes.room_id
+        AND room_members.user_id = auth.uid()
+        AND room_members.role = 'owner'
+    )
+  );
