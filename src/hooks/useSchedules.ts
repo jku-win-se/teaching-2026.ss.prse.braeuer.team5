@@ -9,6 +9,7 @@ export type ScheduleDevice = {
   type: string;
   room_id: string;
   rooms?: { name: string };
+  state: string;
 };
 
 export const useSchedules = () => {
@@ -22,7 +23,7 @@ export const useSchedules = () => {
     try {
       const [sData, { data: dData }] = await Promise.all([
         scheduleService.fetchAllSchedules(),
-        supabase.from('devices').select(`id, name, type, room_id, rooms (name)`)
+        supabase.from('devices').select(`id, name, type, room_id, rooms (name), state`)
       ]);
       setSchedules(sData as Schedule[]);
       setDevices((dData ?? []) as unknown as ScheduleDevice[]);

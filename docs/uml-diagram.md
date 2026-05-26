@@ -5,7 +5,7 @@
 ```mermaid
 graph TD
     main["main.tsx (BrowserRouter)"]
-    App["App.tsx (useAuth · Route Guard)"]
+    App["App.tsx (useAuth · useScheduleExecution)"]
 
     subgraph Unauthenticated
         Login["Login /login"]
@@ -14,7 +14,7 @@ graph TD
 
     subgraph Authenticated
         Sidebar["Sidebar (NavLinks · useLocation)"]
-        Dashboard["Dashboard /"]
+        Dashboard["Dashboard / (EnergyDashboard)"]
         Rooms["Rooms /rooms (useRooms)"]
         RoomRow["RoomRow (useDeviceCount)"]
         Devices["Devices /room/:id (useDevices · useRoomRole)"]
@@ -23,18 +23,17 @@ graph TD
         ActivityLog["ActivityLog /logs"]
         SchedulesPage["SchedulesPage /schedules"]
         RulesPage["RulesPage /rules"]
-        EnergyDashboard["EnergyDashboard /energy"]
+
         DeviceTypeSidebar["DeviceTypeSidebar (Drawer)"]
         DeviceCard["DeviceCard"]
-        ToggleSwitch["ToggleSwitch"]
-        AddModalDevice["AddModalDevice (Modal)"]
-        DeleteModalDevices["DeleteModal (Geraet loeschen)"]
-        DeleteModalRooms["DeleteModal (Raum loeschen)"]
-        RoomMembers["RoomMembers (Mitglieder · Einladungen)"]
+        RoomMembers["RoomMembers"]
+        AddModalDevice["AddModalDevice"]
+        DeleteModalDevices["DeleteModal (Gerät löschen)"]
+        DeleteModalRooms["DeleteModal (Raum löschen)"]
         Schedules["Schedules"]
         Rules["Rules"]
         RuleList["RuleList"]
-        RuleFormModal["RuleFormModal (Modal)"]
+        RuleFormModal["RuleFormModal"]
         RuleActionOverlay["RuleActionOverlay (Overlay)"]
     end
 
@@ -51,17 +50,15 @@ graph TD
     Sidebar --> ActivityLog
     Sidebar --> SchedulesPage
     Sidebar --> RulesPage
-    Sidebar --> EnergyDashboard
 
     Rooms --> RoomRow
     Rooms --> DeleteModalRooms
 
     Devices --> DeviceTypeSidebar
     Devices --> DeviceCard
+    Devices --> RoomMembers
     Devices --> AddModalDevice
     Devices --> DeleteModalDevices
-    Devices --> RoomMembers
-    DeviceCard --> ToggleSwitch
 
     SchedulesPage --> Schedules
     RulesPage --> Rules
@@ -77,29 +74,30 @@ graph TD
 ```mermaid
 graph LR
     subgraph Frontend["Frontend"]
-        pages["Pages & Components\n(React)"]
-        hooks["Hooks"]
-        intSvc["Interne Services\n(pure Logik · kein Netzwerk)"]
-        extSvc["Externe Services\n(Supabase · Edge Functions)"]
-        supabaseClient["Supabase Client\n(Auth · DB)"]
+        Pages["Pages & Components\n(React)"]
+        Hooks["Hooks\nuseAuth · useDevices · useRoomRole · useRooms · useRules · useSchedules"]
+        AppHook["useScheduleExecution\n(Interval + first run)"]
+        Services["Services\n(scheduleService · logService · conflictService)"]
+        SupabaseClient["Supabase Client\n(Auth · DB)"]
+        EventBus["EventBus / AppEventEmitter"]
     end
 
     subgraph Backend["Backend (Supabase)"]
-        edgeFn["Edge Function\nroom-invites"]
-        db[("DB")]
+        EdgeFns["Edge Functions\nroom-invites · create-room-with-member"]
+        DB[("DB")]
     end
 
-    pages -->|"nutzen"| hooks
-    hooks -->|"rufen auf"| intSvc
-    hooks -->|"rufen auf"| extSvc
-    extSvc -->|"DB-Zugriff"| supabaseClient
-    extSvc -->|"Einladungen · Mitglieder"| edgeFn
-    supabaseClient <-->|"REST"| db
-    edgeFn -->|"service role"| db
+    Pages --> Hooks
+    Hooks --> Services
+    AppHook --> Services
+    Services --> SupabaseClient
+    Services --> EventBus
+    EventBus --> Services
+    SupabaseClient <-->|"REST"| DB
+    EdgeFns -->|"service role / invocations"| DB
 ```
 
 ---
-
 
 ## 3. Datenbankschema (Supabase)
 
@@ -128,8 +126,8 @@ erDiagram
 
     RULES {
         uuid id PK
-        uuid device_id FK
         uuid room_id FK
+        uuid device_id FK
         text name
         jsonb condition
         jsonb action
@@ -141,14 +139,14 @@ erDiagram
 
     SCHEDULES {
         uuid id PK
-        timestamptz created_at
         uuid room_id FK
         uuid device_id FK
         text name
         time time
-        array days
+        integer[] days
         jsonb action_value
         boolean is_active
+        timestamptz created_at
     }
 
     ROOM_INVITES {
@@ -166,8 +164,8 @@ erDiagram
     ACTIVITY_LOGS {
         uuid id PK
         timestamptz created_at
-        uuid device_id FK
         uuid room_id FK
+        uuid device_id FK
         uuid user_id FK
         text actor_type
         text action
@@ -199,6 +197,7 @@ erDiagram
     DEVICES ||--o{ ACTIVITY_LOGS : "logs"
     DEVICES ||--|{ ENERGY_LOGS : "logs"
 ```
+
 ---
 
 ## 4. Data Model
@@ -235,7 +234,7 @@ classDiagram
         +Number? brightness
         +Number? temperature
         +String|Number? value
-        +String? position
+        +Number|String? position
     }
 
     class RoomRole {
@@ -250,16 +249,10 @@ classDiagram
         +RoomRole role
     }
 
-    class RoomMember {
-        +String user_id
-        +RoomRole role
-        +String email
-    }
-
     class RoomInvite {
         +String id
         +String room_id
-        +String room_name
+        +String invited_by
         +String email
         +String role
         +String status
@@ -337,8 +330,6 @@ classDiagram
     Room "1" --> "0..*" Rule : has
     Room "1" --> "0..*" Schedule : has
     RoomMembership --> RoomRole : role
-    RoomMember --> RoomRole : role
-    Room --> RoomRole : role
     Device --> DeviceType : type
     Device --> DeviceState : state
     Rule --> RuleCondition : condition

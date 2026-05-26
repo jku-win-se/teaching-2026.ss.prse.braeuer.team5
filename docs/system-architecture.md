@@ -43,8 +43,9 @@ flowchart LR
 - Login und Rollenmodell
 - Verwaltung von Raeumen und Geraeten
 - manuelle Steuerung und Statusanzeige
-- Aktivitaetslog, Regeln und Zeitplaene
+- Aktivitaetslog, Regeln, Szenen, Urlaubsmodus und Zeitplaene
 - Energie-Dashboard und Simulator
+- IoT-Integration
 
 ## Build und Qualitaet
 

@@ -42,16 +42,16 @@ const ScheduleList = React.memo(
                 <span className="action-preview">
                   {' '}
                   (
-                  {s.action_value.on !== undefined
-                    ? s.action_value.on
-                      ? 'An'
-                      : 'Aus'
-                    : s.action_value.brightness !== undefined
+                  {s.action_value.brightness !== undefined
                     ? `${s.action_value.brightness}%`
                     : s.action_value.temperature !== undefined
                     ? `${s.action_value.temperature}°C`
                     : s.action_value.position !== undefined
                     ? `Pos: ${s.action_value.position}%`
+                    : s.action_value.on !== undefined
+                    ? s.action_value.on
+                      ? 'An'
+                      : 'Aus'
                     : 'Aktiv'}
                   )
                 </span>
@@ -161,11 +161,11 @@ export const Schedules: React.FC = () => {
     let initialAction: DeviceState = { on: true };
 
     if (type === 'Dimmer') {
-      initialAction = { brightness: 80 };
+      initialAction = { on: true, brightness: 80 };
     } else if (type === 'Thermostat') {
-      initialAction = { temperature: 21.0 };
+      initialAction = { on: true, temperature: 21.0 };
     } else if (type === 'Jalousie') {
-      initialAction = { position: 0 };
+      initialAction = { on: true, position: 0 };
     }
 
     setFormData((prev) => ({
@@ -347,6 +347,7 @@ export const Schedules: React.FC = () => {
                           setFormData({
                             ...formData,
                             action_value: {
+                              on: true,
                               temperature: parseFloat(
                                 e.target.value
                               ),
@@ -371,6 +372,7 @@ export const Schedules: React.FC = () => {
                           setFormData({
                             ...formData,
                             action_value: {
+                              on: true,
                               brightness: parseInt(
                                 e.target.value
                               ),
@@ -391,6 +393,7 @@ export const Schedules: React.FC = () => {
                         setFormData({
                           ...formData,
                           action_value: {
+                            on: true,
                             position: parseInt(
                               e.target.value
                             ),

@@ -123,6 +123,50 @@ describe('scheduleService', () => {
     )
   })
 
+  it('createSchedule speichert on bei nicht-Schalter-Geraeten', async () => {
+    schedulesQuery.select.mockResolvedValueOnce({ data: [{ id: 's1' }], error: null })
+
+    await scheduleService.createSchedule({
+      name: 'Thermostat',
+      room_id: 'r1',
+      device_id: 'd1',
+      time: '08:30',
+      days: [1],
+      action_value: { temperature: 22.5 },
+    })
+
+    expect(schedulesQuery.insert).toHaveBeenCalledWith([
+      expect.objectContaining({
+        action_value: expect.objectContaining({
+          temperature: 22.5,
+          on: true,
+        }),
+      }),
+    ])
+  })
+
+  it('updateSchedule speichert on bei Dimmer-Action-Values', async () => {
+    schedulesQuery.select.mockResolvedValueOnce({ data: [{ id: 'x' }], error: null })
+
+    await scheduleService.updateSchedule('s1', {
+      name: 'Dimmer',
+      room_id: 'r1',
+      device_id: 'd1',
+      time: '21:45:00',
+      days: [1],
+      action_value: { brightness: 60 },
+    })
+
+    expect(schedulesQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action_value: expect.objectContaining({
+          brightness: 60,
+          on: true,
+        }),
+      })
+    )
+  })
+
   it('toggleSchedule wirft bei Fehler', async () => {
     schedulesQuery.eq.mockResolvedValueOnce({ error: new Error('update failed') })
     await expect(scheduleService.toggleSchedule('s1', true)).rejects.toThrow()

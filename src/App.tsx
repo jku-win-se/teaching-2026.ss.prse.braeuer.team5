@@ -12,11 +12,14 @@ import ActivityLogPage from "./pages/ActivityLog";
 import SchedulesPage from "./pages/SchedulesPage";
 import RulesPage from "./pages/RulesPage";
 import { useAuth } from "./hooks/useAuth";
+import { useScheduleExecution } from "./hooks/useScheduleExecution";
 import type { JSX } from "react/jsx-dev-runtime";
 import { RuleActionOverlay } from "./components/rules/RuleActionOverlay";
 
 export default function App(): JSX.Element {
   const { session, loading } = useAuth();
+
+  useScheduleExecution(session);
 
   if (loading) {
     return <div className="loading-screen">Lade App...</div>;
