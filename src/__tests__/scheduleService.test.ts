@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Mock } from 'vitest'
 
 type QueryMock = Mock<(arg1?: unknown, arg2?: unknown) => unknown>
@@ -65,11 +65,17 @@ describe('scheduleService', () => {
     mockEmitChange.mockResolvedValue(undefined)
   })
 
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('fetchAllSchedules liefert Daten', async () => {
     const rows = [{ id: 's1' }]
     schedulesQuery.order.mockResolvedValueOnce({ data: rows, error: null })
 
-    await expect(scheduleService.fetchAllSchedules()).resolves.toEqual(rows)
+    await expect(scheduleService.fetchAllSchedules()).resolves.toEqual([
+      { id: 's1', action_value: { on: false } },
+    ])
     expect(schedulesQuery.order).toHaveBeenCalledWith('time', { ascending: true })
   })
 
@@ -98,7 +104,7 @@ describe('scheduleService', () => {
     expect(schedulesQuery.insert).toHaveBeenCalledWith([
       expect.objectContaining({
         time: '08:30:00',
-        is_active: true,
+        action_value: { on: true },
       }),
     ])
     expect(result).toEqual(created)
@@ -119,6 +125,10 @@ describe('scheduleService', () => {
     expect(schedulesQuery.update).toHaveBeenCalledWith(
       expect.objectContaining({
         time: '21:45:00',
+        action_value: expect.objectContaining({
+          brightness: 60,
+          on: true,
+        }),
       })
     )
   })
@@ -178,7 +188,8 @@ describe('scheduleService', () => {
   })
 
   it('checkAndExecuteSchedules fuehrt passende Zeitplaene aus', async () => {
-    vi.spyOn(Date.prototype, 'toLocaleTimeString').mockReturnValue('10:15')
+    vi.spyOn(Date.prototype, 'getHours').mockReturnValue(10)
+    vi.spyOn(Date.prototype, 'getMinutes').mockReturnValue(15)
     vi.spyOn(Date.prototype, 'getDay').mockReturnValue(2)
 
     const activeSchedule = {
@@ -191,10 +202,8 @@ describe('scheduleService', () => {
       devices: { id: 'dev-1', name: 'Lampe', type: 'Schalter', room_id: 'room-1' },
     }
 
-    schedulesQuery.eq
-      .mockImplementationOnce(() => schedulesQuery)
-      .mockResolvedValueOnce({ data: [activeSchedule], error: null })
-    devicesQuery.eq.mockResolvedValueOnce({ error: null })
+    schedulesQuery.eq.mockResolvedValueOnce({ data: [activeSchedule], error: null })
+    devicesQuery.select.mockResolvedValueOnce({ error: null })
 
     await scheduleService.checkAndExecuteSchedules()
 
@@ -207,7 +216,8 @@ describe('scheduleService', () => {
   })
 
   it('checkAndExecuteSchedules ueberspringt falschen Wochentag', async () => {
-    vi.spyOn(Date.prototype, 'toLocaleTimeString').mockReturnValue('10:15')
+    vi.spyOn(Date.prototype, 'getHours').mockReturnValue(10)
+    vi.spyOn(Date.prototype, 'getMinutes').mockReturnValue(15)
     vi.spyOn(Date.prototype, 'getDay').mockReturnValue(5)
 
     const activeSchedule = {
@@ -219,9 +229,7 @@ describe('scheduleService', () => {
       action_value: { on: false },
     }
 
-    schedulesQuery.eq
-      .mockImplementationOnce(() => schedulesQuery)
-      .mockResolvedValueOnce({ data: [activeSchedule], error: null })
+    schedulesQuery.eq.mockResolvedValueOnce({ data: [activeSchedule], error: null })
 
     await scheduleService.checkAndExecuteSchedules()
 
