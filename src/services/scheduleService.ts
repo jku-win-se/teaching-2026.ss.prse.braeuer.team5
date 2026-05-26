@@ -1,7 +1,7 @@
 import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
 import { eventBus } from "../customEvents/eventEmitter";
-import { vacationModeService } from "./vacationModeService";
+//import { vacationModeService } from "./vacationModeService";
 import type { DeviceState, Schedule } from "../types";
 
 const getLogValueText = (actionValue: DeviceState, scheduleName: string): string => {
@@ -141,7 +141,7 @@ export const scheduleService = {
     const currentDayNum = now.getDay(); 
     const currentDayStr = String(currentDayNum); 
 
-    const vacationRooms = await vacationModeService.getActiveVacationRoomIds();
+    // const vacationRooms = await vacationModeService.getActiveVacationRoomIds();
 
     const { data: activeSchedules, error } = await supabase
       .from('schedules')
@@ -157,7 +157,7 @@ export const scheduleService = {
 
     for (const schedule of activeSchedules) {
       // Urlaubsmodus aktiv für diesen Raum → Schedule überspringen
-      if (vacationRooms.has(schedule.room_id)) continue;
+      // if (vacationRooms.has(schedule.room_id)) continue;
 
       const scheduleTimeShort = schedule.time ? schedule.time.substring(0, 5) : '';
 
