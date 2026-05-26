@@ -19,19 +19,29 @@ vi.mock('../customEvents/eventEmitter', () => ({
 
 import { addToRoomTable, deleteRoomFromTable, updateRoomInTable } from '../services/roomService'
 
-function createQueryChain() {
+type RoomMembershipRow = { room_id: string; role: string; user_id: string }
+
+function createQueryChain(data: RoomMembershipRow[] = []) {
+  // Ein flexibler Ketten-Mock, der sowohl direkt als auch verschachtelt funktioniert
+  const standardMock = () => ({
+    eq: vi.fn(() => Promise.resolve({ data: [{ id: 'room-1' }], error: null })),
+    select: vi.fn(() => ({
+      eq: vi.fn(() => Promise.resolve({ data: [{ id: 'room-1' }], error: null }))
+    }))
+  });
+
   return {
     select: vi.fn(() => ({
       eq: vi.fn(() => Promise.resolve({
-        data: [] as { room_id: string; role: string; user_id: string }[],
+        data,
         error: null,
       })),
     })),
     delete: vi.fn(() => ({
-      eq: vi.fn(() => Promise.resolve({ error: null })),
+      eq: vi.fn(() => Promise.resolve({ data: [{ id: 'room-1' }], error: null })),
     })),
     update: vi.fn(() => ({
-      eq: vi.fn(() => Promise.resolve({ error: null })),
+      eq: vi.fn(() => Promise.resolve({ data: [{ id: 'room-1' }], error: null })),
     })),
   }
 }
@@ -40,13 +50,9 @@ describe('roomService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    const roomMembershipsQuery = createQueryChain()
-    roomMembershipsQuery.select.mockReturnValueOnce({
-      eq: vi.fn(() => Promise.resolve({
-      data: [] as { room_id: string; role: string; user_id: string }[],
-      error: null,
-})),
-    })
+    const roomMembershipsQuery = createQueryChain([
+      { room_id: 'room-1', role: 'owner', user_id: 'user-1' },
+    ])
 
     mockSupabaseRef.current = {
       auth: {
@@ -56,7 +62,6 @@ describe('roomService', () => {
         if (table === 'room_members') {
           return roomMembershipsQuery
         }
-
         return createQueryChain()
       }),
       rpc: vi.fn().mockResolvedValue({ data: 'room-123', error: null }),
@@ -65,7 +70,7 @@ describe('roomService', () => {
     mockEmitChange.mockResolvedValue(undefined)
   })
 
-  it('Soll einen Raum erstellen und die ID zur�ckgeben', async () => {
+  it('Soll einen Raum erstellen und die ID zurückgeben', async () => {
     const newId = await addToRoomTable('Test-Raum')
 
     expect(newId).toBe('room-123')
@@ -86,12 +91,12 @@ describe('roomService', () => {
       expect.objectContaining({
         room_id: 'room-1',
         action: 'Room Updated',
-        new_value: 'Raumname ge�ndert zu Neuer Name',
+        new_value: 'Raumname geändert zu Neuer Name',
       })
     )
   })
 
-  it('Soll einen Raum erfolgreich aus der Tabelle l�schen', async () => {
+  it('Soll einen Raum erfolgreich aus der Tabelle löschen', async () => {
     const success = await deleteRoomFromTable('room-1')
 
     expect(success).toBe(true)

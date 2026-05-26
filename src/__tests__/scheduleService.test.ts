@@ -1,16 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Mock } from 'vitest'
-
-type QueryMock = Mock<(arg1?: unknown, arg2?: unknown) => unknown>
-
-type QueryChain = {
-  select: QueryMock
-  order: QueryMock
-  insert: QueryMock
-  update: QueryMock
-  delete: QueryMock
-  eq: QueryMock
-}
 
 const { mockFrom, mockLogAction, mockEmitChange, mockSupabaseRef } = vi.hoisted(() => ({
   mockFrom: vi.fn(),
@@ -37,29 +25,69 @@ vi.mock('../customEvents/eventEmitter', () => ({
 
 import { scheduleService } from '../services/scheduleService'
 
-function createChain(): QueryChain {
-  const chain = {
-    select: vi.fn(() => chain) as QueryMock,
-    order: vi.fn(() => chain) as QueryMock,
-    insert: vi.fn(() => chain) as QueryMock,
-    update: vi.fn(() => chain) as QueryMock,
-    delete: vi.fn(() => chain) as QueryMock,
-    eq: vi.fn(() => chain) as QueryMock,
+type MockFn = ReturnType<typeof vi.fn>
+
+type ScheduleQuery = {
+  select: MockFn
+  order: MockFn
+  insert: MockFn
+  update: MockFn
+  delete: MockFn
+}
+
+type DeviceQuery = {
+  select: MockFn
+  update: MockFn
+}
+
+function createSchedulesQuery(): ScheduleQuery {
+  const orderMock = vi.fn(() => Promise.resolve({ data: [], error: null }));
+  const eqMock = vi.fn(() => Promise.resolve({ data: [], error: null }));
+
+  const queryInstance = {
+    select: vi.fn(() => ({
+      order: orderMock,
+      eq: eqMock,
+    })),
+    order: orderMock,
+    insert: vi.fn(() => ({
+      select: vi.fn(() => Promise.resolve({ data: [], error: null })),
+    })),
+    update: vi.fn(() => ({
+      eq: vi.fn(() => Promise.resolve({ error: null })),
+    })),
+    delete: vi.fn(() => ({
+      eq: vi.fn(() => Promise.resolve({ error: null })),
+    })),
+  };
+
+  return queryInstance;
+}
+
+function createDevicesQuery(): DeviceQuery {
+  return {
+    select: vi.fn(() => Promise.resolve({ data: [], error: null })),
+    update: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        select: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      })),
+    })),
   }
-  return chain
 }
 
 describe('scheduleService', () => {
-  let schedulesQuery: QueryChain
-  let devicesQuery: QueryChain
+  let schedulesQuery: ScheduleQuery
+  let devicesQuery: DeviceQuery
 
   beforeEach(() => {
     vi.clearAllMocks()
-    schedulesQuery = createChain()
-    devicesQuery = createChain()
+    schedulesQuery = createSchedulesQuery()
+    devicesQuery = createDevicesQuery()
+
     mockFrom.mockImplementation((table: string) =>
       table === 'schedules' ? schedulesQuery : devicesQuery
     )
+
     mockSupabaseRef.current = { from: mockFrom }
     mockLogAction.mockResolvedValue(undefined)
     mockEmitChange.mockResolvedValue(undefined)
@@ -84,12 +112,15 @@ describe('scheduleService', () => {
       data: null,
       error: new Error('kaputt'),
     })
+
     await expect(scheduleService.fetchAllSchedules()).rejects.toThrow()
   })
 
   it('createSchedule formatiert HH:mm auf HH:mm:00', async () => {
     const created = [{ id: 's1' }]
-    schedulesQuery.select.mockResolvedValueOnce({ data: created, error: null })
+    schedulesQuery.insert.mockReturnValueOnce({
+      select: vi.fn(() => Promise.resolve({ data: created, error: null })),
+    })
 
     const payload = {
       name: 'Morgen',
@@ -99,6 +130,7 @@ describe('scheduleService', () => {
       days: [1, 2],
       action_value: { on: true },
     }
+
     const result = await scheduleService.createSchedule(payload)
 
     expect(schedulesQuery.insert).toHaveBeenCalledWith([
@@ -111,7 +143,11 @@ describe('scheduleService', () => {
   })
 
   it('updateSchedule behaelt volle Zeit inkl. Sekunden', async () => {
-    schedulesQuery.select.mockResolvedValueOnce({ data: [{ id: 'x' }], error: null })
+    schedulesQuery.update.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        select: vi.fn(() => Promise.resolve({ data: [{ id: 'x' }], error: null })),
+      })),
+    })
 
     await scheduleService.updateSchedule('s1', {
       name: 'Abend',
@@ -134,7 +170,9 @@ describe('scheduleService', () => {
   })
 
   it('createSchedule speichert on bei nicht-Schalter-Geraeten', async () => {
-    schedulesQuery.select.mockResolvedValueOnce({ data: [{ id: 's1' }], error: null })
+    schedulesQuery.insert.mockReturnValueOnce({
+      select: vi.fn(() => Promise.resolve({ data: [{ id: 's1' }], error: null })),
+    })
 
     await scheduleService.createSchedule({
       name: 'Thermostat',
@@ -156,7 +194,11 @@ describe('scheduleService', () => {
   })
 
   it('updateSchedule speichert on bei Dimmer-Action-Values', async () => {
-    schedulesQuery.select.mockResolvedValueOnce({ data: [{ id: 'x' }], error: null })
+    schedulesQuery.update.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        select: vi.fn(() => Promise.resolve({ data: [{ id: 'x' }], error: null })),
+      })),
+    })
 
     await scheduleService.updateSchedule('s1', {
       name: 'Dimmer',
@@ -178,12 +220,18 @@ describe('scheduleService', () => {
   })
 
   it('toggleSchedule wirft bei Fehler', async () => {
-    schedulesQuery.eq.mockResolvedValueOnce({ error: new Error('update failed') })
+    schedulesQuery.update.mockReturnValueOnce({
+      eq: vi.fn(() => Promise.resolve({ error: new Error('update failed') })),
+    })
+
     await expect(scheduleService.toggleSchedule('s1', true)).rejects.toThrow()
   })
 
   it('deleteSchedule wirft bei Fehler', async () => {
-    schedulesQuery.eq.mockResolvedValueOnce({ error: new Error('delete failed') })
+    schedulesQuery.delete.mockReturnValueOnce({
+      eq: vi.fn(() => Promise.resolve({ error: new Error('delete failed') })),
+    })
+
     await expect(scheduleService.deleteSchedule('s1')).rejects.toThrow()
   })
 
@@ -198,12 +246,26 @@ describe('scheduleService', () => {
       room_id: 'room-1',
       device_id: 'dev-1',
       days: [2, 3],
+      time: '10:15:00',
       action_value: { on: true },
-      devices: { id: 'dev-1', name: 'Lampe', type: 'Schalter', room_id: 'room-1' },
+      devices: { id: 'dev-1', name: 'Lampe', type: 'Schalter', room_id: 'room-1', state: { on: false } },
     }
 
-    schedulesQuery.eq.mockResolvedValueOnce({ data: [activeSchedule], error: null })
-    devicesQuery.select.mockResolvedValueOnce({ error: null })
+    schedulesQuery.select.mockReturnValueOnce({
+      order: schedulesQuery.order,
+      eq: vi.fn().mockImplementation((column, value) => {
+        if (column === 'is_active' && value === true) {
+          return Promise.resolve({ data: [activeSchedule], error: null });
+        }
+        return Promise.resolve({ data: [], error: null });
+      })
+    })
+
+    devicesQuery.update.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        select: vi.fn(() => Promise.resolve({ data: [{ id: 'dev-1' }], error: null })),
+      })),
+    })
 
     await scheduleService.checkAndExecuteSchedules()
 
@@ -226,10 +288,20 @@ describe('scheduleService', () => {
       room_id: 'room-1',
       device_id: 'dev-2',
       days: [2],
+      time: '10:15:00',
       action_value: { on: false },
+      devices: { id: 'dev-2', name: 'Lampe', type: 'Schalter', room_id: 'room-1', state: { on: false } },
     }
 
-    schedulesQuery.eq.mockResolvedValueOnce({ data: [activeSchedule], error: null })
+    schedulesQuery.select.mockReturnValueOnce({
+      order: schedulesQuery.order,
+      eq: vi.fn().mockImplementation((column, value) => {
+        if (column === 'is_active' && value === true) {
+          return Promise.resolve({ data: [activeSchedule], error: null });
+        }
+        return Promise.resolve({ data: [], error: null });
+      })
+    })
 
     await scheduleService.checkAndExecuteSchedules()
 
@@ -241,7 +313,16 @@ describe('scheduleService', () => {
     mockSupabaseRef.current = null
 
     await expect(scheduleService.fetchAllSchedules()).resolves.toEqual([])
-    const minPayload = { name: '', room_id: '', device_id: '', time: '10:00', days: [], action_value: {} }
+
+    const minPayload = {
+      name: '',
+      room_id: '',
+      device_id: '',
+      time: '10:00',
+      days: [],
+      action_value: {},
+    }
+
     await expect(scheduleService.createSchedule(minPayload)).resolves.toBeNull()
     await expect(scheduleService.updateSchedule('x', minPayload)).resolves.toBeNull()
     await expect(scheduleService.toggleSchedule('x', true)).resolves.toBeUndefined()
