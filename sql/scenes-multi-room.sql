@@ -1,5 +1,5 @@
 -- Migration: scenes 1:n rooms via scene_rooms junction table
--- Führe dieses Script im Supabase SQL Editor aus
+-- Fuehre dieses Script im Supabase SQL Editor aus
 
 -- 1. Junction-Tabelle erstellen
 CREATE TABLE IF NOT EXISTS scene_rooms (
@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS scene_rooms (
   PRIMARY KEY (scene_id, room_id)
 );
 
--- 2. Bestehende Zuordnungen übertragen
+-- 2. Bestehende Zuordnungen uebertragen
 INSERT INTO scene_rooms (scene_id, room_id)
 SELECT id, room_id FROM scenes WHERE room_id IS NOT NULL
 ON CONFLICT DO NOTHING;
