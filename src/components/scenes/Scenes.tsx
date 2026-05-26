@@ -231,11 +231,6 @@ export const Scenes: React.FC = () => {
     }, {});
   }, [devices]);
 
-  const availableDevices = useMemo(
-    () => formData.room_ids.flatMap((rid) => devicesByRoom[rid] || []),
-    [devicesByRoom, formData.room_ids]
-  );
-
   const getDeviceName = (id: string) => devices.find((d) => d.id === id)?.name ?? id;
 
   const openCreate = () => {
@@ -258,27 +253,31 @@ export const Scenes: React.FC = () => {
     setShowModal(true);
   };
 
-  const toggleRoom = (roomId: string) => {
-    setFormData((prev) => {
-      const has = prev.room_ids.includes(roomId);
-      const room_ids = has
-        ? prev.room_ids.filter((id) => id !== roomId)
-        : [...prev.room_ids, roomId];
-      // Remove device actions whose device no longer belongs to any selected room
-      const remainingDeviceIds = new Set(
-        room_ids.flatMap((rid) => (devicesByRoom[rid] || []).map((d) => d.id))
-      );
-      const device_states = prev.device_states.filter(
-        (a) => a.device_id === "" || remainingDeviceIds.has(a.device_id)
-      );
-      return { ...prev, room_ids, device_states };
-    });
+  const addRoom = (roomId: string) => {
+    if (!roomId || formData.room_ids.includes(roomId)) return;
+    setFormData((prev) => ({ ...prev, room_ids: [...prev.room_ids, roomId] }));
   };
 
-  const addAction = () => {
+  const removeRoom = (roomId: string) => {
+    const roomDeviceIds = new Set((devicesByRoom[roomId] || []).map((d) => d.id));
     setFormData((prev) => ({
       ...prev,
-      device_states: [...prev.device_states, { device_id: "", target_state: { on: true } }],
+      room_ids: prev.room_ids.filter((id) => id !== roomId),
+      device_states: prev.device_states.filter((a) => !roomDeviceIds.has(a.device_id)),
+    }));
+  };
+
+  const addActionForRoom = (roomId: string) => {
+    const firstDevice = (devicesByRoom[roomId] || [])[0];
+    setFormData((prev) => ({
+      ...prev,
+      device_states: [
+        ...prev.device_states,
+        {
+          device_id: firstDevice?.id ?? "",
+          target_state: getDefaultState(firstDevice?.type ?? "Schalter"),
+        },
+      ],
     }));
   };
 
@@ -341,6 +340,9 @@ export const Scenes: React.FC = () => {
     formData.name.trim().length > 0 &&
     formData.room_ids.length > 0 &&
     formData.device_states.every((a) => a.device_id !== "");
+
+  // Rooms not yet added to the scene
+  const unselectedRooms = ownerRooms.filter((r) => !formData.room_ids.includes(r.id));
 
   if (loading) return <div className="loading">Lade...</div>;
 
@@ -413,69 +415,91 @@ export const Scenes: React.FC = () => {
                 />
               </div>
 
-              <div className="form-group">
-                <label>Räume</label>
-                <div className="room-checkbox-list">
-                  {ownerRooms.map((r) => (
-                    <label key={r.id} className="room-checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={formData.room_ids.includes(r.id)}
-                        onChange={() => toggleRoom(r.id)}
-                      />
-                      {r.name}
-                    </label>
-                  ))}
-                  {ownerRooms.length === 0 && (
-                    <span className="no-rooms-hint">Keine eigenen Räume vorhanden.</span>
-                  )}
+              {/* Per-room device configuration */}
+              {formData.room_ids.map((roomId) => {
+                const room = ownerRooms.find((r) => r.id === roomId);
+                const roomDevices = devicesByRoom[roomId] || [];
+                const roomActions = formData.device_states
+                  .map((a, i) => ({ ...a, index: i }))
+                  .filter((a) => roomDevices.some((d) => d.id === a.device_id) || a.device_id === "");
+
+                return (
+                  <div key={roomId} className="scene-room-section">
+                    <div className="scene-room-section-header">
+                      <span className="scene-room-section-title">{room?.name ?? roomId}</span>
+                      <button
+                        className="remove-room-btn"
+                        onClick={() => removeRoom(roomId)}
+                        title="Raum entfernen"
+                      >
+                        <LucideX size={14} />
+                      </button>
+                    </div>
+
+                    <div className="device-actions-list">
+                      {roomActions.map(({ device_id, target_state, index }) => {
+                        const dev = devices.find((d) => d.id === device_id);
+                        return (
+                          <div key={index} className="device-action-row">
+                            <select
+                              value={device_id}
+                              onChange={(e) => updateAction(index, e.target.value)}
+                            >
+                              <option value="">Gerät wählen...</option>
+                              {roomDevices.map((d) => (
+                                <option key={d.id} value={d.id}>
+                                  {d.name}
+                                </option>
+                              ))}
+                            </select>
+
+                            {dev && (
+                              <StateControl
+                                type={dev.type}
+                                state={target_state}
+                                onChange={(s) => updateAction(index, device_id, s)}
+                              />
+                            )}
+
+                            <button className="remove-action-btn" onClick={() => removeAction(index)}>
+                              <LucideX size={16} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      className="add-device-action-btn"
+                      onClick={() => addActionForRoom(roomId)}
+                      disabled={roomDevices.length === 0}
+                      type="button"
+                    >
+                      <LucidePlus size={15} /> Gerät hinzufügen
+                    </button>
+                  </div>
+                );
+              })}
+
+              {/* Add another room */}
+              {unselectedRooms.length > 0 && (
+                <div className="form-group">
+                  <label>{formData.room_ids.length === 0 ? "Raum" : "Weiteren Raum hinzufügen"}</label>
+                  <select
+                    value=""
+                    onChange={(e) => { if (e.target.value) addRoom(e.target.value); }}
+                  >
+                    <option value="">Raum auswählen...</option>
+                    {unselectedRooms.map((r) => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
                 </div>
-              </div>
+              )}
 
-              <div className="form-group">
-                <label>Gerätezustände</label>
-                <div className="device-actions-list">
-                  {formData.device_states.map((action, i) => {
-                    const dev = devices.find((d) => d.id === action.device_id);
-                    return (
-                      <div key={i} className="device-action-row">
-                        <select
-                          value={action.device_id}
-                          disabled={formData.room_ids.length === 0}
-                          onChange={(e) => updateAction(i, e.target.value)}
-                        >
-                          <option value="">Gerät wählen...</option>
-                          {availableDevices.map((d) => (
-                            <option key={d.id} value={d.id}>
-                              {d.name}
-                            </option>
-                          ))}
-                        </select>
-
-                        {dev && (
-                          <StateControl
-                            type={dev.type}
-                            state={action.target_state}
-                            onChange={(s) => updateAction(i, action.device_id, s)}
-                          />
-                        )}
-
-                        <button className="remove-action-btn" onClick={() => removeAction(i)}>
-                          <LucideX size={16} />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-                <button
-                  className="add-device-action-btn"
-                  onClick={addAction}
-                  disabled={formData.room_ids.length === 0}
-                  type="button"
-                >
-                  <LucidePlus size={15} /> Gerät hinzufügen
-                </button>
-              </div>
+              {ownerRooms.length === 0 && (
+                <span className="no-rooms-hint">Keine eigenen Räume vorhanden.</span>
+              )}
             </div>
 
             <div className="modal-footer">
