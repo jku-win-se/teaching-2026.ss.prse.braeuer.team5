@@ -1,0 +1,107 @@
+-- ============================================================
+-- DUMMY DATA SEED — Smart Home Team 5
+-- Für bestehenden User: rsheedalo@gmail.com
+-- Einfach im Supabase SQL-Editor ausführen.
+-- Voraussetzung: scenes.txt wurde bereits ausgeführt.
+-- ============================================================
+
+DO $$
+DECLARE
+  v_user_id     UUID;
+
+  v_room_wohn   UUID := 'bbbbbbbb-0000-0000-0000-000000000001';
+  v_room_schlaf UUID := 'bbbbbbbb-0000-0000-0000-000000000002';
+  v_room_kueche UUID := 'bbbbbbbb-0000-0000-0000-000000000003';
+
+  v_dev_licht   UUID := 'cccccccc-0000-0000-0000-000000000001';
+  v_dev_dimmer  UUID := 'cccccccc-0000-0000-0000-000000000002';
+  v_dev_jalou   UUID := 'cccccccc-0000-0000-0000-000000000003';
+  v_dev_thermo  UUID := 'cccccccc-0000-0000-0000-000000000004';
+  v_dev_s_licht UUID := 'cccccccc-0000-0000-0000-000000000005';
+  v_dev_s_therm UUID := 'cccccccc-0000-0000-0000-000000000006';
+  v_dev_s_jalou UUID := 'cccccccc-0000-0000-0000-000000000007';
+  v_dev_k_licht UUID := 'cccccccc-0000-0000-0000-000000000008';
+  v_dev_k_sens  UUID := 'cccccccc-0000-0000-0000-000000000009';
+
+BEGIN
+
+  -- User-ID aus bestehendem Account holen
+  SELECT id INTO v_user_id FROM auth.users WHERE email = 'rsheedalo@gmail.com' LIMIT 1;
+
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'User rsheedalo@gmail.com nicht gefunden. Stelle sicher dass der Account existiert.';
+  END IF;
+
+  -- ============================================================
+  -- RÄUME
+  -- ============================================================
+  INSERT INTO public.rooms (id, name) VALUES
+    (v_room_wohn,   'Wohnzimmer'),
+    (v_room_schlaf, 'Schlafzimmer'),
+    (v_room_kueche, 'Küche')
+  ON CONFLICT (id) DO NOTHING;
+
+  -- ============================================================
+  -- ROOM MEMBERS
+  -- ============================================================
+  INSERT INTO public.room_members (user_id, room_id, role) VALUES
+    (v_user_id, v_room_wohn,   'owner'),
+    (v_user_id, v_room_schlaf, 'owner'),
+    (v_user_id, v_room_kueche, 'owner')
+  ON CONFLICT (user_id, room_id) DO NOTHING;
+
+  -- ============================================================
+  -- GERÄTE
+  -- ============================================================
+  INSERT INTO public.devices (id, room_id, name, type, energy_consumption, state) VALUES
+    (v_dev_licht,   v_room_wohn,   'Deckenlampe',      'Schalter',    15, '{"on": false}'),
+    (v_dev_dimmer,  v_room_wohn,   'Stehlampe',        'Dimmer',      40, '{"on": true, "brightness": 60}'),
+    (v_dev_jalou,   v_room_wohn,   'Jalousie Süd',     'Jalousie',     5, '{"position": 0}'),
+    (v_dev_thermo,  v_room_wohn,   'Thermostat',       'Thermostat',   8, '{"temperature": 21.5}'),
+    (v_dev_s_licht, v_room_schlaf, 'Nachttischlampe',  'Schalter',    10, '{"on": false}'),
+    (v_dev_s_therm, v_room_schlaf, 'Thermostat',       'Thermostat',   8, '{"temperature": 19.0}'),
+    (v_dev_s_jalou, v_room_schlaf, 'Rollladen',        'Jalousie',     5, '{"position": 100}'),
+    (v_dev_k_licht, v_room_kueche, 'Küchenlampe',      'Schalter',    20, '{"on": true}'),
+    (v_dev_k_sens,  v_room_kueche, 'Temperatursensor', 'Sensor',       2, '{"value": 22}')
+  ON CONFLICT (id) DO NOTHING;
+
+  -- ============================================================
+  -- SZENEN (erst löschen, dann neu einfügen — immer korrekte States)
+  -- ============================================================
+  DELETE FROM public.scenes WHERE room_id IN (v_room_wohn, v_room_schlaf, v_room_kueche);
+
+  INSERT INTO public.scenes (room_id, name, description, device_states) VALUES
+    (
+      v_room_wohn,
+      'Filmabend',
+      'Gedimmtes Licht, Jalousie zu, Wohlfühltemperatur',
+      jsonb_build_array(
+        jsonb_build_object('device_id', v_dev_dimmer, 'target_state', '{"on": true,  "brightness": 20}'::jsonb),
+        jsonb_build_object('device_id', v_dev_licht,  'target_state', '{"on": false}'::jsonb),
+        jsonb_build_object('device_id', v_dev_jalou,  'target_state', '{"on": true,  "position": 0}'::jsonb),
+        jsonb_build_object('device_id', v_dev_thermo, 'target_state', '{"on": true,  "temperature": 22.0}'::jsonb)
+      )
+    ),
+    (
+      v_room_wohn,
+      'Guten Morgen',
+      'Jalousie auf, Licht an, Temperatur hoch',
+      jsonb_build_array(
+        jsonb_build_object('device_id', v_dev_licht,  'target_state', '{"on": true}'::jsonb),
+        jsonb_build_object('device_id', v_dev_dimmer, 'target_state', '{"on": true,  "brightness": 100}'::jsonb),
+        jsonb_build_object('device_id', v_dev_jalou,  'target_state', '{"on": true,  "position": 100}'::jsonb),
+        jsonb_build_object('device_id', v_dev_thermo, 'target_state', '{"on": true,  "temperature": 21.0}'::jsonb)
+      )
+    ),
+    (
+      v_room_schlaf,
+      'Schlafen',
+      'Licht aus, Rollladen zu, kühle Temperatur',
+      jsonb_build_array(
+        jsonb_build_object('device_id', v_dev_s_licht, 'target_state', '{"on": false}'::jsonb),
+        jsonb_build_object('device_id', v_dev_s_jalou, 'target_state', '{"on": false, "position": 0}'::jsonb),
+        jsonb_build_object('device_id', v_dev_s_therm, 'target_state', '{"on": true,  "temperature": 18.0}'::jsonb)
+      )
+    );
+
+END $$;

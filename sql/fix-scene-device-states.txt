@@ -1,0 +1,46 @@
+-- ============================================================
+-- FIX: Scene device_states ohne "on"-Feld korrigieren
+-- Einmalig im Supabase SQL-Editor ausführen.
+-- ============================================================
+
+-- Seeded Szenen löschen und neu einfügen mit korrekten States
+DELETE FROM public.scenes
+WHERE room_id IN (
+  'bbbbbbbb-0000-0000-0000-000000000001',
+  'bbbbbbbb-0000-0000-0000-000000000002',
+  'bbbbbbbb-0000-0000-0000-000000000003'
+);
+
+INSERT INTO public.scenes (room_id, name, description, device_states) VALUES
+  (
+    'bbbbbbbb-0000-0000-0000-000000000001',
+    'Filmabend',
+    'Gedimmtes Licht, Jalousie zu, Wohlfühltemperatur',
+    '[
+      {"device_id": "cccccccc-0000-0000-0000-000000000002", "target_state": {"on": true,  "brightness": 20}},
+      {"device_id": "cccccccc-0000-0000-0000-000000000001", "target_state": {"on": false}},
+      {"device_id": "cccccccc-0000-0000-0000-000000000003", "target_state": {"on": false, "position": 0}},
+      {"device_id": "cccccccc-0000-0000-0000-000000000004", "target_state": {"on": true,  "temperature": 22.0}}
+    ]'::jsonb
+  ),
+  (
+    'bbbbbbbb-0000-0000-0000-000000000001',
+    'Guten Morgen',
+    'Jalousie auf, Licht an, Temperatur hoch',
+    '[
+      {"device_id": "cccccccc-0000-0000-0000-000000000001", "target_state": {"on": true}},
+      {"device_id": "cccccccc-0000-0000-0000-000000000002", "target_state": {"on": true,  "brightness": 100}},
+      {"device_id": "cccccccc-0000-0000-0000-000000000003", "target_state": {"on": true,  "position": 100}},
+      {"device_id": "cccccccc-0000-0000-0000-000000000004", "target_state": {"on": true,  "temperature": 21.0}}
+    ]'::jsonb
+  ),
+  (
+    'bbbbbbbb-0000-0000-0000-000000000002',
+    'Schlafen',
+    'Licht aus, Rollladen zu, kühle Temperatur',
+    '[
+      {"device_id": "cccccccc-0000-0000-0000-000000000005", "target_state": {"on": false}},
+      {"device_id": "cccccccc-0000-0000-0000-000000000007", "target_state": {"on": false, "position": 0}},
+      {"device_id": "cccccccc-0000-0000-0000-000000000006", "target_state": {"on": true,  "temperature": 18.0}}
+    ]'::jsonb
+  );
