@@ -106,7 +106,7 @@ const StateControl: React.FC<StateControlProps> = ({ type, state, onChange }) =>
 
 const EMPTY_FORM = {
   name: "",
-  room_id: "",
+  room_ids: [] as string[],
   description: "",
   device_states: [] as ActionRow[],
 };
@@ -127,57 +127,71 @@ const SceneList = React.memo(
       {scenes.length === 0 && (
         <div className="empty-state">Noch keine Szenen angelegt.</div>
       )}
-      {scenes.map((s) => (
-        <div key={s.id} className="scene-card">
-          <div className="scene-info">
-            <div className="scene-title-row">
-              <span className="scene-name">{s.name}</span>
-              <span className="badge-room">{s.rooms?.name}</span>
-              <span className={`room-rule-badge ${canManage(s) ? "owner" : "member"}`}>
-                {canManage(s) ? "Eigentümer" : "Mitglied"}
-              </span>
+      {scenes.map((s) => {
+        const sceneRooms = s.scene_rooms || [];
+        return (
+          <div key={s.id} className="scene-card">
+            <div className="scene-info">
+              <div className="scene-title-row">
+                <span className="scene-name">{s.name}</span>
+                <span className={`room-rule-badge ${canManage(s) ? "owner" : "member"}`}>
+                  {canManage(s) ? "Eigentümer" : "Mitglied"}
+                </span>
+              </div>
+
+              <div className="vacation-room-chips">
+                {sceneRooms.map((sr) => (
+                  <span key={sr.room_id} className="vacation-room-chip">
+                    {sr.rooms?.name ?? sr.room_id}
+                  </span>
+                ))}
+                {sceneRooms.length === 0 && (
+                  <span className="vacation-room-chip vacation-room-chip--empty">Keine Räume</span>
+                )}
+              </div>
+
+              {s.description && (
+                <div className="scene-description">{s.description}</div>
+              )}
+              <div className="scene-devices-preview">
+                {(s.device_states as SceneDeviceEntry[]).map((entry, i) => (
+                  <span key={i} className="scene-device-chip">
+                    {getDeviceName(entry.device_id)}
+                  </span>
+                ))}
+                {s.device_states.length === 0 && (
+                  <span className="scene-device-chip" style={{ opacity: 0.5 }}>
+                    Keine Geräte
+                  </span>
+                )}
+              </div>
             </div>
-            {s.description && (
-              <div className="scene-description">{s.description}</div>
-            )}
-            <div className="scene-devices-preview">
-              {(s.device_states as SceneDeviceEntry[]).map((entry, i) => (
-                <span key={i} className="scene-device-chip">
-                  {getDeviceName(entry.device_id)}
-                </span>
-              ))}
-              {s.device_states.length === 0 && (
-                <span className="scene-device-chip" style={{ opacity: 0.5 }}>
-                  Keine Geräte
-                </span>
+
+            <div className="scene-actions">
+              <button
+                className="activate-btn"
+                onClick={() => onActivate(s)}
+                disabled={activating === s.id || s.device_states.length === 0}
+                title="Szene aktivieren"
+              >
+                <LucidePlay size={15} />
+                {activating === s.id ? "..." : "Aktivieren"}
+              </button>
+
+              {canManage(s) && (
+                <>
+                  <button className="action-btn edit-btn" onClick={() => onEdit(s)}>
+                    <LucidePencil size={18} />
+                  </button>
+                  <button className="action-btn delete-btn" onClick={() => onDelete(s.id)}>
+                    <LucideTrash2 size={18} />
+                  </button>
+                </>
               )}
             </div>
           </div>
-
-          <div className="scene-actions">
-            <button
-              className="activate-btn"
-              onClick={() => onActivate(s)}
-              disabled={activating === s.id || s.device_states.length === 0}
-              title="Szene aktivieren"
-            >
-              <LucidePlay size={15} />
-              {activating === s.id ? "..." : "Aktivieren"}
-            </button>
-
-            {canManage(s) && (
-              <>
-                <button className="action-btn edit-btn" onClick={() => onEdit(s)}>
-                  <LucidePencil size={18} />
-                </button>
-                <button className="action-btn delete-btn" onClick={() => onDelete(s.id)}>
-                  <LucideTrash2 size={18} />
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   )
 );
@@ -194,7 +208,12 @@ export const Scenes: React.FC = () => {
     () => rooms.filter((r) => r.role === "owner"),
     [rooms]
   );
-  const canManageScene = (s: Scene) => ownerRoomIds.has(s.room_id);
+
+  const canManageScene = (s: Scene) => {
+    const sceneRooms = s.scene_rooms || [];
+    if (sceneRooms.length === 0) return ownerRoomIds.size > 0;
+    return sceneRooms.some((sr) => ownerRoomIds.has(sr.room_id));
+  };
   const canAdd = ownerRoomIds.size > 0;
 
   const [showModal, setShowModal] = useState(false);
@@ -212,9 +231,9 @@ export const Scenes: React.FC = () => {
     }, {});
   }, [devices]);
 
-  const roomDevices = useMemo(
-    () => devicesByRoom[formData.room_id] || [],
-    [devicesByRoom, formData.room_id]
+  const availableDevices = useMemo(
+    () => formData.room_ids.flatMap((rid) => devicesByRoom[rid] || []),
+    [devicesByRoom, formData.room_ids]
   );
 
   const getDeviceName = (id: string) => devices.find((d) => d.id === id)?.name ?? id;
@@ -229,7 +248,7 @@ export const Scenes: React.FC = () => {
     setEditingId(s.id);
     setFormData({
       name: s.name,
-      room_id: s.room_id,
+      room_ids: (s.scene_rooms || []).map((sr) => sr.room_id),
       description: s.description || "",
       device_states: (s.device_states as SceneDeviceEntry[]).map((e) => ({
         device_id: e.device_id,
@@ -239,8 +258,21 @@ export const Scenes: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleRoomChange = (room_id: string) => {
-    setFormData((prev) => ({ ...prev, room_id, device_states: [] }));
+  const toggleRoom = (roomId: string) => {
+    setFormData((prev) => {
+      const has = prev.room_ids.includes(roomId);
+      const room_ids = has
+        ? prev.room_ids.filter((id) => id !== roomId)
+        : [...prev.room_ids, roomId];
+      // Remove device actions whose device no longer belongs to any selected room
+      const remainingDeviceIds = new Set(
+        room_ids.flatMap((rid) => (devicesByRoom[rid] || []).map((d) => d.id))
+      );
+      const device_states = prev.device_states.filter(
+        (a) => a.device_id === "" || remainingDeviceIds.has(a.device_id)
+      );
+      return { ...prev, room_ids, device_states };
+    });
   };
 
   const addAction = () => {
@@ -274,12 +306,16 @@ export const Scenes: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!formData.name.trim() || !formData.room_id) return;
+    const { room_ids, ...payload } = formData;
+    let sceneId: string;
     if (editingId) {
-      await sceneService.updateScene(editingId, formData);
+      await sceneService.updateScene(editingId, payload);
+      sceneId = editingId;
     } else {
-      await sceneService.createScene(formData);
+      const created = await sceneService.createScene(payload);
+      sceneId = (created as { id: string }[])[0].id;
     }
+    await sceneService.assignRooms(sceneId, room_ids);
     setShowModal(false);
     refresh();
   };
@@ -303,7 +339,7 @@ export const Scenes: React.FC = () => {
 
   const isFormValid =
     formData.name.trim().length > 0 &&
-    formData.room_id.length > 0 &&
+    formData.room_ids.length > 0 &&
     formData.device_states.every((a) => a.device_id !== "");
 
   if (loading) return <div className="loading">Lade...</div>;
@@ -378,18 +414,22 @@ export const Scenes: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>Raum</label>
-                <select
-                  value={formData.room_id}
-                  onChange={(e) => handleRoomChange(e.target.value)}
-                >
-                  <option value="">Raum auswählen...</option>
+                <label>Räume</label>
+                <div className="room-checkbox-list">
                   {ownerRooms.map((r) => (
-                    <option key={r.id} value={r.id}>
+                    <label key={r.id} className="room-checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={formData.room_ids.includes(r.id)}
+                        onChange={() => toggleRoom(r.id)}
+                      />
                       {r.name}
-                    </option>
+                    </label>
                   ))}
-                </select>
+                  {ownerRooms.length === 0 && (
+                    <span className="no-rooms-hint">Keine eigenen Räume vorhanden.</span>
+                  )}
+                </div>
               </div>
 
               <div className="form-group">
@@ -401,11 +441,11 @@ export const Scenes: React.FC = () => {
                       <div key={i} className="device-action-row">
                         <select
                           value={action.device_id}
-                          disabled={!formData.room_id}
+                          disabled={formData.room_ids.length === 0}
                           onChange={(e) => updateAction(i, e.target.value)}
                         >
                           <option value="">Gerät wählen...</option>
-                          {roomDevices.map((d) => (
+                          {availableDevices.map((d) => (
                             <option key={d.id} value={d.id}>
                               {d.name}
                             </option>
@@ -430,7 +470,7 @@ export const Scenes: React.FC = () => {
                 <button
                   className="add-device-action-btn"
                   onClick={addAction}
-                  disabled={!formData.room_id}
+                  disabled={formData.room_ids.length === 0}
                   type="button"
                 >
                   <LucidePlus size={15} /> Gerät hinzufügen

@@ -124,12 +124,13 @@ export interface SceneDeviceEntry {
 
 export interface Scene {
   id: string;
-  room_id: string;
+  room_id?: string | null;
   name: string;
   description?: string;
   device_states: SceneDeviceEntry[];
   created_at?: string;
   rooms?: { name: string };
+  scene_rooms?: { room_id: string; rooms?: { name: string } }[];
 }
 
 export interface VacationMode {
