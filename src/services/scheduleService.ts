@@ -191,7 +191,7 @@ export const scheduleService = {
           targetState.on = true; 
         }
 
-        const { error: deviceError, data: updatedData } = await supabase
+        const { error: deviceError } = await supabase
           .from('devices')
           .update({ state: targetState })
           .eq('id', schedule.device_id)
