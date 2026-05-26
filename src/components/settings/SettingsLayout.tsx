@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { VacationMode } from "../vacation/VacationMode";
+import { MqttSettings } from "../mqtt/MqttSettings";
 import "./SettingsLayout.css";
 
 type Tab = { id: string; label: string };
 
 const TABS: Tab[] = [
   { id: "vacation", label: "Urlaubsmodus" },
+  { id: "mqtt", label: "MQTT" },
 ];
 
 export function SettingsLayout() {
@@ -31,6 +33,7 @@ export function SettingsLayout() {
 
       <div className="settings-tab-content">
         {activeTab === "vacation" && <VacationMode embedded />}
+        {activeTab === "mqtt" && <MqttSettings embedded />}
       </div>
     </div>
   );

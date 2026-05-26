@@ -55,6 +55,7 @@ export default function App(): JSX.Element {
                   <Route path="/scenes" element={<ScenesPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/vacation" element={<Navigate to="/settings" replace />} />
+                  <Route path="/mqtt" element={<Navigate to="/settings?tab=mqtt" replace />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </main>
