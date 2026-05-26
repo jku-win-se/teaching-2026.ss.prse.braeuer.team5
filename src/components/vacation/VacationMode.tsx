@@ -148,7 +148,10 @@ export const VacationMode: React.FC<{ embedded?: boolean }> = ({ embedded = fals
 
       {modes.map((m) => {
         const status = getStatus(m);
-        const canManage = (m.rooms || []).some((r) => ownerRoomIds.has(r.id));
+        const canManage =
+          (m.rooms || []).length === 0
+            ? ownerRoomIds.size > 0
+            : (m.rooms || []).some((r) => ownerRoomIds.has(r.id));
         return (
           <div key={m.id} className="vacation-card">
             <div className="vacation-info">
