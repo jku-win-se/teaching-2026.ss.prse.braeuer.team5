@@ -1,6 +1,7 @@
 import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
 import { eventBus } from "../customEvents/eventEmitter";
+import { vacationModeService } from "./vacationModeService";
 import type { DeviceState, Schedule } from "../types";
 
 const getLogValueText = (actionValue: DeviceState, scheduleName: string): string => {
@@ -108,6 +109,8 @@ export const scheduleService = {
     const currentTime = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', hour12: false });
     const currentDay = now.getDay();
 
+    const vacationRooms = await vacationModeService.getActiveVacationRoomIds();
+
     const { data: activeSchedules, error } = await supabase
       .from('schedules')
       .select('*, devices(id, name, type, room_id)')
@@ -117,6 +120,9 @@ export const scheduleService = {
     if (error || !activeSchedules || activeSchedules.length === 0) return;
 
     for (const schedule of activeSchedules) {
+      // Urlaubsmodus aktiv für diesen Raum → Schedule überspringen
+      if (vacationRooms.has(schedule.room_id)) continue;
+
       if (schedule.days.includes(currentDay)) {
         console.log(`[Automation] ${schedule.name} wird ausgeführt...`);
         

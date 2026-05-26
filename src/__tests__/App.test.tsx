@@ -14,6 +14,10 @@ vi.mock('../services/inviteService', () => ({
   removeRoomMember: vi.fn(),
 }))
 
+vi.mock('../hooks/useAutomation', () => ({
+  useAutomation: vi.fn(),
+}))
+
 // Mock heavy route/page imports so App tests focus on routing/auth shell behavior.
 vi.mock('../components/Sidebar', () => ({
   Sidebar: () => <nav>Sidebar</nav>,
@@ -50,6 +54,12 @@ vi.mock('../pages/SchedulesPage', () => ({
 }))
 vi.mock('../pages/RulesPage', () => ({
   default: () => <h1>Rules</h1>,
+}))
+vi.mock('../pages/ScenesPage', () => ({
+  default: () => <h1>Scenes</h1>,
+}))
+vi.mock('../pages/SettingsPage', () => ({
+  default: () => <h1>Settings</h1>,
 }))
 vi.mock('../pages/EnergyDashboard', () => ({
   default: () => <h1>Energy Dashboard</h1>,

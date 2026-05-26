@@ -19,7 +19,7 @@ describe("Rooms Datenbank-Logik", () => {
     if (error) throw new Error("Auth fehlgeschlagen: " + error.message);
   });
 
-  it("Soll einen Raum erstellen und die ID zurückgeben", async () => { 
+  it("Soll einen Raum erstellen und die ID zurückgeben", async () => {
     const testName = "Test-Raum-" + Date.now();
     
     // 1. Erstellen
@@ -36,7 +36,7 @@ describe("Rooms Datenbank-Logik", () => {
 
     // Cleanup: Direkt wieder löschen
     await deleteRoomFromTable(newId!);
-  });
+  }, 10000);
 
   it("Soll einen bestehenden Raum umbenennen", async () => {
     // Vorbereitung: Raum erstellen
@@ -65,5 +65,5 @@ describe("Rooms Datenbank-Logik", () => {
     if (!supabase) return;
     const { data } = await supabase.from("rooms").select("*").eq("id", id!);
     expect(data?.length).toBe(0);
-  });
+  }, 10000);
 });

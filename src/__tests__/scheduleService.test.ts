@@ -10,6 +10,9 @@ type QueryChain = {
   update: QueryMock
   delete: QueryMock
   eq: QueryMock
+  lte: QueryMock
+  gte: QueryMock
+  lt: QueryMock
 }
 
 const { mockFrom, mockLogAction, mockEmitChange, mockSupabaseRef } = vi.hoisted(() => ({
@@ -22,6 +25,12 @@ const { mockFrom, mockLogAction, mockEmitChange, mockSupabaseRef } = vi.hoisted(
 vi.mock('../config/supabaseClient', () => ({
   get supabase() {
     return mockSupabaseRef.current as { from: typeof mockFrom } | null
+  },
+}))
+
+vi.mock('../services/vacationModeService', () => ({
+  vacationModeService: {
+    getActiveVacationRoomIds: vi.fn().mockResolvedValue(new Set()),
   },
 }))
 
@@ -45,6 +54,9 @@ function createChain(): QueryChain {
     update: vi.fn(() => chain) as QueryMock,
     delete: vi.fn(() => chain) as QueryMock,
     eq: vi.fn(() => chain) as QueryMock,
+    lte: vi.fn(() => chain) as QueryMock,
+    gte: vi.fn(() => chain) as QueryMock,
+    lt: vi.fn(() => chain) as QueryMock,
   }
   return chain
 }

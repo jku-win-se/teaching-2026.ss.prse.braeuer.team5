@@ -12,12 +12,15 @@ import ActivityLogPage from "./pages/ActivityLog";
 import SchedulesPage from "./pages/SchedulesPage";
 import RulesPage from "./pages/RulesPage";
 import ScenesPage from "./pages/ScenesPage";
+import SettingsPage from "./pages/SettingsPage";
 import { useAuth } from "./hooks/useAuth";
+import { useAutomation } from "./hooks/useAutomation";
 import type { JSX } from "react/jsx-dev-runtime";
 import { RuleActionOverlay } from "./components/rules/RuleActionOverlay";
 
 export default function App(): JSX.Element {
   const { session, loading } = useAuth();
+  useAutomation();
 
   if (loading) {
     return <div className="loading-screen">Lade App...</div>;
@@ -50,6 +53,9 @@ export default function App(): JSX.Element {
                   <Route path="/schedules" element={<SchedulesPage />} />
                   <Route path="/rules" element={<RulesPage />} />
                   <Route path="/scenes" element={<ScenesPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/vacation" element={<Navigate to="/settings" replace />} />
+                  <Route path="/mqtt" element={<Navigate to="/settings?tab=mqtt" replace />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </main>

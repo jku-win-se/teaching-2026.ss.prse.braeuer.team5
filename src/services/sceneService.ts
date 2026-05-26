@@ -8,19 +8,18 @@ export const sceneService = {
     if (!supabase) return [];
     const { data, error } = await supabase
       .from("scenes")
-      .select("*, rooms (name)")
+      .select("*, scene_rooms(room_id, rooms(name))")
       .order("created_at", { ascending: false });
     if (error) throw error;
     return (data as Scene[]) || [];
   },
 
-  async createScene(payload: Pick<Scene, "name" | "room_id" | "description" | "device_states">) {
+  async createScene(payload: Pick<Scene, "name" | "description" | "device_states">) {
     if (!supabase) return null;
     const { data, error } = await supabase
       .from("scenes")
       .insert([{
         name: payload.name,
-        room_id: payload.room_id,
         description: payload.description || null,
         device_states: payload.device_states,
       }])
@@ -29,13 +28,12 @@ export const sceneService = {
     return data;
   },
 
-  async updateScene(id: string, payload: Pick<Scene, "name" | "room_id" | "description" | "device_states">) {
+  async updateScene(id: string, payload: Pick<Scene, "name" | "description" | "device_states">) {
     if (!supabase) return null;
     const { data, error } = await supabase
       .from("scenes")
       .update({
         name: payload.name,
-        room_id: payload.room_id,
         description: payload.description || null,
         device_states: payload.device_states,
       })
@@ -43,6 +41,16 @@ export const sceneService = {
       .select();
     if (error) throw error;
     return data;
+  },
+
+  async assignRooms(sceneId: string, roomIds: string[]) {
+    if (!supabase) return;
+    await supabase.from("scene_rooms").delete().eq("scene_id", sceneId);
+    if (roomIds.length > 0) {
+      await supabase.from("scene_rooms").insert(
+        roomIds.map((room_id) => ({ scene_id: sceneId, room_id }))
+      );
+    }
   },
 
   async deleteScene(id: string) {
@@ -75,8 +83,11 @@ export const sceneService = {
     }
 
     const logText = `Szene "${scene.name}" aktiviert (${entries.length} Gerät${entries.length !== 1 ? "e" : ""})`;
-    await logAction({ room_id: scene.room_id, action: "Szene aktiviert", new_value: logText, actor_type: "user", user_id: userId });
-    if (eventBus) await eventBus.emitChange({ room_id: scene.room_id, action: "Szene aktiviert", new_value: logText, actor_type: "user", user_id: userId });
+    const roomIds = (scene.scene_rooms || []).map((sr) => sr.room_id);
+    const primaryRoomId = roomIds[0] ?? scene.room_id ?? undefined;
+
+    await logAction({ room_id: primaryRoomId, action: "Szene aktiviert", new_value: logText, actor_type: "user", user_id: userId });
+    if (eventBus) await eventBus.emitChange({ room_id: primaryRoomId, action: "Szene aktiviert", new_value: logText, actor_type: "user", user_id: userId });
 
     return { ok: errors.length === 0, errors };
   },

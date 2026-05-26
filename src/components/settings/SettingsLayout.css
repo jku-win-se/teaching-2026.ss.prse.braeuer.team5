@@ -1,0 +1,49 @@
+.settings-container {
+  padding: 1.5rem;
+}
+
+.settings-header {
+  margin-bottom: 20px;
+}
+
+.settings-header h1 {
+  color: var(--text-color-1);
+  font-size: 1.8rem;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--border-gray);
+  margin-bottom: 24px;
+}
+
+.settings-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  padding: 10px 18px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-color-1);
+  opacity: 0.55;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-radius: 6px 6px 0 0;
+}
+
+.settings-tab-btn:hover {
+  opacity: 0.85;
+  background: var(--bg-gray);
+}
+
+.settings-tab-btn.active {
+  opacity: 1;
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.settings-tab-content {
+  min-height: 200px;
+}
