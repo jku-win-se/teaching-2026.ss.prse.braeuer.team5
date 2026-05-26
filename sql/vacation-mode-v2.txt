@@ -1,7 +1,7 @@
 -- Migration: vacation_mode 1:n rooms
 -- Führe dieses Script im Supabase SQL Editor aus
 
--- 1. Name-Spalte zu vacation_mode hinzufügen (aus aktuellem Raum-Namen befüllen)
+-- 1. Name-Spalte hinzufügen und aus aktuellem Raum-Namen befüllen
 ALTER TABLE vacation_mode ADD COLUMN IF NOT EXISTS name TEXT NOT NULL DEFAULT '';
 
 UPDATE vacation_mode vm
@@ -16,8 +16,59 @@ SET vacation_mode_id = vm.id
 FROM vacation_mode vm
 WHERE vm.room_id = r.id;
 
--- 4. room_id aus vacation_mode entfernen
+-- 4. Abhängige RLS-Policies droppen (referenzieren room_id)
+DROP POLICY IF EXISTS "room members can view vacation_mode" ON vacation_mode;
+DROP POLICY IF EXISTS "owners can insert vacation_mode" ON vacation_mode;
+DROP POLICY IF EXISTS "owners can update vacation_mode" ON vacation_mode;
+DROP POLICY IF EXISTS "owners can delete vacation_mode" ON vacation_mode;
+
+-- 5. room_id aus vacation_mode entfernen
 ALTER TABLE vacation_mode DROP COLUMN IF EXISTS room_id;
 
--- RLS: rooms darf vacation_mode_id setzen (owner)
--- (bestehende RLS-Policies auf rooms reichen, da UPDATE schon erlaubt ist)
+-- 6. Neue RLS-Policies ohne room_id
+-- Alle eingeloggten User können Urlaubsmodi sehen
+CREATE POLICY "authenticated users can view vacation_mode"
+ON vacation_mode FOR SELECT
+TO authenticated
+USING (true);
+
+-- Alle eingeloggten User können Urlaubsmodi anlegen
+CREATE POLICY "authenticated users can insert vacation_mode"
+ON vacation_mode FOR INSERT
+TO authenticated
+WITH CHECK (true);
+
+-- Update/Delete: nur wenn User Owner eines zugeordneten Raums ist
+--   ODER der Modus noch keinem Raum zugeordnet ist (frisch angelegt)
+CREATE POLICY "owners can update vacation_mode"
+ON vacation_mode FOR UPDATE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM rooms r
+    JOIN room_members rm ON rm.room_id = r.id
+    WHERE r.vacation_mode_id = vacation_mode.id
+      AND rm.user_id = auth.uid()
+      AND rm.role = 'owner'
+  )
+  OR NOT EXISTS (
+    SELECT 1 FROM rooms WHERE vacation_mode_id = vacation_mode.id
+  )
+)
+WITH CHECK (true);
+
+CREATE POLICY "owners can delete vacation_mode"
+ON vacation_mode FOR DELETE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM rooms r
+    JOIN room_members rm ON rm.room_id = r.id
+    WHERE r.vacation_mode_id = vacation_mode.id
+      AND rm.user_id = auth.uid()
+      AND rm.role = 'owner'
+  )
+  OR NOT EXISTS (
+    SELECT 1 FROM rooms WHERE vacation_mode_id = vacation_mode.id
+  )
+);
