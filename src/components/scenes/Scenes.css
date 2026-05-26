@@ -385,6 +385,30 @@
   opacity: 0.5;
 }
 
+.activate-success-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  color: #15803d;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.activate-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
 /* Per-room sections in scene form */
 .scene-room-section {
   border: 1px solid var(--border-gray);

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useScenes, type SceneDevice } from "../../hooks/useScenes";
 import { useRooms } from "../../hooks/useRooms";
 import { sceneService } from "../../services/sceneService";
-import { LucidePencil, LucideTrash2, LucidePlus, LucideX, LucidePlay } from "lucide-react";
+import { LucidePencil, LucideTrash2, LucidePlus, LucideX, LucidePlay, LucideCheck } from "lucide-react";
 import type { Scene, DeviceState, SceneDeviceEntry } from "../../types";
 import { DeleteModal } from "../modals/DeleteModal";
 import "./Scenes.css";
@@ -14,6 +14,7 @@ function getDefaultState(type: string): DeviceState {
   if (t === "Dimmer") return { on: true, brightness: 80 };
   if (t === "Thermostat") return { on: true, temperature: 21 };
   if (t === "Jalousie") return { on: true, position: 0 };
+  if (t === "Sensor") return { value: 0 };
   return { on: true };
 }
 
@@ -88,6 +89,18 @@ const StateControl: React.FC<StateControlProps> = ({ type, state, onChange }) =>
           <option value={0}>Zu</option>
           <option value={100}>Auf</option>
         </select>
+      </div>
+    );
+  }
+  if (t === "Sensor") {
+    return (
+      <div className="state-control">
+        <input
+          type="number"
+          step="0.1"
+          value={state.value as number ?? 0}
+          onChange={(e) => onChange({ value: parseFloat(e.target.value) })}
+        />
       </div>
     );
   }
@@ -222,6 +235,7 @@ export const Scenes: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [activating, setActivating] = useState<string | null>(null);
   const [activateError, setActivateError] = useState<string | null>(null);
+  const [activateSuccess, setActivateSuccess] = useState<string | null>(null);
 
   const devicesByRoom = useMemo(() => {
     return devices.reduce((acc: Record<string, SceneDevice[]>, d) => {
@@ -322,10 +336,14 @@ export const Scenes: React.FC = () => {
   const handleActivate = async (s: Scene) => {
     setActivating(s.id);
     setActivateError(null);
+    setActivateSuccess(null);
     try {
       const result = await sceneService.activateScene(s);
       if (!result.ok) {
         setActivateError(`Fehler: ${result.errors.join(", ")}`);
+      } else {
+        setActivateSuccess(s.name);
+        setTimeout(() => setActivateSuccess(null), 3000);
       }
       refresh();
     } catch (err) {
@@ -357,8 +375,15 @@ export const Scenes: React.FC = () => {
         )}
       </div>
 
+      {activateSuccess && (
+        <div className="activate-success-toast">
+          <LucideCheck size={16} />
+          Szene &quot;{activateSuccess}&quot; wurde erfolgreich aktiviert.
+        </div>
+      )}
+
       {activateError && (
-        <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 8, padding: "10px 14px", marginBottom: 16, color: "#b91c1c", fontSize: "0.9rem" }}>
+        <div className="activate-error-banner">
           {activateError}
         </div>
       )}
