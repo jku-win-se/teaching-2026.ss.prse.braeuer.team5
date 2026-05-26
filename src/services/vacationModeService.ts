@@ -13,13 +13,13 @@ export const vacationModeService = {
     if (!supabase) return [];
     const { data, error } = await supabase
       .from("vacation_mode")
-      .select("*, rooms (name), scenes (name)")
+      .select("*, scenes (name), rooms (id, name)")
       .order("start_date", { ascending: true });
     if (error) throw error;
     return (data as VacationMode[]) || [];
   },
 
-  async create(payload: Pick<VacationMode, "room_id" | "scene_id" | "start_date" | "end_date" | "daily_time">) {
+  async create(payload: Pick<VacationMode, "name" | "scene_id" | "start_date" | "end_date" | "daily_time">) {
     if (!supabase) return null;
     const { data, error } = await supabase
       .from("vacation_mode")
@@ -29,7 +29,7 @@ export const vacationModeService = {
     return data;
   },
 
-  async update(id: string, payload: Pick<VacationMode, "room_id" | "scene_id" | "start_date" | "end_date" | "daily_time">) {
+  async update(id: string, payload: Pick<VacationMode, "name" | "scene_id" | "start_date" | "end_date" | "daily_time">) {
     if (!supabase) return null;
     const { data, error } = await supabase
       .from("vacation_mode")
@@ -38,6 +38,22 @@ export const vacationModeService = {
       .select();
     if (error) throw error;
     return data;
+  },
+
+  async assignRooms(vacationModeId: string, roomIds: string[]) {
+    if (!supabase) return;
+    // Unassign rooms currently linked to this vacation mode
+    await supabase
+      .from("rooms")
+      .update({ vacation_mode_id: null })
+      .eq("vacation_mode_id", vacationModeId);
+    // Assign selected rooms
+    if (roomIds.length > 0) {
+      await supabase
+        .from("rooms")
+        .update({ vacation_mode_id: vacationModeId })
+        .in("id", roomIds);
+    }
   },
 
   async toggle(id: string, is_active: boolean) {
@@ -51,21 +67,23 @@ export const vacationModeService = {
 
   async delete(id: string) {
     if (!supabase) return;
+    // ON DELETE SET NULL handles rooms automatically
     const { error } = await supabase.from("vacation_mode").delete().eq("id", id);
     if (error) throw error;
   },
 
-  // Gibt room_ids zurück die aktuell durch Urlaubsmodus gesperrt sind
   async getActiveVacationRoomIds(): Promise<Set<string>> {
     if (!supabase) return new Set();
     const today = toDateString(new Date());
     const { data } = await supabase
       .from("vacation_mode")
-      .select("room_id")
+      .select("rooms (id)")
       .eq("is_active", true)
       .lte("start_date", today)
       .gte("end_date", today);
-    return new Set((data || []).map((r: { room_id: string }) => r.room_id));
+    const roomIds = ((data || []) as { rooms: { id: string }[] }[])
+      .flatMap((vm) => (vm.rooms || []).map((r) => r.id));
+    return new Set(roomIds);
   },
 
   async checkAndExecuteVacationMode() {
@@ -89,7 +107,7 @@ export const vacationModeService = {
     // Aktive Modi für heute holen
     const { data: activeModes, error } = await supabase
       .from("vacation_mode")
-      .select("*, scenes (*)")
+      .select("*, scenes (*), rooms (id)")
       .eq("is_active", true)
       .lte("start_date", today)
       .gte("end_date", today);
@@ -105,17 +123,21 @@ export const vacationModeService = {
 
       await sceneService.activateScene(mode.scenes as Scene);
 
-      const logText = `Urlaubsmodus: Szene "${mode.scenes.name}" aktiviert`;
-      await logAction({
-        room_id: mode.room_id,
-        action: "Urlaubsmodus ausgeführt",
-        new_value: logText,
-        actor_type: "automation",
-        user_id: undefined,
-      });
+      const roomIds: string[] = (mode.rooms || []).map((r: { id: string }) => r.id);
+      const logText = `Urlaubsmodus "${mode.name}": Szene "${mode.scenes.name}" aktiviert`;
+
+      for (const roomId of roomIds) {
+        await logAction({
+          room_id: roomId,
+          action: "Urlaubsmodus ausgeführt",
+          new_value: logText,
+          actor_type: "automation",
+          user_id: undefined,
+        });
+      }
+
       if (eventBus) {
         await eventBus.emitChange({
-          room_id: mode.room_id,
           action: "Urlaubsmodus ausgeführt",
           new_value: logText,
           actor_type: "automation",

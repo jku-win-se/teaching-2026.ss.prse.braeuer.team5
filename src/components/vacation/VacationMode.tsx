@@ -31,11 +31,12 @@ function formatDate(d: string) {
 }
 
 const EMPTY_FORM = {
-  room_id: "",
+  name: "",
   scene_id: "" as string | null,
   start_date: "",
   end_date: "",
   daily_time: "18:00",
+  room_ids: [] as string[],
 };
 
 export const VacationMode: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
@@ -54,9 +55,11 @@ export const VacationMode: React.FC<{ embedded?: boolean }> = ({ embedded = fals
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const scenesForRoom = useMemo(
-    () => (scenes as (typeof scenes[0] & { room_id: string })[]).filter((s) => s.room_id === formData.room_id),
-    [scenes, formData.room_id]
+  const scenesForSelectedRooms = useMemo(
+    () => (scenes as (typeof scenes[0] & { room_id: string })[]).filter(
+      (s) => formData.room_ids.some((id) => id === s.room_id)
+    ),
+    [scenes, formData.room_ids]
   );
 
   const activeCount = useMemo(
@@ -73,39 +76,49 @@ export const VacationMode: React.FC<{ embedded?: boolean }> = ({ embedded = fals
   const openEdit = (m: VacationModeType) => {
     setEditingId(m.id);
     setFormData({
-      room_id: m.room_id,
+      name: m.name,
       scene_id: m.scene_id,
       start_date: m.start_date,
       end_date: m.end_date,
       daily_time: m.daily_time.substring(0, 5),
+      room_ids: (m.rooms || []).map((r) => r.id),
     });
     setShowModal(true);
   };
 
-  const handleRoomChange = (room_id: string) => {
-    setFormData((prev) => ({ ...prev, room_id, scene_id: "" }));
+  const toggleRoom = (roomId: string) => {
+    setFormData((prev) => {
+      const has = prev.room_ids.includes(roomId);
+      const room_ids = has
+        ? prev.room_ids.filter((id) => id !== roomId)
+        : [...prev.room_ids, roomId];
+      // Reset scene if it no longer belongs to selected rooms
+      return { ...prev, room_ids, scene_id: "" };
+    });
   };
 
   const handleSave = async () => {
-    const payload = {
-      ...formData,
-      scene_id: formData.scene_id || null,
-    };
+    const { room_ids, ...payload } = formData;
+    let vmId: string;
     if (editingId) {
-      await vacationModeService.update(editingId, payload);
+      await vacationModeService.update(editingId, { ...payload, scene_id: payload.scene_id || null });
+      vmId = editingId;
     } else {
-      await vacationModeService.create(payload);
+      const created = await vacationModeService.create({ ...payload, scene_id: payload.scene_id || null });
+      vmId = (created as { id: string }[])[0].id;
     }
+    await vacationModeService.assignRooms(vmId, room_ids);
     setShowModal(false);
     refresh();
   };
 
   const isFormValid =
-    formData.room_id &&
+    formData.name.trim().length > 0 &&
     formData.start_date &&
     formData.end_date &&
     formData.daily_time &&
-    formData.end_date >= formData.start_date;
+    formData.end_date >= formData.start_date &&
+    formData.room_ids.length > 0;
 
   if (loading) return <div className="loading">Lade...</div>;
 
@@ -124,7 +137,7 @@ export const VacationMode: React.FC<{ embedded?: boolean }> = ({ embedded = fals
         <div className="vacation-override-notice">
           <LucideInfo size={16} />
           {activeCount === 1
-            ? "1 Urlaubsmodus aktiv — Zeitpläne im betroffenen Raum werden übersprungen."
+            ? "1 Urlaubsmodus aktiv — Zeitpläne in den betroffenen Räumen werden übersprungen."
             : `${activeCount} Urlaubsmodi aktiv — Zeitpläne in den betroffenen Räumen werden übersprungen.`}
         </div>
       )}
@@ -135,13 +148,22 @@ export const VacationMode: React.FC<{ embedded?: boolean }> = ({ embedded = fals
 
       {modes.map((m) => {
         const status = getStatus(m);
-        const canManage = ownerRoomIds.has(m.room_id);
+        const canManage = (m.rooms || []).some((r) => ownerRoomIds.has(r.id));
         return (
           <div key={m.id} className="vacation-card">
             <div className="vacation-info">
               <div className="vacation-title-row">
-                <span className="vacation-name">{m.rooms?.name ?? "Raum"}</span>
+                <span className="vacation-name">{m.name}</span>
                 <span className={`status-badge ${status}`}>{STATUS_LABEL[status]}</span>
+              </div>
+
+              <div className="vacation-room-chips">
+                {(m.rooms || []).map((r) => (
+                  <span key={r.id} className="vacation-room-chip">{r.name}</span>
+                ))}
+                {(m.rooms || []).length === 0 && (
+                  <span className="vacation-room-chip vacation-room-chip--empty">Keine Räume</span>
+                )}
               </div>
 
               <div className="vacation-details">
@@ -170,7 +192,7 @@ export const VacationMode: React.FC<{ embedded?: boolean }> = ({ embedded = fals
                   </button>
                   <button
                     className="action-btn delete-btn"
-                    onClick={() => setDeleteTarget({ id: m.id, name: m.rooms?.name ?? "Urlaubsmodus" })}
+                    onClick={() => setDeleteTarget({ id: m.id, name: m.name })}
                   >
                     <LucideTrash2 size={18} />
                   </button>
@@ -212,13 +234,32 @@ export const VacationMode: React.FC<{ embedded?: boolean }> = ({ embedded = fals
             <div className="modal-body">
 
               <div className="form-group">
-                <label>Raum</label>
-                <select value={formData.room_id} onChange={(e) => handleRoomChange(e.target.value)}>
-                  <option value="">Raum auswählen...</option>
+                <label>Name</label>
+                <input
+                  type="text"
+                  placeholder="z.B. Sommerurlaub"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Räume</label>
+                <div className="room-checkbox-list">
                   {ownerRooms.map((r) => (
-                    <option key={r.id} value={r.id}>{r.name}</option>
+                    <label key={r.id} className="room-checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={formData.room_ids.includes(r.id)}
+                        onChange={() => toggleRoom(r.id)}
+                      />
+                      {r.name}
+                    </label>
                   ))}
-                </select>
+                  {ownerRooms.length === 0 && (
+                    <span className="no-rooms-hint">Keine eigenen Räume vorhanden.</span>
+                  )}
+                </div>
               </div>
 
               <div className="form-group">
@@ -226,10 +267,10 @@ export const VacationMode: React.FC<{ embedded?: boolean }> = ({ embedded = fals
                 <select
                   value={formData.scene_id ?? ""}
                   onChange={(e) => setFormData({ ...formData, scene_id: e.target.value || null })}
-                  disabled={!formData.room_id}
+                  disabled={formData.room_ids.length === 0}
                 >
                   <option value="">Keine Szene</option>
-                  {scenesForRoom.map((s) => (
+                  {scenesForSelectedRooms.map((s) => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </select>

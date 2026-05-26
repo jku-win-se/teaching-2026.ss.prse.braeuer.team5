@@ -134,14 +134,14 @@ export interface Scene {
 
 export interface VacationMode {
   id: string;
-  room_id: string;
+  name: string;
   scene_id: string | null;
   start_date: string;
   end_date: string;
   daily_time: string;
   is_active: boolean;
   created_at?: string;
-  rooms?: { name: string };
+  rooms?: { id: string; name: string }[];
   scenes?: { name: string } | null;
 }
 

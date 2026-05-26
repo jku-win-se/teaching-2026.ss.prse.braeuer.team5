@@ -1,0 +1,23 @@
+-- Migration: vacation_mode 1:n rooms
+-- Führe dieses Script im Supabase SQL Editor aus
+
+-- 1. Name-Spalte zu vacation_mode hinzufügen (aus aktuellem Raum-Namen befüllen)
+ALTER TABLE vacation_mode ADD COLUMN IF NOT EXISTS name TEXT NOT NULL DEFAULT '';
+
+UPDATE vacation_mode vm
+SET name = COALESCE((SELECT r.name FROM rooms r WHERE r.id = vm.room_id), 'Urlaubsmodus');
+
+-- 2. vacation_mode_id FK in rooms-Tabelle
+ALTER TABLE rooms ADD COLUMN IF NOT EXISTS vacation_mode_id UUID REFERENCES vacation_mode(id) ON DELETE SET NULL;
+
+-- 3. Bestehende Zuordnungen übertragen
+UPDATE rooms r
+SET vacation_mode_id = vm.id
+FROM vacation_mode vm
+WHERE vm.room_id = r.id;
+
+-- 4. room_id aus vacation_mode entfernen
+ALTER TABLE vacation_mode DROP COLUMN IF EXISTS room_id;
+
+-- RLS: rooms darf vacation_mode_id setzen (owner)
+-- (bestehende RLS-Policies auf rooms reichen, da UPDATE schon erlaubt ist)
