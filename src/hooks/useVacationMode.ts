@@ -17,7 +17,7 @@ export const useVacationMode = () => {
     try {
       const [modeData, { data: sceneData }] = await Promise.all([
         vacationModeService.fetchAll(),
-        supabase.from("scenes").select("id, name, room_id"),
+        supabase.from("scenes").select("id, name"),
       ]);
       setModes(modeData);
       setScenes((sceneData ?? []) as unknown as VacationScene[]);

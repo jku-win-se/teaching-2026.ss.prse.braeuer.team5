@@ -325,8 +325,8 @@ export const Scenes: React.FC = () => {
       await sceneService.updateScene(editingId, payload);
       sceneId = editingId;
     } else {
-      const created = await sceneService.createScene(payload);
-      sceneId = (created as { id: string }[])[0].id;
+      const created = await sceneService.createScene(payload) as Scene;
+      sceneId = created?.id;
     }
     await sceneService.assignRooms(sceneId, room_ids);
     setShowModal(false);

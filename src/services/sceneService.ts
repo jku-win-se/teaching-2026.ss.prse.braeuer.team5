@@ -13,7 +13,7 @@ export const sceneService = {
     return (data as Scene[]) || [];
   },
 
-  async createScene(payload: Pick<Scene, "name" | "description" | "device_states">) {
+  async createScene(payload: Pick<Scene, "name" | "description" | "device_states">): Promise<Scene | null> {
     if (!supabase) return null;
     const { data, error } = await supabase
       .from("scenes")
@@ -22,7 +22,8 @@ export const sceneService = {
         description: payload.description || null,
         device_states: payload.device_states,
       }])
-      .select();
+      .select()
+      .single();
     if (error) throw error;
     return data;
   },
@@ -37,19 +38,19 @@ export const sceneService = {
         device_states: payload.device_states,
       })
       .eq("id", id)
-      .select();
+      .select()
+      .single();
     if (error) throw error;
     return data;
   },
 
   async assignRooms(sceneId: string, roomIds: string[]) {
     if (!supabase) return;
-    await supabase.from("scene_rooms").delete().eq("scene_id", sceneId);
-    if (roomIds.length > 0) {
-      await supabase.from("scene_rooms").insert(
-        roomIds.map((room_id) => ({ scene_id: sceneId, room_id }))
-      );
-    }
+    const { error } = await supabase.rpc("assign_scene_rooms", {
+      p_scene_id: sceneId,
+      p_room_ids: roomIds,
+    });
+    if (error) throw error;
   },
 
   async deleteScene(id: string) {
@@ -83,9 +84,15 @@ export const sceneService = {
 
     const logText = `Szene "${scene.name}" aktiviert (${entries.length} Gerät${entries.length !== 1 ? "e" : ""})`;
     const roomIds = (scene.scene_rooms || []).map((sr) => sr.room_id);
-    const primaryRoomId = roomIds[0] ?? scene.room_id ?? undefined;
+    const primaryRoomId = roomIds[0];
 
-    await logAction({ room_id: primaryRoomId, action: "Szene aktiviert", new_value: logText, actor_type: "user", user_id: userId });
+    await logAction({
+      room_id: primaryRoomId,
+      action: "Szene aktiviert",
+      new_value: logText,
+      actor_type: "user",
+      user_id: userId,
+    });
 
     return { ok: errors.length === 0, errors };
   },
