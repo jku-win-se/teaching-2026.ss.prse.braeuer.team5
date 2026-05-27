@@ -4,7 +4,9 @@ import { supabase } from "../config/supabaseClient";
 import type { VacationMode } from "../types";
 import type { Scene } from "../types";
 
-export type VacationScene = Pick<Scene, "id" | "name">;
+export type VacationScene = Pick<Scene, "id" | "name"> & {
+  scene_rooms: { room_id: string }[];
+};
 
 export const useVacationMode = () => {
   const [modes, setModes] = useState<VacationMode[]>([]);
@@ -17,7 +19,7 @@ export const useVacationMode = () => {
     try {
       const [modeData, { data: sceneData }] = await Promise.all([
         vacationModeService.fetchAll(),
-        supabase.from("scenes").select("id, name"),
+        supabase.from("scenes").select("id, name, scene_rooms(room_id)"),
       ]);
       setModes(modeData);
       setScenes((sceneData ?? []) as unknown as VacationScene[]);

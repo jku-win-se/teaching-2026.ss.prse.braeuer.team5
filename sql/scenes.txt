@@ -1,58 +1,40 @@
--- Scenes (FR-17)
-CREATE TABLE scenes (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  room_id UUID NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  description TEXT,
-  device_states JSONB NOT NULL DEFAULT '[]',
-  created_at TIMESTAMPTZ DEFAULT now()
-);
+--cleanup scenes
 
-ALTER TABLE scenes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE scenes 
+  DROP COLUMN room_id CASCADE,
+  ADD COLUMN created_by UUID REFERENCES auth.users(id) DEFAULT auth.uid();
 
--- All room members can view scenes
-CREATE POLICY "room members can view scenes"
+ALTER TABLE scenes ALTER COLUMN created_by SET NOT NULL;
+
+-- alte Policies weg
+DROP POLICY IF EXISTS "room members can view scenes" ON scenes;
+DROP POLICY IF EXISTS "owners can insert scenes" ON scenes;
+DROP POLICY IF EXISTS "owners can update scenes" ON scenes;
+DROP POLICY IF EXISTS "owners can delete scenes" ON scenes;
+
+-- SELECT: User sieht Scenes, die er erstellt hat ODER die in einem Room sind, dem er angehört
+CREATE POLICY "users can view accessible scenes"
   ON scenes FOR SELECT
   USING (
-    EXISTS (
-      SELECT 1 FROM room_members
-      WHERE room_members.room_id = scenes.room_id
-        AND room_members.user_id = auth.uid()
+    created_by = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM scene_rooms sr
+      JOIN room_members rm ON rm.room_id = sr.room_id
+      WHERE sr.scene_id = scenes.id
+        AND rm.user_id = auth.uid()
     )
   );
 
--- Only owners can insert
-CREATE POLICY "owners can insert scenes"
+-- INSERT: jeder eingeloggte User darf eine Scene für sich anlegen
+CREATE POLICY "users can insert their own scenes"
   ON scenes FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM room_members
-      WHERE room_members.room_id = scenes.room_id
-        AND room_members.user_id = auth.uid()
-        AND room_members.role = 'owner'
-    )
-  );
+  WITH CHECK (created_by = auth.uid());
 
--- Only owners can update
-CREATE POLICY "owners can update scenes"
+-- UPDATE/DELETE: nur der Ersteller
+CREATE POLICY "creators can update scenes"
   ON scenes FOR UPDATE
-  USING (
-    EXISTS (
-      SELECT 1 FROM room_members
-      WHERE room_members.room_id = scenes.room_id
-        AND room_members.user_id = auth.uid()
-        AND room_members.role = 'owner'
-    )
-  );
+  USING (created_by = auth.uid());
 
--- Only owners can delete
-CREATE POLICY "owners can delete scenes"
+CREATE POLICY "creators can delete scenes"
   ON scenes FOR DELETE
-  USING (
-    EXISTS (
-      SELECT 1 FROM room_members
-      WHERE room_members.room_id = scenes.room_id
-        AND room_members.user_id = auth.uid()
-        AND room_members.role = 'owner'
-    )
-  );
+  USING (created_by = auth.uid());

@@ -56,8 +56,8 @@ export const VacationMode: React.FC<{ embedded?: boolean }> = ({ embedded = fals
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const scenesForSelectedRooms = useMemo(
-    () => (scenes as (typeof scenes[0] & { room_id: string })[]).filter(
-      (s) => formData.room_ids.some((id) => id === s.room_id)
+    () => scenes.filter(
+      (s) => s.scene_rooms?.some((sr) => formData.room_ids.includes(sr.room_id))
     ),
     [scenes, formData.room_ids]
   );

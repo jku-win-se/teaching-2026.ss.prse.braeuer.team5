@@ -1,0 +1,15 @@
+CREATE OR REPLACE FUNCTION assign_scene_rooms(p_scene_id UUID, p_room_ids UUID[])
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY INVOKER
+AS $$
+BEGIN
+  DELETE FROM scene_rooms
+   WHERE scene_id = p_scene_id
+     AND NOT (room_id = ANY(p_room_ids));
+
+  INSERT INTO scene_rooms (scene_id, room_id)
+  SELECT p_scene_id, unnest(p_room_ids)
+  ON CONFLICT (scene_id, room_id) DO NOTHING;
+END;
+$$;
