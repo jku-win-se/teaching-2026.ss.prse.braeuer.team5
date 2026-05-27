@@ -1,0 +1,62 @@
+-- Migration: scenes 1:n rooms via scene_rooms junction table
+-- Fuehre dieses Script im Supabase SQL Editor aus
+
+-- 1. Junction-Tabelle erstellen
+CREATE TABLE IF NOT EXISTS scene_rooms (
+  scene_id UUID NOT NULL REFERENCES scenes(id) ON DELETE CASCADE,
+  room_id  UUID NOT NULL REFERENCES rooms(id)  ON DELETE CASCADE,
+  PRIMARY KEY (scene_id, room_id)
+);
+
+-- 2. Bestehende Zuordnungen uebertragen
+INSERT INTO scene_rooms (scene_id, room_id)
+SELECT id, room_id FROM scenes WHERE room_id IS NOT NULL
+ON CONFLICT DO NOTHING;
+
+-- 3. room_id auf scenes nullable machen (Backwards-Compat)
+ALTER TABLE scenes ALTER COLUMN room_id DROP NOT NULL;
+
+-- 4. RLS aktivieren
+ALTER TABLE scene_rooms ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "authenticated users can view scene_rooms" ON scene_rooms;
+DROP POLICY IF EXISTS "authenticated users can insert scene_rooms" ON scene_rooms;
+DROP POLICY IF EXISTS "authenticated users can delete scene_rooms" ON scene_rooms;
+DROP POLICY IF EXISTS "owners can link their scenes" ON scene_rooms;
+
+
+-- SELECT: Room-Mitglieder sehen die Verknüpfungen ihres Rooms
+CREATE POLICY "room members can view scene_rooms"
+  ON scene_rooms FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = scene_rooms.room_id
+        AND room_members.user_id = auth.uid()
+    )
+  );
+
+-- INSERT: nur Owner des Rooms darf eine Scene reinhängen
+-- UND: nur der Scene-Ersteller darf seine Scene irgendwohin hängen
+CREATE POLICY "owners can link their scenes"
+  ON scene_rooms FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = scene_rooms.room_id
+        AND room_members.user_id = auth.uid()
+        AND room_members.role = 'owner'
+    )
+  );
+
+-- DELETE: gleiche Logik
+CREATE POLICY "owners can unlink scenes"
+  ON scene_rooms FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = scene_rooms.room_id
+        AND room_members.user_id = auth.uid()
+        AND room_members.role = 'owner'
+    )
+  );
