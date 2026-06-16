@@ -10,7 +10,7 @@
 }
 
 
-.app-main section{
+.app-main section:not(.ed-card) {
   padding-top: 0px !important;
   padding-left: 24px !important;
 }
@@ -31,7 +31,7 @@
     padding: 12px;
   }
 
-  .app-main section {
+  .app-main section:not(.ed-card) {
     padding-left: 0 !important;
   }
 }
