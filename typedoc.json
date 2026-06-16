@@ -1,0 +1,13 @@
+{
+  "entryPoints": ["src"],
+  "out": "docs/api",
+  "tsconfig": "tsconfig.app.json",
+  "plugin": ["typedoc-plugin-markdown"],
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "readme": "none",
+  "hideGenerator": true,
+  "gitRevision": "main",
+  "theme": "default"
+}

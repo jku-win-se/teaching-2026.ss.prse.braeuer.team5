@@ -53,3 +53,7 @@ flowchart LR
 - Build: `npm run build`
 - Statische Analyse: `npm run lint`
 - CI: GitHub Actions fuehrt Lint und Build auf Push und Pull Request aus
+
+## Ergaenzende UML-Diagramme
+
+- [UML-Diagramme zur Systemarchitektur](./uml-diagram.md)

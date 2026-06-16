@@ -13,7 +13,8 @@
     "test:watch": "vitest -w",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "test:ci": "vitest run --coverage --reporter=default --reporter=junit --outputFile=reports/test-report.xml"
+    "test:ci": "vitest run --coverage --reporter=default --reporter=junit --outputFile=reports/test-report.xml",
+    "docs:api": "npx typedoc --options typedoc.json"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.1",
@@ -39,6 +40,8 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "jsdom": "^29.0.1",
+    "typedoc": "^0.28.0",
+    "typedoc-plugin-markdown": "^5.0.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
     "vite": "^7.3.1",

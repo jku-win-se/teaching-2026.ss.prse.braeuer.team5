@@ -7,10 +7,11 @@ Webanwendung fuer das PRSE-Projekt im SS26. Die Anwendung dient zur Verwaltung s
 
 ## Aktueller Stand
 
-- Offizielles Team-Repo auf React, TypeScript und Vite umgestellt
-- Erste Navigationsstruktur fuer Dashboard, Devices und Simulator vorhanden
-- Supabase-Anbindung vorbereitet ueber Umgebungsvariablen
-- GitHub Actions prueft Lint und Production Build
+- Frontend mit React, TypeScript und Vite
+- Navigation und Seiten fuer Dashboard, Raeume, Geraete, Regeln, Szenen, Zeitplaene, Urlaub, Benachrichtigungen und Simulator
+- Supabase-Anbindung vorbereitet fuer Authentifizierung, Datenhaltung und spaetere Echtzeitfunktionen
+- UI-Komponenten, wiederverwendbare Hooks und Services fuer Geraete-, Raum- und Automatisierungsdaten
+- GitHub Actions prueft Lint und Production Build auf Push und Pull Request
 
 ## Voraussetzungen
 
@@ -33,7 +34,9 @@ Webanwendung fuer das PRSE-Projekt im SS26. Die Anwendung dient zur Verwaltung s
 ## Dokumentation
 
 - [Benutzerdokumentation](./docs/user-handbook.md)
-- [Systemarchitektur](./docs/uml-diagram.md)
+- [Systemarchitektur](./docs/system-architecture.md)
+- [UML-Diagramme zur Systemarchitektur](./docs/uml-diagram.md)
+- [Automatisch generierte API-Dokumentation](./docs/api/README.md)
 - [Git-Workflow](./docs/git-workflow.md)
 - [Projekt-Roadmap](./docs/project-roadmap.md)
 - [Testing und Coverage](./docs/testing-and-coverage.md)

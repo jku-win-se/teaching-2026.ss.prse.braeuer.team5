@@ -1,4 +1,6 @@
-# Smart Home Orchestrator — UML Diagrams
+# Smart Home Orchestrator — UML-Diagramme zur Systemarchitektur
+
+Diese Seite enthaelt ergaenzende UML-Diagramme zur Systemarchitektur. Zur narrativen Uebersicht siehe [Systemarchitektur](./system-architecture.md).
 
 ## 1. Component Tree
 
