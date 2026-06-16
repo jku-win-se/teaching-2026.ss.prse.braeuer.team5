@@ -36,6 +36,18 @@ Die aktuelle öffentliche Version der Anwendung ist über GitHub Pages erreichba
 
 Diese Seite dient als Referenz für den produktiven, öffentlich zugänglichen Stand der App.
 
+## Gerätekompatibilität und Responsive Design
+
+Die Anwendung ist vollständig responsive und funktioniert auf verschiedenen Geräten und Bildschirmgrößen:
+
+- **Desktop** (> 900px): Vollständige Ansicht mit Sidebar und allen UI-Elementen
+- **Tablet** (480px - 900px): Optimierte Ansicht mit angepasstem Layout
+- **Mobile** (< 480px): Kompaktes Mobilgerät-Layout mit vereinfachter Bedienung
+
+![Responsive Desgin](image-29.png)
+
+Die Anwendung passt sich automatisch an die Bildschirmgröße an und bietet auf allen Geräten eine intuitive Bedienung.
+
 ## Funktionale Beschreibung
 
 Die Anwendung unterstützt die folgenden Kernfunktionen in Bezug auf die funktionalen Anforderungen:

@@ -30,6 +30,7 @@ flowchart LR
 - Vite fuer schnellen Start und einfachen Build
 - Supabase, damit Auth und Datenhaltung nicht selbst gebaut werden muessen
 - Erst ein einfacher End-to-End-Flow, danach schrittweiser Ausbau
+- Responsive Design mit Mobile-First Ansatz fuer Desktop, Tablet und Mobile-Geraete
 
 ## Aktuelle Projektstruktur
 
