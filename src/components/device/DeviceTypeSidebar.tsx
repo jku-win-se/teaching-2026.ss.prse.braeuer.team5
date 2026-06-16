@@ -49,7 +49,7 @@ export function DeviceTypeSidebar({ onSelectType, isOpen, onClose, canManage }: 
           {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
 
-        {!isCollapsed && (
+        {(!isCollapsed || isOpen) && (
           <>
             <h3 className="bauteile-title">BAUTEILE</h3>
             <div className="mobile-sidebar-cancel">

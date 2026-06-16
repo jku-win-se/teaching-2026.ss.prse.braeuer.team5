@@ -10,7 +10,7 @@
 }
 
 
-.app-main section{
+.app-main section:not(.ed-card) {
   padding-top: 0px !important;
   padding-left: 24px !important;
 }
@@ -18,15 +18,20 @@
 @media (max-width: 900px) {
   .app-shell {
     grid-template-columns: 1fr;
-    align-content: start; /* prevents the grid from distributing 100dvh height across rows */
+    align-content: start;
   }
 
   .app-main {
     padding: 20px;
   }
+}
 
-  .app-shell aside {
-    display: flex;
-    justify-content: center;
+@media (max-width: 480px) {
+  .app-main {
+    padding: 12px;
+  }
+
+  .app-main section:not(.ed-card) {
+    padding-left: 0 !important;
   }
 }
