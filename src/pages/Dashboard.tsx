@@ -116,65 +116,65 @@ const EnergyDashboard: React.FC = () => {
         </section>
 
         <section className="ed-card">
-          <h3>Verlauf {range === 'day' ? '(24h)' : '(Woche)'} 
+          <h3>Verlauf {range === 'day' ? '(24h)' : '(Woche)'}
             {filter.id && <span className="ed-filter-tag"> - {filter.id}</span>}
           </h3>
-          <div className="ed-chart-area">
-            {displayData.map((entry, i) => {
-              const height = maxValueInData > 0 ? (entry.value / dynamicMax) * 100 : 0;
-
-              return (
-                <div key={i} className="ed-chart-column">
-                  <div className="ed-bar-container">
-                    <div 
-                      className="ed-bar" 
-                      style={{ 
-                        height: `${height}%`,
-                        transition: 'height 0.3s ease-in-out'
-                      }}
-                    >
-                      {entry.value > 0 && (
-                        <span className="ed-bar-tooltip">{entry.value} Wh</span>
-                      )}
+          <div className="ed-chart-scroll-wrapper">
+            <div className="ed-chart-area" style={{ minWidth: `${displayData.length * 44}px` }}>
+              {displayData.map((entry, i) => {
+                const height = maxValueInData > 0 ? (entry.value / dynamicMax) * 100 : 0;
+                return (
+                  <div key={i} className="ed-chart-column">
+                    <div className="ed-bar-container">
+                      <div
+                        className="ed-bar"
+                        style={{ height: `${height}%`, transition: 'height 0.3s ease-in-out' }}
+                      >
+                        {entry.value > 0 && (
+                          <span className="ed-bar-tooltip">{entry.value} Wh</span>
+                        )}
+                      </div>
                     </div>
+                    <span className="ed-bar-label">{entry.label}</span>
                   </div>
-                  <span className="ed-bar-label">{entry.label}</span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </section>
 
         <section className="ed-card ed-full-width">
           <h3>Einzelne Geräte</h3>
-          <table className="ed-device-table">
-            <thead>
-              <tr>
-                <th>Gerät</th>
-                <th>Status</th>
-                <th>Raum</th>
-                <th style={{ textAlign: 'right' }}>Verbrauch</th>
-              </tr>
-            </thead>
-            <tbody>
-              {byDevice.map((device, i) => (
-                <tr key={i}>
-                  <td>{device.name}</td>
-                  <td>
-                    <span className={`ed-status-pill ${device.isActive ? 'on' : 'off'}`}>
-                      {device.isActive ? 'AN' : 'AUS'}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="ed-room-tag">{device.rooms?.name || 'Kein Raum'}</span>
-                  </td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                    {device.consumption} W
-                  </td>
+          <div className="ed-device-table-wrapper">
+            <table className="ed-device-table">
+              <thead>
+                <tr>
+                  <th>Gerät</th>
+                  <th>Status</th>
+                  <th>Raum</th>
+                  <th style={{ textAlign: 'right' }}>Verbrauch</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {byDevice.map((device, i) => (
+                  <tr key={i}>
+                    <td data-label="Gerät">{device.name}</td>
+                    <td data-label="Status">
+                      <span className={`ed-status-pill ${device.isActive ? 'on' : 'off'}`}>
+                        {device.isActive ? 'AN' : 'AUS'}
+                      </span>
+                    </td>
+                    <td data-label="Raum">
+                      <span className="ed-room-tag">{device.rooms?.name || 'Kein Raum'}</span>
+                    </td>
+                    <td data-label="Verbrauch" style={{ textAlign: 'right', fontWeight: 'bold' }}>
+                      {device.consumption} W
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       </div>
     </div>
