@@ -1,11 +1,12 @@
+/* ── Desktop Sidebar ── */
 .sidebar {
   display: flex;
   flex-direction: column;
   gap: 28px;
   position: sticky;
   top: 0;
-  min-height: 100vh; 
-  height: auto; 
+  min-height: 100vh;
+  height: auto;
   padding: 28px 20px;
   background: linear-gradient(180deg, var(--background-sidebar1-mix-1) 0%, var(--background-sidebar1_mix-2) 100%);
 }
@@ -64,85 +65,88 @@
   font-weight: 700;
 }
 
-.logoutbtn{
+.footer {
+  margin-top: auto;
+}
+
+.logoutbtn {
   border: none;
+  width: 100%;
+  text-align: left;
 }
 
-.logoutbtn:hover{
-  background-color: #202a35
+.logoutbtn:hover {
+  background-color: #202a35;
 }
 
+/* ── Mobile: Topbar + Drawer ── */
+.mobileHeader {
+  display: none;
+}
+
+.mobileTitle {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.2rem;
+}
+
+.hamburger {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.hamburger:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.mobileBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 100;
+  /* Drawer öffnet von oben */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.mobileDrawer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: linear-gradient(180deg, var(--background-sidebar1-mix-1) 0%, var(--background-sidebar1_mix-2) 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-8px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
 
 @media (max-width: 900px) {
-  
+  /* Desktop Sidebar ausblenden */
   .sidebar {
-
-    /* 1. Höhe auf den Inhalt begrenzen */
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    flex: none !important; /* Verhindert, dass die Navbar sich in einem Flex-Container ausdehnt */
-    align-self: start; /* Verhindert, dass das Grid die Sidebar auf Zeilenhöhe streckt */
-
-    /* 2. Abstände radikal verkleinern */
-    padding: 12px 15px !important; /* Weniger Padding oben/unten */
-    gap: 4px !important; /* Kleinerer Abstand zwischen Titel und Nav-Leiste */
-    
-    /* 3. Ausrichtung korrigieren */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start !important; /* Inhalt oben zusammenhalten statt verteilen */
-    align-items: center;
-    border-radius: 0;
-    z-index: 2;      /* Hoher Wert bringt es nach vorne */
-
-  }
-
-  .eyebrow {
-    display: none; /* Spart Platz auf dem Handy */
-  }
-
-  .title {
-    font-size: 1.2rem; /* Titel etwas kleiner */
-    margin-bottom: 5px;
-  }
-
-  .nav {
-    flex-direction: row; /* Links nebeneinander statt untereinander */
-    width: 100%;
-    overflow-x: auto; /* Erlaubt horizontales Scrollen, falls die Links nicht passen */
-    padding-bottom: 5px;
-    
-    /* Versteckt die Scrollbar für einen sauberen Look (optional) */
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-    justify-content: center;
-    margin-left: 0px !important;
-  }
-  
-  .nav::-webkit-scrollbar {
     display: none;
   }
 
-  .navLink, .activeLink {
-    white-space: nowrap;
-    padding: 8px 16px;
-    font-size: 0.9rem;
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 480px) {
-  .sidebar {
-    padding: 8px 10px !important;
-  }
-
-  .title {
-    font-size: 1rem;
-  }
-
-  .navLink, .activeLink {
-    padding: 6px 10px;
-    font-size: 0.8rem;
+  /* Mobile Topbar einblenden */
+  .mobileHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: linear-gradient(180deg, var(--background-sidebar1-mix-1) 0%, var(--background-sidebar1_mix-2) 100%);
+    position: sticky;
+    top: 0;
+    z-index: 50;
   }
 }
