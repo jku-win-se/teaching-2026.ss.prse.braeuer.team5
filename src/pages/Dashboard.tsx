@@ -147,6 +147,7 @@ const EnergyDashboard: React.FC = () => {
 
         <section className="ed-card ed-full-width">
           <h3>Einzelne Geräte</h3>
+          <div className="ed-device-table-wrapper">
           <table className="ed-device-table">
             <thead>
               <tr>
@@ -175,6 +176,7 @@ const EnergyDashboard: React.FC = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </section>
       </div>
     </div>

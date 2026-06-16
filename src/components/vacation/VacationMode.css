@@ -338,3 +338,63 @@ input:checked + .slider:before { transform: translateX(22px); }
   align-items: center;
   gap: 8px;
 }
+
+@media (max-width: 768px) {
+  .vacation-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .vacation-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .vacation-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .vacation-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .form-row-half {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-box {
+    padding: 16px;
+    margin: 12px;
+    border-radius: 12px;
+    max-height: 95vh;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .modal-footer .btn-primary,
+  .modal-footer .btn-flat {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .vacation-container {
+    padding: 0.75rem;
+  }
+
+  .vacation-name {
+    font-size: 1rem;
+  }
+}

@@ -18,7 +18,7 @@
 @media (max-width: 900px) {
   .app-shell {
     grid-template-columns: 1fr;
-    align-content: start; /* prevents the grid from distributing 100dvh height across rows */
+    align-content: start;
   }
 
   .app-main {
@@ -28,5 +28,15 @@
   .app-shell aside {
     display: flex;
     justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-main {
+    padding: 12px;
+  }
+
+  .app-main section {
+    padding-left: 0 !important;
   }
 }

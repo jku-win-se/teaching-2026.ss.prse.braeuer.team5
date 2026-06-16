@@ -97,3 +97,38 @@
   border-color: var(--text-muted, #666);
   color: var(--text-main, #000);
 }
+
+@media (max-width: 768px) {
+  .log-container {
+    padding: 1rem;
+  }
+
+  .log-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .log-table {
+    min-width: 520px;
+  }
+
+  .log-table th,
+  .log-table td {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .log-container {
+    padding: 0.75rem;
+  }
+
+  .log-export-wrapper {
+    margin-bottom: 10px;
+  }
+
+  .ed-export-btn {
+    width: 100%;
+  }
+}

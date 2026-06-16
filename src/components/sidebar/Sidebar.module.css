@@ -125,9 +125,24 @@
   }
 
   .navLink, .activeLink {
-    white-space: nowrap; /* Verhindert Zeilenumbruch im Text */
+    white-space: nowrap;
     padding: 8px 16px;
     font-size: 0.9rem;
-    flex-shrink: 0; /* Wichtig für das horizontale Scrollen */
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    padding: 8px 10px !important;
+  }
+
+  .title {
+    font-size: 1rem;
+  }
+
+  .navLink, .activeLink {
+    padding: 6px 10px;
+    font-size: 0.8rem;
   }
 }

@@ -448,3 +448,62 @@
   opacity: 1;
   color: var(--danger);
 }
+
+@media (max-width: 768px) {
+  .scenes-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .scenes-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .scene-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .scene-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .activate-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .modal-box {
+    padding: 16px;
+    margin: 12px;
+    border-radius: 12px;
+    max-height: 95vh;
+  }
+
+  .device-action-row {
+    flex-wrap: wrap;
+  }
+
+  .device-action-row select {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .scenes-container {
+    padding: 0.75rem;
+  }
+
+  .scene-name {
+    font-size: 1rem;
+  }
+}
