@@ -1,4 +1,5 @@
 {
+  "entryPointStrategy": "expand",
   "entryPoints": ["src"],
   "out": "docs/api",
   "tsconfig": "tsconfig.app.json",
@@ -8,6 +9,5 @@
   "excludeExternals": true,
   "readme": "none",
   "hideGenerator": true,
-  "gitRevision": "main",
-  "theme": "default"
+  "gitRevision": "main"
 }

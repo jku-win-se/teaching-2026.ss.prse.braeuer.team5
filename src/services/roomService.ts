@@ -3,10 +3,18 @@ import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
 import type { Device, Room, RoomMembership, RoomRole } from "../types";
 
+/**
+ * Gibt die UUID des aktuell authentifizierten Nutzers zurück.
+ * @returns Nutzer-UUID oder `null` wenn keine Session vorhanden ist.
+ */
 async function getCurrentUserId(): Promise<string | null> {
   return (await supabase?.auth.getUser())?.data?.user?.id ?? null;
 }
 
+/**
+ * Lädt alle Raum-Mitgliedschaften des aktuellen Nutzers.
+ * @returns Array von {@link RoomMembership}-Objekten oder leeres Array bei Fehler.
+ */
 async function fetchOwnRoomMemberships(): Promise<RoomMembership[]> {
   if (!supabase) return [];
 
@@ -26,11 +34,24 @@ async function fetchOwnRoomMemberships(): Promise<RoomMembership[]> {
   return data ?? [];
 }
 
+/**
+ * Gibt die Rolle eines Nutzers in einem bestimmten Raum zurück.
+ * @param roomId - UUID des Raums.
+ * @param userId - UUID des Nutzers.
+ * @returns `"owner"` oder `"member"` oder `null` wenn keine Mitgliedschaft besteht.
+ */
 export async function fetchRoomRole(roomId: string, userId: string | undefined): Promise<RoomRole | null> {
   const memberships = await fetchOwnRoomMemberships();
   return memberships.find((membership) => membership.room_id === roomId && membership.user_id === userId)?.role ?? null;
 }
 
+/**
+ * Prüft, ob der aktuelle Nutzer Eigentümer des Raums ist.
+ * Zeigt einen Alert an und gibt `false` zurück, wenn nicht.
+ * @param roomId - UUID des Raums.
+ * @param actionLabel - Beschreibung der Aktion (für die Alert-Meldung).
+ * @returns `true` wenn der Nutzer Owner ist, sonst `false`.
+ */
 async function requireOwnerRole(roomId: string, actionLabel: string): Promise<boolean> {
   const userId = (await supabase?.auth.getUser())?.data?.user?.id;
   if (!userId) {
@@ -47,6 +68,10 @@ async function requireOwnerRole(roomId: string, actionLabel: string): Promise<bo
   return false;
 }
 
+/**
+ * Lädt alle Räume, auf die der aktuelle Nutzer Zugriff hat, inklusive seiner Rolle.
+ * @returns Array von {@link Room}-Objekten mit befülltem `role`-Feld.
+ */
 export async function fetchRooms(): Promise<Room[]> {
   if (!supabase) return [];
 
@@ -73,6 +98,11 @@ export async function fetchRooms(): Promise<Room[]> {
   }
 }
 
+/**
+ * Löscht einen Raum (nur für Owner). Schreibt einen Aktivitäts-Log-Eintrag.
+ * @param roomId - UUID des zu löschenden Raums.
+ * @returns `true` bei Erfolg, `false` bei fehlendem Owner-Recht oder DB-Fehler.
+ */
 export async function deleteRoomFromTable(roomId: string) : Promise<boolean> {
   if(!supabase) {
     console.error("Supabase client not initialized");
@@ -105,14 +135,20 @@ export async function deleteRoomFromTable(roomId: string) : Promise<boolean> {
   }
 
   return true;
-} 
+}
 
+/**
+ * Benennt einen Raum um (nur für Owner). Schreibt einen Aktivitäts-Log-Eintrag.
+ * @param roomId - UUID des Raums.
+ * @param newName - Neuer Anzeigename.
+ * @returns `true` bei Erfolg, `false` bei fehlendem Owner-Recht oder DB-Fehler.
+ */
 export async function updateRoomInTable(roomId: string, newName: string) : Promise<boolean> {
   if (!supabase) {
     console.error("Supabase client not initialized");
     return false;
   }
-  
+
   const userId = await getCurrentUserId();
 
   const canUpdate = await requireOwnerRole(roomId, "Raeume bearbeiten");
@@ -141,7 +177,12 @@ export async function updateRoomInTable(roomId: string, newName: string) : Promi
   return true;
 }
 
-// 1. In der addToRoomTable Funktion geben wir die ID zurück
+/**
+ * Erstellt einen neuen Raum und setzt den aktuellen Nutzer als Owner.
+ * Verwendet die Supabase-RPC `create_room_with_member`.
+ * @param roomName - Anzeigename des neuen Raums.
+ * @returns UUID des neu erstellten Raums oder `null` bei Fehler.
+ */
 export async function addToRoomTable(roomName: string) : Promise<string | null> {
   if (!supabase) return null;
 
@@ -165,11 +206,16 @@ export async function addToRoomTable(roomName: string) : Promise<string | null> 
       user_id: userId || undefined,
     });
   }
-  
-  return data; // Hier kommt die echte UUID von Supabase zurück!
+
+  return data;
 }
 
 
+/**
+ * Zählt die Geräte in einem bestimmten Raum.
+ * @param roomId - UUID des Raums.
+ * @returns Anzahl der Geräte oder `0` bei Fehler.
+ */
 export async function fetchNumberOfDevicesInRoom(roomId: string): Promise<number> {
 
   if (!supabase) return 0;

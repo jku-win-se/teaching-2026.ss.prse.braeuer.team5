@@ -2,6 +2,17 @@ import { useEffect, useState } from "react";
 import { supabase } from "../config/supabaseClient";
 import type { Session } from "@supabase/supabase-js";
 
+/**
+ * React-Hook für die Supabase-Authentifizierung.
+ *
+ * Abonniert Auth-Zustandsänderungen (Login, Logout, Token-Refresh) und
+ * räumt die Subscription beim Unmount automatisch auf.
+ * Liest beim initialen Mount die vorhandene Session aus.
+ *
+ * @returns
+ * - `session` – aktuelle Supabase-Session oder `null` wenn nicht eingeloggt
+ * - `loading` – `true` während des initialen Session-Checks
+ */
 export function useAuth(): { session: Session | null; loading: boolean } {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);

@@ -5,10 +5,21 @@ import type { Device, DeviceType, DeviceState } from "../types";
 import { fetchRoomRole } from "./roomService";
 import { ruleService } from "./ruleService";
 
+/**
+ * Gibt die UUID des aktuell authentifizierten Nutzers zurück.
+ * @returns Nutzer-UUID oder `null` wenn keine Session vorhanden ist.
+ */
 async function getCurrentUserId(): Promise<string | null> {
   return (await supabase?.auth.getUser())?.data?.user?.id ?? null;
 }
 
+/**
+ * Prüft, ob der aktuelle Nutzer Owner des Raums ist.
+ * Zeigt einen Alert an, wenn die Berechtigung fehlt.
+ * @param roomId - UUID des Raums.
+ * @param actionLabel - Aktionsbeschreibung für die Alert-Meldung.
+ * @returns `true` wenn Owner, sonst `false`.
+ */
 async function requireOwnerForRoom(roomId: string, actionLabel: string): Promise<boolean> {
   const userId = await getCurrentUserId();
   if (!userId) {
@@ -24,6 +35,11 @@ async function requireOwnerForRoom(roomId: string, actionLabel: string): Promise
   return false;
 }
 
+/**
+ * Gibt die `room_id` eines Geräts zurück.
+ * @param deviceId - UUID des Geräts.
+ * @returns UUID des Raums oder `null` bei Fehler.
+ */
 async function fetchDeviceRoomId(deviceId: string): Promise<string | null> {
   if (!supabase) {
     console.error("Supabase client not initialized");
@@ -44,6 +60,11 @@ async function fetchDeviceRoomId(deviceId: string): Promise<string | null> {
   return data?.room_id ?? null;
 }
 
+/**
+ * Lädt alle Geräte eines Raums aus der Datenbank.
+ * @param roomId - UUID des Raums.
+ * @returns Array von {@link Device}-Objekten oder leeres Array bei Fehler.
+ */
 export async function fetchDevices(roomId: string): Promise<Device[]> {
   if (!supabase) {
     console.error("Supabase client not initialized");
@@ -63,6 +84,17 @@ export async function fetchDevices(roomId: string): Promise<Device[]> {
   return data || [];
 }
 
+/**
+ * Erstellt ein neues Gerät in einem Raum (nur für Owner).
+ * Setzt gerätetyp-spezifische Standardzustände, wenn kein `initialState` angegeben wird.
+ * Schreibt einen Aktivitäts-Log-Eintrag.
+ * @param roomId - UUID des Raums.
+ * @param name - Anzeigename des Geräts.
+ * @param type - Gerätetyp (bestimmt den Initialzustand).
+ * @param energy_consumption - Leistungsaufnahme in Watt (optional).
+ * @param initialState - Überschreibt den gerätetyp-spezifischen Standardzustand.
+ * @returns Das erstellte {@link Device} oder `null` bei Fehler.
+ */
 export async function addDeviceToRoom(
   roomId: string,
   name: string,
@@ -88,23 +120,23 @@ export async function addDeviceToRoom(
   if (!finalState || Object.keys(finalState).length === 0) {
     switch (type) {
       case "Dimmer":
-        finalState = { 
+        finalState = {
           on: true,
           brightness: 50
         };
         break;
       case "Schalter":
-        finalState = { 
+        finalState = {
           on: false
         };
         break;
       case "Thermostat":
-        finalState = { 
+        finalState = {
           temperature: 21
         };
         break;
       case "Jalousie":
-        finalState = { 
+        finalState = {
           position: 'geschlossen'
         };
         break;
@@ -148,6 +180,12 @@ export async function addDeviceToRoom(
   return data;
 }
 
+/**
+ * Löscht ein Gerät (nur für Owner des zugehörigen Raums).
+ * Schreibt einen Aktivitäts-Log-Eintrag.
+ * @param deviceId - UUID des zu löschenden Geräts.
+ * @returns `true` bei Erfolg, `false` bei fehlendem Owner-Recht oder DB-Fehler.
+ */
 export async function deleteDevice(deviceId: string): Promise<boolean> {
   if (!supabase) {
     console.error("Supabase client not initialized");
@@ -188,6 +226,13 @@ export async function deleteDevice(deviceId: string): Promise<boolean> {
   return true;
 }
 
+/**
+ * Benennt ein Gerät um (nur für Owner des zugehörigen Raums).
+ * Schreibt einen Aktivitäts-Log-Eintrag.
+ * @param deviceId - UUID des Geräts.
+ * @param name - Neuer Anzeigename.
+ * @returns `true` bei Erfolg, `false` bei fehlendem Owner-Recht oder DB-Fehler.
+ */
 export async function updateDeviceName(
   deviceId: string,
   name: string
@@ -231,8 +276,16 @@ export async function updateDeviceName(
   return true;
 }
 
+/**
+ * Aktualisiert den Zustand eines Geräts in der Datenbank.
+ * Schreibt einen Aktivitäts-Log-Eintrag und löst anschließend asynchron
+ * die Regelprüfung via {@link ruleService.checkAndExecuteRulesForDevice} aus.
+ * @param deviceId - UUID des Geräts.
+ * @param newState - Vollständiger neuer Gerätezustand.
+ * @returns Das aktualisierte {@link Device} oder `null` bei Fehler.
+ */
 export const updateDeviceState = async (
-  deviceId: string, 
+  deviceId: string,
   newState: DeviceState
 ) => {
   if (!supabase) {
@@ -244,7 +297,7 @@ export const updateDeviceState = async (
 
   const { data, error } = await supabase
     .from('devices')
-    .update({ state: newState }) 
+    .update({ state: newState })
     .eq('id', deviceId)
     .select();
 

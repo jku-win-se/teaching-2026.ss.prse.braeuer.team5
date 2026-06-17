@@ -5,6 +5,24 @@ import { csvService } from '../services/csvService';
 
 type DeviceWithRoom = Device & { rooms?: { id: string; name: string } };
 
+/**
+ * React-Hook zum Laden und Aggregieren von Energieverbrauchsdaten.
+ *
+ * Lädt Gerätedaten und Energie-Verlaufslogs für den gewählten Zeitraum.
+ * Aggregiert die Logs in Zeitslots (Tag: 4-Stunden-Blöcke, Woche: Wochentage)
+ * via `useMemo`, um unnötige Neuberechnungen zu vermeiden.
+ *
+ * @param range - Zeitraum für Verlaufsdaten: `'day'` (24 Stunden) oder `'week'` (7 Tage).
+ * @returns
+ * - `totalLive` – Aktueller Gesamtverbrauch aktiver Geräte in Watt
+ * - `byRoom` – Verbrauch gruppiert nach Raumname (in Watt)
+ * - `historyChart` – Zeitreihendaten gesamt (`{ label, value }[]`)
+ * - `roomCharts` – Zeitreihendaten je Raum (`Record<string, { label, value }[]>`)
+ * - `deviceCharts` – Zeitreihendaten je Gerät (`Record<string, { label, value }[]>`)
+ * - `byDevice` – Geräteliste mit `isActive` und `consumption` (in Watt)
+ * - `loading` – `true` während des Ladevorgangs
+ * - `exportEnergyHistoryCSV` – Exportiert die Verlaufsdaten als CSV-Datei
+ */
 export const useEnergyData = (range: 'day' | 'week' = 'day') => {
   const [devices, setDevices] = useState<DeviceWithRoom[]>([]);
   const [history, setHistory] = useState<EnergyLog[]>([]);
@@ -136,20 +154,25 @@ export const useEnergyData = (range: 'day' | 'week' = 'day') => {
     };
   }, [devices, history, range]);
 
-const exportEnergyHistoryCSV = () => {
-  if (!history || history.length === 0) return alert("Keine Daten zum Exportieren vorhanden.");
+  /**
+   * Exportiert die geladenen Energie-Verlaufsdaten als CSV-Datei.
+   * Dateiname enthält den aktuellen `range`-Wert.
+   * Zeigt einen Alert an wenn keine Daten vorhanden sind.
+   */
+  const exportEnergyHistoryCSV = () => {
+    if (!history || history.length === 0) return alert("Keine Daten zum Exportieren vorhanden.");
 
-  const headers = ["Zeitstempel", "Gerät", "Raum", "Verbrauch (Watt)"];
-  
-  const rows = history.map(log => [
-    new Date(log.created_at).toLocaleString('de-DE'),
-    `"${log.devices?.name || 'Unbekannt'}"`,
-    `"${log.devices?.rooms?.name || 'Kein Raum'}"`,
-    log.consumption_watt || 0
-  ]);
+    const headers = ["Zeitstempel", "Gerät", "Raum", "Verbrauch (Watt)"];
 
-  csvService.exportToCSV(headers, rows, `energie_historie_${range}`);
-};
+    const rows = history.map(log => [
+      new Date(log.created_at).toLocaleString('de-DE'),
+      `"${log.devices?.name || 'Unbekannt'}"`,
+      `"${log.devices?.rooms?.name || 'Kein Raum'}"`,
+      log.consumption_watt || 0
+    ]);
+
+    csvService.exportToCSV(headers, rows, `energie_historie_${range}`);
+  };
 
   return { ...stats, loading, exportEnergyHistoryCSV };
 };

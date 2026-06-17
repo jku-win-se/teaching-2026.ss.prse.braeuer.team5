@@ -1,23 +1,88 @@
-# Automatisch generierte API-Dokumentation
+**team5-smart-home**
 
-Diese Dokumentation wird automatisch aus dem TypeScript-Code erzeugt und dient als React/TypeScript-Alternative zur klassischen Javadoc.
+***
 
-## Generierung
+# team5-smart-home
 
-- Lokal: `npm run docs:api`
-- Remote / CI: GitHub Actions erzeugt die Doku aus dem Remote-Repository
-- Die Ausgabe landet in `docs/api`
+## Modules
 
-## Remote-Generierung
-
-Die API-Dokumentation kann automatisch aus dem Remote-Repository erstellt werden, ohne dass das gesamte Repo lokal geklont werden muss. Ein GitHub Actions-Workflow (`.github/workflows/ci-api-docs.yaml`) führt über `npm ci` und `npm run docs:api` die Dokumentation remote aus.
-
-## Zweck
-
-- Dokumentation bleibt bei Codeänderungen aktuell
-- Beschreibt Komponenten, Hooks, Services und Typen
-- Erleichtert das Onboarding und die Wartung
-
-## Hinweis
-
-Der Inhalt in `docs/api` wird direkt aus dem Code generiert. Bei Änderungen in `src` musst du nur `npm run docs:api` erneut ausführen.
+- [\_\_tests\_\_/App.test](tests__/App.test/README.md)
+- [\_\_tests\_\_/conflictService.test](tests__/conflictService.test/README.md)
+- [\_\_tests\_\_/deviceService.test](tests__/deviceService.test/README.md)
+- [\_\_tests\_\_/energyService.test](tests__/energyService.test/README.md)
+- [\_\_tests\_\_/inviteFlow.test](tests__/inviteFlow.test/README.md)
+- [\_\_tests\_\_/logService.test](tests__/logService.test/README.md)
+- [\_\_tests\_\_/roleAccess.test](tests__/roleAccess.test/README.md)
+- [\_\_tests\_\_/roomService.test](tests__/roomService.test/README.md)
+- [\_\_tests\_\_/ruleService.test](tests__/ruleService.test/README.md)
+- [\_\_tests\_\_/scheduleService.test](tests__/scheduleService.test/README.md)
+- [\_\_tests\_\_/simulationService.test](tests__/simulationService.test/README.md)
+- [\_\_tests\_\_/useDevices.test](tests__/useDevices.test/README.md)
+- [\_\_tests\_\_/useEnergyData.test](tests__/useEnergyData.test/README.md)
+- [\_\_tests\_\_/useRooms.test](tests__/useRooms.test/README.md)
+- [\_\_tests\_\_/useRules.test](tests__/useRules.test/README.md)
+- [\_\_tests\_\_/useSchedules.test](tests__/useSchedules.test/README.md)
+- [App](App/README.md)
+- [components/device/DeviceCard](components/device/DeviceCard/README.md)
+- [components/device/DeviceTypeSidebar](components/device/DeviceTypeSidebar/README.md)
+- [components/device/ToggleSwitch](components/device/ToggleSwitch/README.md)
+- [components/modals/AddModalDevice](components/modals/AddModalDevice/README.md)
+- [components/modals/DeleteModal](components/modals/DeleteModal/README.md)
+- [components/mqtt/MqttSettings](components/mqtt/MqttSettings/README.md)
+- [components/rooms/RoomMembers](components/rooms/RoomMembers/README.md)
+- [components/rules/RuleActionOverlay](components/rules/RuleActionOverlay/README.md)
+- [components/rules/RuleFormModal](components/rules/RuleFormModal/README.md)
+- [components/rules/RuleList](components/rules/RuleList/README.md)
+- [components/rules/ruleUtils](components/rules/ruleUtils/README.md)
+- [components/scenes/Scenes](components/scenes/Scenes/README.md)
+- [components/schedule/Schedules](components/schedule/Schedules/README.md)
+- [components/settings/SettingsLayout](components/settings/SettingsLayout/README.md)
+- [components/sidebar/Sidebar](components/sidebar/Sidebar/README.md)
+- [components/simulation/SimulatorClock](components/simulation/SimulatorClock/README.md)
+- [components/simulation/SimulatorControls](components/simulation/SimulatorControls/README.md)
+- [components/simulation/SimulatorDeviceCard](components/simulation/SimulatorDeviceCard/README.md)
+- [components/simulation/SimulatorRoomGroup](components/simulation/SimulatorRoomGroup/README.md)
+- [components/vacation/VacationMode](components/vacation/VacationMode/README.md)
+- [config/supabaseClient](config/supabaseClient/README.md)
+- [customEvents/ruleNotifier](customEvents/ruleNotifier/README.md)
+- [hooks/useAuth](hooks/useAuth/README.md)
+- [hooks/useAutomation](hooks/useAutomation/README.md)
+- [hooks/useDeviceCount](hooks/useDeviceCount/README.md)
+- [hooks/useDevices](hooks/useDevices/README.md)
+- [hooks/useEnergyData](hooks/useEnergyData/README.md)
+- [hooks/useMqtt](hooks/useMqtt/README.md)
+- [hooks/useRoomRole](hooks/useRoomRole/README.md)
+- [hooks/useRooms](hooks/useRooms/README.md)
+- [hooks/useRules](hooks/useRules/README.md)
+- [hooks/useScenes](hooks/useScenes/README.md)
+- [hooks/useSchedules](hooks/useSchedules/README.md)
+- [hooks/useVacationMode](hooks/useVacationMode/README.md)
+- [main](main/README.md)
+- [pages/ActivityLog](pages/ActivityLog/README.md)
+- [pages/Dashboard](pages/Dashboard/README.md)
+- [pages/Devices](pages/Devices/README.md)
+- [pages/Login](pages/Login/README.md)
+- [pages/Notifications](pages/Notifications/README.md)
+- [pages/Register](pages/Register/README.md)
+- [pages/Rooms](pages/Rooms/README.md)
+- [pages/Rules](pages/Rules/README.md)
+- [pages/RulesPage](pages/RulesPage/README.md)
+- [pages/ScenesPage](pages/ScenesPage/README.md)
+- [pages/SchedulesPage](pages/SchedulesPage/README.md)
+- [pages/SettingsPage](pages/SettingsPage/README.md)
+- [pages/Simulator](pages/Simulator/README.md)
+- [pages/VacationModePage](pages/VacationModePage/README.md)
+- [services/conflictService](services/conflictService/README.md)
+- [services/csvService](services/csvService/README.md)
+- [services/deviceService](services/deviceService/README.md)
+- [services/energyService](services/energyService/README.md)
+- [services/inviteService](services/inviteService/README.md)
+- [services/logService](services/logService/README.md)
+- [services/mqttService](services/mqttService/README.md)
+- [services/roomService](services/roomService/README.md)
+- [services/ruleService](services/ruleService/README.md)
+- [services/sceneService](services/sceneService/README.md)
+- [services/scheduleService](services/scheduleService/README.md)
+- [services/simulationService](services/simulationService/README.md)
+- [services/vacationModeService](services/vacationModeService/README.md)
+- [types](types/README.md)

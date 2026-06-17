@@ -90,72 +90,30 @@ graph TD
 ```mermaid
 graph LR
     subgraph Frontend
-        Pages["Pages & Components\n(React)"]
+        UI["Pages & Components"]
 
-        subgraph Hooks
-            DataHooks["useAuth · useDevices · useRoomRole\nuseRooms · useRules · useSchedules\nuseScenes · useVacationMode"]
-            AutoHook["useAutomation\n(Interval + isMounted guard)"]
-            MqttHook["useMqtt\n(status · connect · disconnect)"]
+        subgraph Hooks["Hooks"]
+            H["useAuth · useDevices · useRooms\nuseRules · useSchedules · useScenes\nuseVacationMode · useEnergyData\nuseRoomRole · useAutomation"]
         end
 
-        subgraph Services
-            ScheduleSvc["scheduleService\n(CRUD + checkAndExecuteSchedules)"]
-            VacationSvc["vacationModeService\n(CRUD + checkAndExecuteVacationMode\n+ getActiveVacationRoomIds)"]
-            SceneSvc["sceneService\n(CRUD + activateScene)"]
-            RuleSvc["ruleService"]
-            DeviceSvc["deviceService"]
-            RoomSvc["roomService"]
-            LogSvc["logService\n(insert + fetch activity_logs)"]
-            EnergySvc["energyService"]
-            SimSvc["simulationService"]
-            ConflictSvc["conflictService\n(detectScheduleConflicts)"]
-            InviteSvc["inviteService"]
-            MqttSvc["mqttService\n(WebSocket · pub/sub · singleton)"]
+        subgraph Services["Services"]
+            S["roomService · deviceService · inviteService\nruleService · scheduleService · sceneService\nvacationModeService · logService\nenergyService · conflictService"]
         end
 
-        SupabaseClient["Supabase Client\n(Auth · DB · REST)"]
+        SC["Supabase Client"]
     end
 
     subgraph Backend["Backend (Supabase)"]
-        EdgeFns["Edge Functions\nroom-invites · create-room-with-member"]
-        DB[("PostgreSQL DB\n(RLS enabled)")]
-        MqttBroker["MQTT Broker\n(WebSocket)"]
+        EF["Edge Functions"]
+        DB[("PostgreSQL DB\n(RLS)")]
     end
 
-    Pages --> DataHooks
-    Pages --> MqttHook
-    DataHooks --> ScheduleSvc
-    DataHooks --> VacationSvc
-    DataHooks --> SceneSvc
-    DataHooks --> RuleSvc
-    DataHooks --> DeviceSvc
-    DataHooks --> RoomSvc
-    DataHooks --> EnergySvc
-    AutoHook --> VacationSvc
-    AutoHook --> ScheduleSvc
-    MqttHook --> MqttSvc
-    ScheduleSvc --> VacationSvc
-    ScheduleSvc --> LogSvc
-    VacationSvc --> SceneSvc
-    VacationSvc --> LogSvc
-    SceneSvc --> LogSvc
-    InviteSvc --> EdgeFns
-
-    ScheduleSvc --> SupabaseClient
-    VacationSvc --> SupabaseClient
-    SceneSvc --> SupabaseClient
-    RuleSvc --> SupabaseClient
-    DeviceSvc --> SupabaseClient
-    RoomSvc --> SupabaseClient
-    LogSvc --> SupabaseClient
-    EnergySvc --> SupabaseClient
-    SimSvc --> SupabaseClient
-    ConflictSvc --> ScheduleSvc
-
-    SupabaseClient <-->|"REST / RLS"| DB
-    EdgeFns -->|"service_role"| DB
-    MqttSvc <-->|"WebSocket ws://"| MqttBroker
-    MqttSvc --> DeviceSvc
+    UI --> H
+    H --> S
+    H --> SC
+    S --> SC
+    S --> EF
+    SC <-->|"REST / RLS"| DB
 ```
 
 ---

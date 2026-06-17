@@ -3,9 +3,15 @@ import { logAction } from "./logService";
 import { vacationModeService } from "./vacationModeService";
 import type { DeviceState, Schedule } from "../types";
 
+/**
+ * Erzeugt einen lesbaren Log-Text für einen ausgeführten Zeitplan.
+ * @param actionValue - Gerätezustand, der durch den Zeitplan gesetzt wurde.
+ * @param scheduleName - Name des Zeitplans.
+ * @returns Formatierter Beschreibungstext.
+ */
 const getLogValueText = (actionValue: DeviceState, scheduleName: string): string => {
   const parts: string[] = [];
-  
+
   if (actionValue.on !== undefined) {
     parts.push(actionValue.on ? 'EIN' : 'AUS');
   }
@@ -23,6 +29,13 @@ const getLogValueText = (actionValue: DeviceState, scheduleName: string): string
   return `Automatisch ${detail} durch "${scheduleName}"`;
 };
 
+/**
+ * Normalisiert einen Aktionszustand: Setzt `on: true` wenn relevante Felder
+ * (brightness, temperature, position, value) vorhanden sind, aber `on` fehlt.
+ * Setzt `on: false` wenn keine steuernden Felder vorhanden sind.
+ * @param actionValue - Ursprünglicher Aktionszustand.
+ * @returns Normalisierter Zustand mit gesetztem `on`-Feld.
+ */
 const normalizeActionValue = (actionValue?: DeviceState): DeviceState => {
   const normalized = { ...(actionValue ?? {}) };
 
@@ -42,7 +55,14 @@ const normalizeActionValue = (actionValue?: DeviceState): DeviceState => {
   return { ...normalized, on: false };
 };
 
+/** Service-Objekt für alle Zeitplan-Operationen (CRUD + Ausführung). */
 export const scheduleService = {
+
+  /**
+   * Lädt alle Zeitpläne inkl. Gerätedaten, aufsteigend nach Uhrzeit sortiert.
+   * Normalisiert `action_value` aller Einträge mit {@link normalizeActionValue}.
+   * @returns Array von {@link Schedule}-Objekten.
+   */
   async fetchAllSchedules() {
     if (!supabase) return [];
     const { data, error } = await supabase
@@ -58,7 +78,7 @@ export const scheduleService = {
         )
       `)
       .order('time', { ascending: true });
-    
+
     if (error) throw error;
 
     return (data || []).map((schedule) => ({
@@ -67,6 +87,12 @@ export const scheduleService = {
     }));
   },
 
+  /**
+   * Erstellt einen neuen Zeitplan. Normalisiert die Uhrzeit auf `HH:MM:SS`
+   * und den Aktionszustand mit {@link normalizeActionValue}.
+   * @param payload - Zeitplankonfiguration (Name, Raum, Gerät, Zeit, Tage, Aktion).
+   * @returns Die erstellten Datenbankzeilen oder `null`.
+   */
   async createSchedule(payload: Pick<Schedule, 'name' | 'room_id' | 'device_id' | 'time' | 'days' | 'action_value'>) {
     if (!supabase) return null;
     const formattedTime = payload.time.length === 5 ? `${payload.time}:00` : payload.time;
@@ -83,11 +109,16 @@ export const scheduleService = {
         action_value
       }])
       .select();
-    
+
     if (error) throw error;
     return data;
   },
 
+  /**
+   * Schaltet den Aktiv-Status eines Zeitplans um.
+   * @param id - UUID des Zeitplans.
+   * @param is_active - Neuer Aktiv-Status.
+   */
   async toggleSchedule(id: string, is_active: boolean) {
     if (!supabase) return;
     const { error } = await supabase
@@ -97,6 +128,12 @@ export const scheduleService = {
     if (error) throw error;
   },
 
+  /**
+   * Aktualisiert einen bestehenden Zeitplan.
+   * @param id - UUID des Zeitplans.
+   * @param payload - Neue Zeitplankonfiguration.
+   * @returns Die aktualisierten Datenbankzeilen oder `null`.
+   */
   async updateSchedule(id: string, payload: Pick<Schedule, 'name' | 'room_id' | 'device_id' | 'time' | 'days' | 'action_value'>) {
     if (!supabase) return null;
     const formattedTime = payload.time.length === 5 ? `${payload.time}:00` : payload.time;
@@ -119,6 +156,10 @@ export const scheduleService = {
     return data;
   },
 
+  /**
+   * Löscht einen Zeitplan unwiderruflich.
+   * @param id - UUID des Zeitplans.
+   */
   async deleteSchedule(id: string) {
     if (!supabase) return;
     const { error } = await supabase
@@ -129,6 +170,14 @@ export const scheduleService = {
     if (error) throw error;
   },
 
+  /**
+   * Prüft alle aktiven Zeitpläne gegen die aktuelle Uhrzeit und den aktuellen Wochentag
+   * und führt fällige Zeitpläne aus. Überspringt Räume, für die ein aktiver
+   * Urlaubsmodus gilt (via {@link vacationModeService.getActiveVacationRoomIds}).
+   *
+   * Wird von {@link useAutomation} jede Minute aufgerufen.
+   * Schreibt nach jeder Ausführung einen Aktivitäts-Log-Eintrag.
+   */
   async checkAndExecuteSchedules() {
     if (!supabase) return;
     const now = new Date();

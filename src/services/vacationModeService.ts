@@ -3,11 +3,23 @@ import { logAction } from "./logService";
 import { sceneService } from "./sceneService";
 import type { VacationMode, Scene } from "../types";
 
+/**
+ * Formatiert ein Date-Objekt als `YYYY-MM-DD` String.
+ * @param d - Das zu formatierende Datum.
+ * @returns ISO-Datumsstring ohne Uhrzeit.
+ */
 function toDateString(d: Date): string {
   return d.toISOString().split("T")[0];
 }
 
+/** Service-Objekt für alle Urlaubsmodus-Operationen (CRUD + automatische Ausführung). */
 export const vacationModeService = {
+
+  /**
+   * Lädt alle Urlaubsmodus-Einträge inkl. verknüpfter Szenen und Räume,
+   * aufsteigend nach Startdatum sortiert.
+   * @returns Array von {@link VacationMode}-Objekten.
+   */
   async fetchAll(): Promise<VacationMode[]> {
     if (!supabase) return [];
     const { data, error } = await supabase
@@ -18,6 +30,11 @@ export const vacationModeService = {
     return (data as VacationMode[]) || [];
   },
 
+  /**
+   * Erstellt einen neuen Urlaubsmodus-Eintrag. Startet sofort aktiviert.
+   * @param payload - Name, Szenen-UUID, Start-/Enddatum und tägliche Aktivierungszeit.
+   * @returns Die erstellten Datenbankzeilen oder `null`.
+   */
   async create(payload: Pick<VacationMode, "name" | "scene_id" | "start_date" | "end_date" | "daily_time">) {
     if (!supabase) return null;
     const { data, error } = await supabase
@@ -28,6 +45,12 @@ export const vacationModeService = {
     return data;
   },
 
+  /**
+   * Aktualisiert einen bestehenden Urlaubsmodus-Eintrag.
+   * @param id - UUID des Eintrags.
+   * @param payload - Neue Konfiguration.
+   * @returns Die aktualisierten Datenbankzeilen oder `null`.
+   */
   async update(id: string, payload: Pick<VacationMode, "name" | "scene_id" | "start_date" | "end_date" | "daily_time">) {
     if (!supabase) return null;
     const { data, error } = await supabase
@@ -39,6 +62,12 @@ export const vacationModeService = {
     return data;
   },
 
+  /**
+   * Ordnet Räume einem Urlaubsmodus zu (ersetzt bestehende Zuordnungen).
+   * Setzt `vacation_mode_id` in der `rooms`-Tabelle direkt.
+   * @param vacationModeId - UUID des Urlaubsmodus.
+   * @param roomIds - Array von Raum-UUIDs, die zugeordnet werden sollen.
+   */
   async assignRooms(vacationModeId: string, roomIds: string[]) {
     if (!supabase) return;
     // Unassign rooms currently linked to this vacation mode
@@ -55,6 +84,11 @@ export const vacationModeService = {
     }
   },
 
+  /**
+   * Schaltet den Aktiv-Status eines Urlaubsmodus um.
+   * @param id - UUID des Eintrags.
+   * @param is_active - Neuer Aktiv-Status.
+   */
   async toggle(id: string, is_active: boolean) {
     if (!supabase) return;
     const { error } = await supabase
@@ -64,13 +98,23 @@ export const vacationModeService = {
     if (error) throw error;
   },
 
+  /**
+   * Löscht einen Urlaubsmodus-Eintrag. Raum-Verknüpfungen werden durch
+   * die DB-Constraint `ON DELETE SET NULL` automatisch aufgelöst.
+   * @param id - UUID des Eintrags.
+   */
   async delete(id: string) {
     if (!supabase) return;
-    // ON DELETE SET NULL handles rooms automatically
     const { error } = await supabase.from("vacation_mode").delete().eq("id", id);
     if (error) throw error;
   },
 
+  /**
+   * Gibt alle Raum-UUIDs zurück, für die heute ein aktiver Urlaubsmodus gilt.
+   * Wird von {@link scheduleService.checkAndExecuteSchedules} verwendet,
+   * um Zeitpläne in Urlaubsräumen zu überspringen.
+   * @returns Set mit Raum-UUIDs.
+   */
   async getActiveVacationRoomIds(): Promise<Set<string>> {
     if (!supabase) return new Set();
     const today = toDateString(new Date());
@@ -85,6 +129,14 @@ export const vacationModeService = {
     return new Set(roomIds);
   },
 
+  /**
+   * Prüft alle aktiven Urlaubsmodi gegen die aktuelle Uhrzeit und aktiviert
+   * bei Übereinstimmung die verknüpfte Szene via {@link sceneService.activateScene}.
+   *
+   * Deaktiviert automatisch alle Einträge, deren `end_date` in der Vergangenheit liegt.
+   * Wird von {@link useAutomation} jede Minute aufgerufen.
+   * Schreibt für jeden betroffenen Raum einen Aktivitäts-Log-Eintrag.
+   */
   async checkAndExecuteVacationMode() {
     if (!supabase) return;
 

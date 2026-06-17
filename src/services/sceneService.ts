@@ -2,7 +2,13 @@ import { supabase } from "../config/supabaseClient";
 import { logAction } from "./logService";
 import type { Scene, SceneDeviceEntry } from "../types";
 
+/** Service-Objekt für alle Szenen-Operationen (CRUD + Aktivierung). */
 export const sceneService = {
+
+  /**
+   * Lädt alle Szenen inkl. Raumzuordnungen, absteigend nach Erstellungsdatum.
+   * @returns Array von {@link Scene}-Objekten mit befülltem `scene_rooms`.
+   */
   async fetchAllScenes(): Promise<Scene[]> {
     if (!supabase) return [];
     const { data, error } = await supabase
@@ -13,6 +19,11 @@ export const sceneService = {
     return (data as Scene[]) || [];
   },
 
+  /**
+   * Erstellt eine neue Szene.
+   * @param payload - Name, optionale Beschreibung und Liste der {@link SceneDeviceEntry}-Einträge.
+   * @returns Die erstellte {@link Scene} oder `null` bei Fehler.
+   */
   async createScene(payload: Pick<Scene, "name" | "description" | "device_states">): Promise<Scene | null> {
     if (!supabase) return null;
     const { data, error } = await supabase
@@ -28,6 +39,12 @@ export const sceneService = {
     return data;
   },
 
+  /**
+   * Aktualisiert eine bestehende Szene.
+   * @param id - UUID der Szene.
+   * @param payload - Neue Konfiguration (Name, Beschreibung, Gerätezustände).
+   * @returns Die aktualisierte Szene.
+   */
   async updateScene(id: string, payload: Pick<Scene, "name" | "description" | "device_states">) {
     if (!supabase) return null;
     const { data, error } = await supabase
@@ -44,6 +61,12 @@ export const sceneService = {
     return data;
   },
 
+  /**
+   * Ordnet Räume einer Szene zu (ersetzt bestehende Zuordnungen).
+   * Verwendet die Supabase-RPC `assign_scene_rooms`.
+   * @param sceneId - UUID der Szene.
+   * @param roomIds - Array von Raum-UUIDs, die der Szene zugeordnet werden sollen.
+   */
   async assignRooms(sceneId: string, roomIds: string[]) {
     if (!supabase) return;
     const { error } = await supabase.rpc("assign_scene_rooms", {
@@ -53,12 +76,23 @@ export const sceneService = {
     if (error) throw error;
   },
 
+  /**
+   * Löscht eine Szene unwiderruflich.
+   * @param id - UUID der Szene.
+   */
   async deleteScene(id: string) {
     if (!supabase) return;
     const { error } = await supabase.from("scenes").delete().eq("id", id);
     if (error) throw error;
   },
 
+  /**
+   * Aktiviert eine Szene: Setzt den Zielzustand für jedes Gerät in `device_states`.
+   * Schreibt einen Aktivitäts-Log-Eintrag für den primären Raum der Szene.
+   * @param scene - Die zu aktivierende Szene (inkl. `device_states` und `scene_rooms`).
+   * @returns `{ ok: true, errors: [] }` bei vollständigem Erfolg,
+   *          `{ ok: false, errors: [...] }` wenn mindestens ein Gerät-Update fehlschlug.
+   */
   async activateScene(scene: Scene): Promise<{ ok: boolean; errors: string[] }> {
     if (!supabase) return { ok: false, errors: ["Supabase nicht konfiguriert"] };
     const userId = (await supabase.auth.getUser())?.data?.user?.id ?? undefined;
