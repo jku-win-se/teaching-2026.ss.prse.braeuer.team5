@@ -1,17 +1,26 @@
 import type { DeviceState, Rule, RuleCondition, Schedule, Conflict } from '../types';
 
+/**
+ * Prüft, ob zwei {@link DeviceState}-Objekte widersprüchliche Felder enthalten.
+ * Ein Widerspruch liegt vor, wenn beide denselben Feldnamen belegen,
+ * aber unterschiedliche Werte setzen.
+ * @param a - Erster Zustand.
+ * @param b - Zweiter Zustand.
+ * @returns `true` wenn mindestens ein Feld widersprüchlich ist.
+ */
 function statesConflict(a: DeviceState, b: DeviceState): boolean {
   const fields: (keyof DeviceState)[] = ['on', 'brightness', 'temperature', 'value', 'position'];
-  
+
   for (const field of fields) {
     const valA = a[field];
-    const valB = b[field];  
+    const valB = b[field];
     if (valA !== undefined && valB !== undefined && valA !== valB) {
       return true;
-    } 
+    }
   }
   return false;
 }
+
 /**
  * Numerisches Intervall mit offenen/geschlossenen Grenzen.
  * min/max = ±Infinity bedeutet „unbegrenzt".
@@ -23,6 +32,11 @@ interface Interval {
   maxInclusive: boolean;
 }
 
+/**
+ * Konvertiert eine {@link RuleCondition} in ein numerisches {@link Interval}.
+ * @param cond - Die zu konvertierende Bedingung (muss numerischen Wert haben).
+ * @returns Intervall oder `null` wenn keine Konvertierung möglich ist.
+ */
 function conditionToInterval(cond: RuleCondition): Interval | null {
   if (typeof cond.value !== 'number') return null;
   const v = cond.value;
@@ -51,20 +65,18 @@ function intervalsOverlap(a: Interval, b: Interval): boolean {
 
 /**
  * Können zwei Bedingungen gleichzeitig wahr sein?
+ * Für numerische Bedingungen: Intervall-Überschneidung.
+ * Für boolesche/String-Bedingungen: Wertvergleich.
+ * @param a - Erste Bedingung.
+ * @param b - Zweite Bedingung.
+ * @returns `true` wenn beide Bedingungen gleichzeitig erfüllt sein können.
  */
 function conditionsCanCoincide(a: RuleCondition, b: RuleCondition): boolean {
-  // Numerische Bedingungen → Intervall-Vergleich
-  
   if (a.field !== b.field) return false;
-
 
   if (typeof a.value === 'number' && typeof b.value === 'number') {
     if (a.operator === '!=' && b.operator === '!=') return true;
-    
 
-    // Beispiel
-    // x != 5
-    //x == 7 -> nein können nicht gleichzeitig wahr sein
     if (a.operator === '!=' && b.operator === '==') {
       return a.value !== b.value;
     }
@@ -84,6 +96,15 @@ function conditionsCanCoincide(a: RuleCondition, b: RuleCondition): boolean {
   return true;
 }
 
+/**
+ * Prüft, ob zwei Regel-Trigger (Auslöser-Gerät + Bedingung) gleichzeitig ausgelöst
+ * werden können, indem Gerät und Bedingung verglichen werden.
+ * @param aDeviceId - Auslöser-Gerät der ersten Regel.
+ * @param aCond - Bedingung der ersten Regel.
+ * @param bDeviceId - Auslöser-Gerät der zweiten Regel.
+ * @param bCond - Bedingung der zweiten Regel.
+ * @returns `true` wenn beide gleichzeitig ausgelöst werden können.
+ */
 function triggersCanCoincide(
   aDeviceId: string,
   aCond: RuleCondition,
@@ -92,10 +113,26 @@ function triggersCanCoincide(
 ): boolean {
   if (aDeviceId !== bDeviceId) {
     return false;
-  } 
+  }
   return conditionsCanCoincide(aCond, bCond);
 }
 
+/**
+ * Erkennt Konflikte zwischen einer neuen Regel und bestehenden Regeln/Zeitplänen.
+ *
+ * Ein Konflikt (Typ `rule-rule`) liegt vor, wenn:
+ * - beide Regeln dasselbe Zielgerät steuern,
+ * - ihre Trigger gleichzeitig ausgelöst werden können,
+ * - und die Zielzustände widersprüchlich sind.
+ *
+ * Ein Konflikt (Typ `rule-schedule`) liegt vor, wenn:
+ * - ein Zeitplan dasselbe Zielgerät mit widersprüchlichem Zustand steuert.
+ *
+ * @param candidate - Die zu prüfende (neue oder bearbeitete) Regel.
+ * @param existingRules - Alle vorhandenen Regeln (wird nach `id` des Kandidaten gefiltert).
+ * @param schedules - Alle vorhandenen Zeitpläne.
+ * @returns Array von {@link Conflict}-Objekten (leer = kein Konflikt).
+ */
 export function detectRuleConflicts(
   candidate: {
     id?: string;
@@ -114,8 +151,8 @@ export function detectRuleConflicts(
     if (rule.id === candidate.id) continue;
     if (!rule.is_active) continue;
 
-    console.log(`Prüfe Regel „${rule.name}“ gegen Kandidat: Bedingung ${rule.action.device_id === targetDeviceId}
-      triggersCanCoincide ${triggersCanCoincide(rule.device_id, rule.condition, candidate.device_id, candidate.condition)} 
+    console.log(`Prüfe Regel „${rule.name}" gegen Kandidat: Bedingung ${rule.action.device_id === targetDeviceId}
+      triggersCanCoincide ${triggersCanCoincide(rule.device_id, rule.condition, candidate.device_id, candidate.condition)}
       statesConflict ${statesConflict(rule.action.state, candidate.action.state)}`);
 
     if (
@@ -148,6 +185,21 @@ export function detectRuleConflicts(
   return conflicts;
 }
 
+/**
+ * Erkennt Konflikte zwischen einem neuen Zeitplan und bestehenden Zeitplänen/Regeln.
+ *
+ * Ein Konflikt (Typ `schedule-schedule`) liegt vor, wenn:
+ * - zwei Zeitpläne dasselbe Gerät zur selben Zeit an denselben Tagen steuern,
+ * - und die Zielzustände widersprüchlich sind.
+ *
+ * Ein Konflikt (Typ `rule-schedule`) liegt vor, wenn:
+ * - eine Regel dasselbe Zielgerät mit widersprüchlichem Zustand steuert.
+ *
+ * @param candidate - Der zu prüfende (neue oder bearbeitete) Zeitplan.
+ * @param existingSchedules - Alle vorhandenen Zeitpläne (wird nach `id` gefiltert).
+ * @param rules - Alle vorhandenen Regeln.
+ * @returns Array von {@link Conflict}-Objekten (leer = kein Konflikt).
+ */
 export function detectScheduleConflicts(
   candidate: {
     id?: string;

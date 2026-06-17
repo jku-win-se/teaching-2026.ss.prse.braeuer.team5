@@ -2,8 +2,19 @@ import { useEffect } from "react";
 import { scheduleService } from "../services/scheduleService";
 import { vacationModeService } from "../services/vacationModeService";
 
-// Läuft jede Minute und führt zentrale Automations-Aufgaben aus:
-// Urlaubsmodus + Zeitpläne. Dadurch braucht es nur noch einen Hook.
+/**
+ * React-Hook für die zentrale Automatisierungsschleife.
+ *
+ * Läuft jede Minute via `setInterval` und führt nacheinander aus:
+ * 1. {@link vacationModeService.checkAndExecuteVacationMode} – Urlaubsmodus prüfen
+ * 2. {@link scheduleService.checkAndExecuteSchedules} – Zeitpläne prüfen
+ *
+ * Startet sofort nach dem ersten Render (ohne initialen Delay) und
+ * bereinigt Timer beim Unmount oder bei Session-Verlust.
+ *
+ * @param session - Aktuelle Supabase-Session (aus {@link useAuth}).
+ *                  Der Hook ist inaktiv wenn `session` falsy ist.
+ */
 export function useAutomation(session: unknown) {
   useEffect(() => {
     if (!session) {
