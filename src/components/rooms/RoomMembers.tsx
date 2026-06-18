@@ -50,7 +50,7 @@ export function RoomMembers({ roomId, role, canManage }: RoomMembersProps) {
     void loadMembers();
   }, [loadMembers]);
 
-  const handleInviteMember = async (event: React.FormEvent) => {
+  const handleInviteMember = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!roomId || !memberEmail.trim()) return;
 

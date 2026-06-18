@@ -7,7 +7,7 @@ const inviteFunctionBaseUrl = `${supabaseUrl}/functions/v1/room-invites`;
 
 /**
  * Gibt die Rolle des aktuellen Nutzers in einem Raum zurück.
- * Liest aus der View `room_permissions`.
+ * Liest aus der View `room_members`.
  * @param roomId - UUID des Raums.
  * @returns Rollenstring oder `null`.
  */
@@ -17,7 +17,7 @@ async function fetchRoomRole(roomId: string): Promise<string | null> {
   if (!user) return null;
 
   const { data } = await supabase
-    .from('room_permissions')
+    .from('room_members')
     .select('role')
     .eq('room_id', roomId)
     .eq('user_id', user.id)
