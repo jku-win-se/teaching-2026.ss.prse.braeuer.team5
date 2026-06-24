@@ -2,6 +2,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useDevices } from "../hooks/useDevices";
 
+const mockChannel = {
+  on: vi.fn().mockReturnThis(),
+  subscribe: vi.fn().mockReturnThis(),
+};
+
+vi.mock("../config/supabaseClient", () => ({
+  isSupabaseConfigured: true,
+  supabase: {
+    channel: vi.fn(() => mockChannel),
+    removeChannel: vi.fn(),
+  },
+}));
+
 vi.mock("../services/deviceService", () => ({
   fetchDevices: vi.fn(),
   addDeviceToRoom: vi.fn(),
